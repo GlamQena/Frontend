@@ -24,7 +24,8 @@ const ForgotPassword = () => {
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);
 
-  const sendVerification = () => {
+  const sendVerification = (e) => {
+    e.preventDefault();
     setStep(2);
     setTimerActive(true);
     setTimeLeft(12);
@@ -75,7 +76,8 @@ const ForgotPassword = () => {
   };
 
   // التحقق من الرمز
-  const verifyCode = () => {
+  const verifyCode = (e) => {
+    e.preventDefault();
     if (code.some(digit => digit === '')) {
       alert('الرجاء إدخال رمز التحقق كاملاً');
       return;
@@ -85,7 +87,8 @@ const ForgotPassword = () => {
   };
 
   // تغيير كلمة المرور
-  const resetPassword = () => {
+  const resetPassword = (e) => {
+    e.preventDefault();
     if (password.length < 6) {
       alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
       return;
@@ -105,8 +108,8 @@ const ForgotPassword = () => {
       </div>
 
       <div className="content">
-        {/*  نسيت كلمة المرور */}
-        <div className={`step ${step === 1 ? 'active' : ''}`}>
+        {/*form 1 */}
+        <form className={`step ${step === 1 ? 'active' : ''}`} onSubmit={sendVerification}>
           <p className="step-description">أدخل بريدك الإلكتروني لإرسال رمز التحقق</p>
           
           <div className="input-group">
@@ -117,10 +120,10 @@ const ForgotPassword = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="example@domain.com"
             />
-            <div className="email-example">مثال: @example.com</div>
+            <div className="email-example">@example.com</div>
           </div>
 
-          <button className="btn-primary" onClick={sendVerification}>
+          <button type="submit" className="btn-primary">
             إرسال رمز التحقق ←
           </button>
 
@@ -129,11 +132,11 @@ const ForgotPassword = () => {
             <span className="separator">|</span>
             <a href="#">تسجيل دخول</a>
           </div>
-        </div>
+        </form>
 
-        {/*  أدخل رمز التحقق */}
-        <div className={`step ${step === 2 ? 'active' : ''}`}>
-          <button className="back-btn" onClick={goToPage1}>
+        {/*  form 2 */}
+        <form className={`step ${step === 2 ? 'active' : ''}`} onSubmit={verifyCode}>
+          <button type="button" className="back-btn" onClick={goToPage1}>
             <span>→</span> رجوع
           </button>
 
@@ -165,19 +168,19 @@ const ForgotPassword = () => {
             </div>
           </div>
 
-          <button className="btn-primary" onClick={verifyCode}>
-            تأكيد كلمة المرور
+          <button type="submit" className="btn-primary">
+            تأكيد الرمز 
           </button>
-        </div>
+        </form>
 
-        {/*   تعيين كلمة مرور جديدة */}
-        <div className={`step ${step === 3 ? 'active' : ''}`}>
-          <button className="back-btn" onClick={goToPage2}>
+        {/*   form  3 */}
+        <form className={`step ${step === 3 ? 'active' : ''}`} onSubmit={resetPassword}>
+          <button type="button" className="back-btn" onClick={goToPage2}>
             <span>→</span> رجوع
           </button>
 
           <p className="step-description">تعيين كلمة مرور جديدة</p>
-          <p style={{ color: '#4a5568', marginBottom: '20px' }}>أدخل كلمة المرور الجديدة</p>
+          <p style={{ color: 'var(--نص-ثانوي)', marginBottom: '20px' }}>أدخل كلمة المرور الجديدة</p>
 
           <div className="password-field">
             <label>كلمة المرور الجديدة *</label>
@@ -199,10 +202,10 @@ const ForgotPassword = () => {
             />
           </div>
 
-          <button className="btn-primary" onClick={resetPassword}>
+          <button type="submit" className="btn-primary">
             تأكيد وتغيير كلمة المرور
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );
