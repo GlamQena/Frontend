@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ResetPassword.css';
 
-const ResetPassword = () => {
+const ResetPassword = (isDark) => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('user@example.com');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [timeLeft, setTimeLeft] = useState(12);
+  const [timeLeft, setTimeLeft] = useState(60);
   const [timerActive, setTimerActive] = useState(false);
-  const [submitMessage, setSubmitMessage]= useState({success: false, message: ""});
-  
+  const [submitMessage, setSubmitMessage]= useState({form: "", success: false, message: ""});
+  const navigate= useNavigate();
   const inputRefs = useRef([]);
 
   useEffect(() => {
@@ -25,12 +26,11 @@ const ResetPassword = () => {
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);
 
-  const sendVerification = async () => {
-    setStep(2);
-    setTimerActive(true);
-    setTimeLeft(12);
+  const sendVerification = async (e) => {
+    e.preventDefault();
+
     try{
-      const response= await fetch("http://127.0.0.1:8080/password/send-otp", 
+      const response= await fetch("http://127.0.0.1:8080/auth/password/send-otp", 
         {method: "POST", headers:{"Content-Type": "application/json"}, 
         body: JSON.stringify({"email": email})});
 
@@ -38,20 +38,32 @@ const ResetPassword = () => {
       console.log("send otp data-> ", data);
 
       if(!response.ok)
-        return submitMessageSetter(false, data.message);
+        return submitMessageSetter("send-otp", false, data.message);
+      
+      setTimerActive(true);
+      setTimeLeft(60);
 
-      submitMessageSetter(true, data.message);
+      submitMessageSetter("send-otp", true, data.message); //has a delay
+      setStep(2);
     }catch(error){
-        submitMessageSetter(false, error.message);
+        submitMessageSetter("send-otp", false, error.message);
     }
   };
 
-  function submitMessageSetter(success, message){
-    setSubmitMessage({success, message});
-      setTimeout(()=>{
+  function submitMessageSetter(form, success, message){
+    setSubmitMessage({form, success, message});
+  }
+
+  useEffect(()=>{
+    if(submitMessage.message){
+      const timer= setTimeout(()=>{
         setSubmitMessage({success: false, message: ""});
       }, 7000);
+
+      return ()=>{clearTimeout(timer);} //executed when the component will unmount
+    }
   }
+  , [submitMessage.message]);
 
   const goToPage1 = () => {
     setStep(1);
@@ -62,6 +74,15 @@ const ResetPassword = () => {
   const goToPage2 = () => {
     setStep(2);
   };
+
+  const timerFormatter= ()=> {
+    if(timeLeft==60)
+      return "01:00"
+    else if(timeLeft<10)
+      return `00:0${timeLeft}`;
+    else
+      return `00:${timeLeft}`;
+  }
 
   const handleCodeChange = (index, value) => {
     if (value.length > 1) return;
@@ -84,52 +105,106 @@ const ResetPassword = () => {
   };
 
   // إعادة إرسال الرمز
-  const resendCode = (e) => {
+  const resendCode = async (e) => {
     e.preventDefault();
     if (timeLeft > 0) {
       alert('الرجاء الانتظار حتى انتهاء الوقت');
       return;
     }
-    alert('تم إرسال رمز جديد');
-    setTimerActive(true);
-    setTimeLeft(12);
-    setCode(['', '', '', '', '', '']);
-    inputRefs.current[0].focus();
+    
+    try{
+      const response= await fetch("http://127.0.0.1:8080/auth/password/send-otp", 
+        {method: "POST", headers:{"Content-Type": "application/json"}, 
+        body: JSON.stringify({"email": email})});
+
+      const data= await response.json();
+      console.log("send otp data-> ", data);
+
+      if(!response.ok)
+        return submitMessageSetter(false, data.message);
+      
+      alert('تم إرسال رمز جديد');
+      setTimerActive(true);
+      setTimeLeft(60);
+      setCode(['', '', '', '', '', '']);
+      inputRefs.current[0].focus();
+
+      submitMessageSetter(true, data.message); //has a delay
+    }catch(error){
+        submitMessageSetter(false, error.message);
+    }
   };
 
   // التحقق من الرمز
-  const verifyCode = () => {
+  const verifyCode = async (e) => {
+    e.preventDefault();
     if (code.some(digit => digit === '')) {
       alert('الرجاء إدخال رمز التحقق كاملاً');
       return;
     }
-    alert('✅ تم التحقق بنجاح');
-    setStep(3);
+    // alert('✅ تم التحقق بنجاح');
+
+    try{
+      console.log("otp to be send-> ", code.join(""));
+
+      const response= await fetch("http://127.0.0.1:8080/auth/password/verify-otp", 
+        {method: "POST", headers:{"Content-Type": "application/json"}, 
+        body: JSON.stringify({"email": email, "otp": code.join("")})});
+
+      const data= await response.json();
+      console.log("verify otp data-> ", data);
+
+      if(!response.ok)
+        return submitMessageSetter("verify-otp", false, data.message);
+
+      submitMessageSetter("verify-otp", true, data.message); 
+      setStep(3);
+    }catch(error){
+        submitMessageSetter("verify-otp", false, error.message);
+    }
   };
 
   // تغيير كلمة المرور
-  const resetPassword = () => {
-    if (password.length < 6) {
-      alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+  const resetPassword = async (e) => {
+    e.preventDefault();
+    if (password.length < 8) {
+      alert('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
       return;
     }
     if (password !== confirmPassword) {
       alert('كلمتا المرور غير متطابقتين');
       return;
     }
-    alert('✅ تم تغيير كلمة المرور بنجاح');
+
+    try{
+      const response= await fetch("http://127.0.0.1:8080/auth/password/reset", 
+        {method: "POST", headers:{"Content-Type": "application/json"}, 
+        body: JSON.stringify({"email": email, "newPassword": password, "confirmPassword": confirmPassword})});
+
+      const data= await response.json();
+      console.log("reset password data-> ", data);
+
+      if(!response.ok)
+        return submitMessageSetter("reset-password", false, data.message);
+
+      submitMessageSetter("reset-password", true, data.message); 
+      alert('✅ تم تغيير كلمة المرور بنجاح');
+      navigate("/login");
+    }catch(error){
+        submitMessageSetter("reset-password", false, error.message);
+    }
   };
 
   return (
-    <div className="container">
+    <div className={`container ${isDark? "dark-mode" : "light-mode"}`}>
       <div className="header">
         <h1>نسيت كلمة المرور</h1>
         <p>استعادة حسابك بسهولة وأمان</p>
       </div>
 
       <div className="content">
-        {/*  نسيت كلمة المرور */}
-        <div className={`step ${step === 1 ? 'active' : ''}`}>
+        {/*form 1 */}
+        <form className={`step ${step === 1 ? 'active' : ''}`} onSubmit={sendVerification}>
           <p className="step-description">أدخل بريدك الإلكتروني لإرسال رمز التحقق</p>
           
           <div className="input-group">
@@ -140,32 +215,31 @@ const ResetPassword = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="example@domain.com"
             />
-            <div className="email-example">مثال: @example.com</div>
+            <div className="email-example">@example.com</div>
           </div>
 
-          <button className="btn-primary" onClick={sendVerification}>
+          <button type="submit" className="btn-primary">
             إرسال رمز التحقق ←
           </button>
 
           <div className="links">
-            <a href="#">تذكر كلمة المرور؟</a>
+            <p>تذكر كلمة المرور؟</p>
             <span className="separator">|</span>
-            <a href="#">تسجيل دخول</a>
+            <a href="/login">تسجيل دخول</a>
           </div>
+          {submitMessage.form==="send-otp" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
+        </form>
 
-          <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>
-        </div>
-
-        {/*  أدخل رمز التحقق */}
-        <div className={`step ${step === 2 ? 'active' : ''}`}>
-          <button className="back-btn" onClick={goToPage1}>
+        {/*  form 2 */}
+        <form className={`step ${step === 2 ? 'active' : ''}`} onSubmit={verifyCode}>
+          <button type="button" className="back-btn" onClick={goToPage1}>
             <span>→</span> رجوع
           </button>
 
           <div className="verification-info">
             <p>تم إرسال رمز التحقق إلى</p>
             <div className="email-highlight">{email}</div>
-            <div className="timer">{timeLeft}/12</div>
+            <div className="timer">{timerFormatter()}</div>
             <div className="resend">
               <span>لم تستلم الرمز؟</span>
               <a href="#" onClick={resendCode}>إعادة إرسال</a>
@@ -190,19 +264,20 @@ const ResetPassword = () => {
             </div>
           </div>
 
-          <button className="btn-primary" onClick={verifyCode}>
-            تأكيد كلمة المرور
+          <button type="submit" className="btn-primary">
+            تأكيد الرمز 
           </button>
-        </div>
+          {submitMessage.form==="verify-otp" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
+        </form>
 
-        {/*   تعيين كلمة مرور جديدة */}
-        <div className={`step ${step === 3 ? 'active' : ''}`}>
-          <button className="back-btn" onClick={goToPage2}>
+        {/*   form  3 */}
+        <form className={`step ${step === 3 ? 'active' : ''}`} onSubmit={resetPassword}>
+          <button type="button" className="back-btn" onClick={goToPage2}>
             <span>→</span> رجوع
           </button>
 
           <p className="step-description">تعيين كلمة مرور جديدة</p>
-          <p style={{ color: '#4a5568', marginBottom: '20px' }}>أدخل كلمة المرور الجديدة</p>
+          <p style={{ color: 'var(--نص-ثانوي)', marginBottom: '20px' }}>أدخل كلمة المرور الجديدة</p>
 
           <div className="password-field">
             <label>كلمة المرور الجديدة *</label>
@@ -224,10 +299,11 @@ const ResetPassword = () => {
             />
           </div>
 
-          <button className="btn-primary" onClick={resetPassword}>
+          <button type="submit" className="btn-primary">
             تأكيد وتغيير كلمة المرور
           </button>
-        </div>
+          {submitMessage.form==="reset-password" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
+        </form>
       </div>
     </div>
   );
