@@ -4,13 +4,13 @@ import './ResetPassword.css';
 
 const ResetPassword = (isDark) => {
   const [step, setStep] = useState(1);
-  const [email, setEmail] = useState('user@example.com');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [timeLeft, setTimeLeft] = useState(60);
   const [timerActive, setTimerActive] = useState(false);
-  const [submitMessage, setSubmitMessage]= useState({form: "", success: false, message: ""});
+  const [submitMessage, setSubmitMessage]= useState({form: "", success: false, message: "", nextStep: false});
   const navigate= useNavigate();
   const inputRefs = useRef([]);
 
@@ -35,30 +35,34 @@ const ResetPassword = (isDark) => {
         body: JSON.stringify({"email": email})});
 
       const data= await response.json();
-      console.log("send otp data-> ", data);
+      console.log("send-otp data-> ", data);
 
       if(!response.ok)
         return submitMessageSetter("send-otp", false, data.message);
-      
-      setTimerActive(true);
-      setTimeLeft(60);
 
-      submitMessageSetter("send-otp", true, data.message); //has a delay
-      setStep(2);
+      goToPage2();
+
     }catch(error){
         submitMessageSetter("send-otp", false, error.message);
     }
   };
 
-  function submitMessageSetter(form, success, message){
-    setSubmitMessage({form, success, message});
+  function submitMessageSetter(form, success, message, stepNext=false){
+    setSubmitMessage({form, success, message, stepNext});
   }
 
   useEffect(()=>{
     if(submitMessage.message){
       const timer= setTimeout(()=>{
-        setSubmitMessage({success: false, message: ""});
-      }, 7000);
+        setSubmitMessage({form: submitMessage.form, success: false, message: ""});
+
+        if(submitMessage.form === "reset-password" && submitMessage.success)
+          navigate("/login");
+
+        else if(submitMessage.stepNext && step<3)
+          setStep(prevStep => prevStep+1);
+
+      }, 4000);
 
       return ()=>{clearTimeout(timer);} //executed when the component will unmount
     }
@@ -73,6 +77,8 @@ const ResetPassword = (isDark) => {
 
   const goToPage2 = () => {
     setStep(2);
+    setTimerActive(true);
+    setTimeLeft(60);
   };
 
   const timerFormatter= ()=> {
@@ -87,7 +93,7 @@ const ResetPassword = (isDark) => {
   const handleCodeChange = (index, value) => {
     if (value.length > 1) return;
     
-    if (value && !/^\d+$/.test(value)) return;
+    if (value && !/^\d$/.test(value)) return;
     
     const newCode = [...code];
     newCode[index] = value;
@@ -100,7 +106,7 @@ const ResetPassword = (isDark) => {
 
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1].focus();
+      inputRefs.current[index - 1].focus(); //the Backspace affect the previous digit input which in-turn will trigger te onChange event
     }
   };
 
@@ -108,8 +114,8 @@ const ResetPassword = (isDark) => {
   const resendCode = async (e) => {
     e.preventDefault();
     if (timeLeft > 0) {
-      alert('الرجاء الانتظار حتى انتهاء الوقت');
-      return;
+      // alert('الرجاء الانتظار حتى انتهاء الوقت');
+      return submitMessageSetter("verify-otp", false, 'الرجاء الانتظار حتى انتهاء الوقت');
     }
     
     try{
@@ -118,20 +124,20 @@ const ResetPassword = (isDark) => {
         body: JSON.stringify({"email": email})});
 
       const data= await response.json();
-      console.log("send otp data-> ", data);
+      console.log("verify otp data-> ", data);
 
       if(!response.ok)
-        return submitMessageSetter(false, data.message);
+        return submitMessageSetter("verify-otp", false, data.message);
       
-      alert('تم إرسال رمز جديد');
+      // alert('تم إرسال رمز جديد');
       setTimerActive(true);
       setTimeLeft(60);
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0].focus();
 
-      submitMessageSetter(true, data.message); //has a delay
+      submitMessageSetter("verify-otp", true, data.message); //has a delay
     }catch(error){
-        submitMessageSetter(false, error.message);
+        submitMessageSetter("verify-otp", false, error.message);
     }
   };
 
@@ -139,13 +145,12 @@ const ResetPassword = (isDark) => {
   const verifyCode = async (e) => {
     e.preventDefault();
     if (code.some(digit => digit === '')) {
-      alert('الرجاء إدخال رمز التحقق كاملاً');
-      return;
+      // alert('الرجاء إدخال رمز التحقق كاملاً');
+      return submitMessageSetter("verify-otp", false, 'الرجاء إدخال رمز التحقق كاملاً');
     }
-    // alert('✅ تم التحقق بنجاح');
 
     try{
-      console.log("otp to be send-> ", code.join(""));
+      console.log("entered otp-> ", code.join(""));
 
       const response= await fetch("http://127.0.0.1:8080/auth/password/verify-otp", 
         {method: "POST", headers:{"Content-Type": "application/json"}, 
@@ -157,8 +162,7 @@ const ResetPassword = (isDark) => {
       if(!response.ok)
         return submitMessageSetter("verify-otp", false, data.message);
 
-      submitMessageSetter("verify-otp", true, data.message); 
-      setStep(3);
+      submitMessageSetter("verify-otp", true, data.message, true);
     }catch(error){
         submitMessageSetter("verify-otp", false, error.message);
     }
@@ -188,8 +192,8 @@ const ResetPassword = (isDark) => {
         return submitMessageSetter("reset-password", false, data.message);
 
       submitMessageSetter("reset-password", true, data.message); 
-      alert('✅ تم تغيير كلمة المرور بنجاح');
-      navigate("/login");
+      // alert('✅ تم تغيير كلمة المرور بنجاح');
+      
     }catch(error){
         submitMessageSetter("reset-password", false, error.message);
     }
@@ -198,14 +202,28 @@ const ResetPassword = (isDark) => {
   return (
     <div className={`container ${isDark? "dark-mode" : "light-mode"}`}>
       <div className="header">
+        {step === 1 && <React.Fragment>
+        <img src="images/forget-password.png"/>
         <h1>نسيت كلمة المرور</h1>
-        <p>استعادة حسابك بسهولة وأمان</p>
+        <p>أدخل بريدك الإلكتروني لإرسال رمز التحقق</p>
+        </React.Fragment>}
+
+        {step === 2 && <React.Fragment>
+        <img src="images/verify-otp.png"/>
+        <h1>أدخل رمز التحقق</h1>
+        </React.Fragment>}
+
+        {step === 3 && <React.Fragment>
+        <img src="images/reset-password.png"/>
+        <h1>تعيين كلمة مرور جديدة</h1>
+        <p>أدخل كلمة المرور الجديدة للدخول إلى حسابك</p>
+        </React.Fragment>}
       </div>
 
       <div className="content">
         {/*form 1 */}
         <form className={`step ${step === 1 ? 'active' : ''}`} onSubmit={sendVerification}>
-          <p className="step-description">أدخل بريدك الإلكتروني لإرسال رمز التحقق</p>
+          {submitMessage.form==="send-otp" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
           
           <div className="input-group">
             <label>البريد الإلكتروني</label>
@@ -215,7 +233,6 @@ const ResetPassword = (isDark) => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="example@domain.com"
             />
-            <div className="email-example">@example.com</div>
           </div>
 
           <button type="submit" className="btn-primary">
@@ -223,15 +240,16 @@ const ResetPassword = (isDark) => {
           </button>
 
           <div className="links">
-            <p>تذكر كلمة المرور؟</p>
+            <p>تذكرت كلمة المرور؟</p>
             <span className="separator">|</span>
             <a href="/login">تسجيل دخول</a>
           </div>
-          {submitMessage.form==="send-otp" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
         </form>
 
         {/*  form 2 */}
         <form className={`step ${step === 2 ? 'active' : ''}`} onSubmit={verifyCode}>
+          {submitMessage.form==="verify-otp" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
+
           <button type="button" className="back-btn" onClick={goToPage1}>
             <span>→</span> رجوع
           </button>
@@ -247,8 +265,7 @@ const ResetPassword = (isDark) => {
           </div>
 
           <div className="input-group">
-            <label>أدخل رمز التحقق</label>
-            <div className="verification-code">
+            <div className="verification-code" dir="ltr">
               {code.map((digit, index) => (
                 <input
                   key={index}
@@ -267,17 +284,15 @@ const ResetPassword = (isDark) => {
           <button type="submit" className="btn-primary">
             تأكيد الرمز 
           </button>
-          {submitMessage.form==="verify-otp" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
         </form>
 
         {/*   form  3 */}
         <form className={`step ${step === 3 ? 'active' : ''}`} onSubmit={resetPassword}>
+          {submitMessage.form==="reset-password" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
+
           <button type="button" className="back-btn" onClick={goToPage2}>
             <span>→</span> رجوع
           </button>
-
-          <p className="step-description">تعيين كلمة مرور جديدة</p>
-          <p style={{ color: 'var(--نص-ثانوي)', marginBottom: '20px' }}>أدخل كلمة المرور الجديدة</p>
 
           <div className="password-field">
             <label>كلمة المرور الجديدة *</label>
@@ -302,7 +317,6 @@ const ResetPassword = (isDark) => {
           <button type="submit" className="btn-primary">
             تأكيد وتغيير كلمة المرور
           </button>
-          {submitMessage.form==="reset-password" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
         </form>
       </div>
     </div>
