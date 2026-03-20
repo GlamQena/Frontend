@@ -1,0 +1,108 @@
+import React, {useState, useEffect, useRef} from 'react';
+import {useNavigate} from "react-router-dom";
+import './Check.css';
+import Verified from './Success';
+
+const VerificationCheck = () => {
+    const navigate= useNavigate();
+    const [checkMessage, setCheckMessage]= useState({success: false, message:""});
+    const [isVerified, setIsVerified]= useState(false);
+    const timerRef= useRef(null);
+
+    const urlParams= new URLSearchParams(window.location.search);
+    const email= urlParams.get("email");
+    const token= urlParams.get("token");
+
+    console.log("email-> ", email);
+    console.log("token-> ", token);
+
+    useEffect(()=>{
+        if(!email || !token)
+            return setCheckMessage({success: false, message: "email and token must be provided"});
+
+        const verifyEmail= async()=>{
+            try{
+                const response= await fetch(`http://127.0.0.1:8080/auth/verify/${email}/${token}`);
+                const data= await response.json();
+                if(!response.ok)
+                    setCheckMessage({success: false, message: data.message});
+
+                setCheckMessage({success: true, message: data.message});
+                setIsVerified(true);
+                localStorage.setItem("user", JSON.stringify(data.user));
+
+                timerRef.current = setTimeout(()=>{
+                    navigate("/dashboard");
+                }, 4000);
+
+            }catch(error){
+                setCheckMessage({success: false, message: error.message});
+            }
+        }
+
+        verifyEmail();
+        return ()=>{
+            if(timerRef.current)
+                clearTimeout(timerRef.current);
+        }
+    }
+    , []); //useEffect callback method with empty dependency array will be called when the component mounted
+
+    const resendToken= async()=> {
+        try{
+            const response= await fetch("http://127.0.0.1:8080/auth/email/send-token",{
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: {email}
+            });
+            const data= await response.json();
+
+            if(!response.ok)
+                return setCheckMessage({success:false, message:data.message}); 
+
+            setCheckMessage({success:true, message:data.message});
+        }catch(error){
+            setCheckMessage({success:false, message:error.message}); 
+        }
+    }
+
+    useEffect(()=>{
+        if(checkMessage.message)
+            setTimeout(()=>{
+                setCheckMessage({success: false, message:""});
+            }, 4000);
+    }, [checkMessage.message]);
+
+  return (
+    !isVerified?
+    <div className="verification-container">
+      <div className="verification-card">
+        <div className="verification-icon">
+          <div className="icon-circle">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 12V8H4V12M20 12L12 16L4 12M20 12L12 8M4 12L12 8M12 8V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M4 16L12 20L20 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        
+        <h1 className="verification-title">جاري التحقق من بريدك</h1>
+        
+        <p className="verification-text">
+          لتحقق من الرابط الخاص بك. قد يستغرق ذلك بضع ثوان ...
+        </p>
+        
+        {checkMessage.message && <p className="error-message">{checkMessage.message}</p>}
+        
+        <div className="resend-section">
+          <span className="resend-label">لم يصلك رابط التحقق ؟</span>
+          <a href="#" className="resend-link" onClick={resendToken}>إعادة ارسال</a>
+        </div>
+      </div>
+    </div>
+    :
+    <Verified/>
+  );
+};
+
+export default VerificationCheck;

@@ -1,77 +1,23 @@
-.selection-wrapper.dark {
-  --bg: #090516;
-  --card-bg: #140d2b;
-  --accent: #a74fff;
-  --text: #ffffff;
-  --desc: #b0a4c5;
-}
-
-.selection-wrapper {
-  /* min-height: 100vh; */
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(
-      circle at 20% 30%,
-      rgba(167, 79, 255, 0.15) 0%,
-      transparent 40%
-    ),
-    radial-gradient(
-      circle at 80% 70%,
-      rgba(255, 113, 212, 0.1) 0%,
-      transparent 40%
-    );
-  color: var(--text);
+.navbar-container {
+  width:100%;
+  background-color: var(--ناف-بار-خلفية);
+  border: 1px solid var(--ناف-بار-حد);
+  height: var(--ناف-بار-ارتفاع);
+  color: var(--نص-رئيسى);
   font-family: "Cairo", sans-serif;
-  direction: rtl;
-  position: relative;
+  position: absolute;
+  top:0;
+  left:0;
   overflow: hidden;
-}
+} 
 
 /* Navbar */
-.mini-nav {
+.nav-bar {
   display: flex;
   justify-content: space-between;
   padding: 20px 60px;
   align-items: center;
-}
-.nav-logo {
-  font-size: 20px;
-}
-.nav-logo span {
-  font-weight: bold;
-}
-.nav-left {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  color: var(--desc);
-}
-
-.selection-wrapper.light {
-  --bg: #f9f5ff;
-  --card-bg: #ffffff;
-  --accent: #a74fff;
-  --text-title: #1a0b33;
-  --text-desc: #6b7280;
-  --card-shadow: 0 10px 30px rgba(167, 79, 255, 0.05);
-}
-
-.selection-wrapper.light {
-  /* min-height: 100vh; */
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(
-      circle at 10% 20%,
-      rgba(167, 79, 255, 0.08) 0%,
-      transparent 40%
-    ),
-    radial-gradient(
-      circle at 90% 80%,
-      rgba(255, 113, 212, 0.05) 0%,
-      transparent 40%
-    );
-  color: var(--text-title);
-  transition: all 0.3s ease;
+  width: 100%;
 }
 
 .nav-logo {
@@ -79,6 +25,11 @@
   font-size: 24px;
   color: #a74fff;
 }
+
+.nav-logo span {
+  font-weight: bold;
+}
+
 .logo-dot {
   width: 8px;
   height: 8px;
@@ -86,4 +37,21 @@
   border-radius: 50%;
   display: inline-block;
   margin: 0 5px;
+}
+
+.nav-right{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 60%;
+}
+
+a, .mode-toggler{
+  color: var(--نص-رئيسي);
+}
+
+.nav-left {
+  display: flex;
+  gap: 20px;
+  align-items: center;
 }
