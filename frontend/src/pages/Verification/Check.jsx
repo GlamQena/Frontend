@@ -20,40 +20,40 @@ const VerificationCheck = () => {
         if(!email || !token)
             return setCheckMessage({success: false, message: "email and token must be provided"});
 
-        const verifyEmail= async()=>{
-            try{
-                const response= await fetch(`http://127.0.0.1:8080/auth/verify/${email}/${token}`);
-                const data= await response.json();
-                if(!response.ok)
-                    setCheckMessage({success: false, message: data.message});
-
-                setCheckMessage({success: true, message: data.message});
-                setIsVerified(true);
-                localStorage.setItem("user", JSON.stringify(data.user));
-
-                timerRef.current = setTimeout(()=>{
-                    navigate("/dashboard");
-                }, 4000);
-
-            }catch(error){
-                setCheckMessage({success: false, message: error.message});
-            }
-        }
-
         verifyEmail();
-        return ()=>{
-            if(timerRef.current)
-                clearTimeout(timerRef.current);
+        // return ()=>{
+        //     if(timerRef.current)
+        //         clearTimeout(timerRef.current);
+        // }
+    }
+    , [email, token]);
+
+    const verifyEmail= async()=>{
+        try{
+            const response= await fetch(`http://127.0.0.1:8080/auth/verify/${email}/${token}`);
+            const data= await response.json();
+            if(!response.ok)
+                return setCheckMessage({success: false, message: data.message});
+
+            setCheckMessage({success: true, message: data.message});
+            setIsVerified(true);
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            // timerRef.current = setTimeout(()=>{
+            //     navigate("/dashboard");
+            // }, 4000);
+
+        }catch(error){
+            setCheckMessage({success: false, message: error.message});
         }
     }
-    , []); //useEffect callback method with empty dependency array will be called when the component mounted
 
     const resendToken= async()=> {
         try{
             const response= await fetch("http://127.0.0.1:8080/auth/email/send-token",{
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: {email}
+                body: JSON.stringify({email})
             });
             const data= await response.json();
 
@@ -75,7 +75,7 @@ const VerificationCheck = () => {
 
   return (
     !isVerified?
-    <div className="verification-container">
+    <div className="verification-container" dir="rtl">
       <div className="verification-card">
         <div className="verification-icon">
           <div className="icon-circle">
@@ -93,6 +93,11 @@ const VerificationCheck = () => {
         </p>
         
         {checkMessage.message && <p className="error-message">{checkMessage.message}</p>}
+
+        <div className="verification-action">
+          <span className="action-text">لم يتم التحويل؟</span>
+          <a href="#" className="retry-link" onClick={verifyEmail}>إعادة المحاولة</a>
+        </div>
         
         <div className="resend-section">
           <span className="resend-label">لم يصلك رابط التحقق ؟</span>

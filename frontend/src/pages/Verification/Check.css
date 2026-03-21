@@ -50,14 +50,13 @@
   margin: 0 0 32px 0;
 }
 
-/* .verification-action {
+.verification-action {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   margin-bottom: 32px;
   padding: 16px 0;
-  border-top: 1px solid var(--حد-خافت);
   border-bottom: 1px solid var(--حد-خافت);
 }
 
@@ -66,7 +65,7 @@
   font-size: 14px;
 }
 
-.retry-link {
+.retry-link, .resend-link {
   background: none;
   border: none;
   color: var(--بنفسجي);
@@ -78,9 +77,9 @@
   transition: opacity 0.2s ease;
 }
 
-.retry-link:hover {
+.retry-link:hover, .resend-link:hover {
   opacity: 0.8;
-} */
+}
 
 .resend-section {
   display: flex;
@@ -92,18 +91,6 @@
 
 .resend-label {
   color: var(--نص-خافت);
-}
-
-.resend-link {
-  color: var(--بنفسجي);
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.resend-link:hover {
-  opacity: 0.8;
 }
 
 /*   responsive */

@@ -1,18 +1,55 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ResetPassword.css';
+import * as yup from "yup";
+import {useForm} from "react-hook-form";
+import {yupResolver} from "@hookform/resolvers/yup";
+import {passwordField, emailField} from "../../services/authService";
+import { EyeOff, Eye } from 'lucide-react';
 
 const ResetPassword = (isDark) => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
   const [timerActive, setTimerActive] = useState(false);
   const [submitMessage, setSubmitMessage]= useState({form: "", success: false, message: "", nextStep: false});
   const navigate= useNavigate();
   const inputRefs = useRef([]);
+
+  const validateEmail= async(value)=>{
+    try{
+      await emailField.validate(value);
+      setEmailError("");
+
+    }catch(error){
+
+      setEmailError(error.message);
+    }
+  }
+
+  const onEmailChange= (e)=>{
+    const value= e.target.value;
+    setEmail(value);
+    validateEmail(value);
+  }
+
+  const resetSchema= yup.object({
+    "newPassword": passwordField,
+    "confirmPassword": passwordField,
+  });
+
+  const {register, handleSubmit, formState: { errors }} = useForm({
+    defaultValues:{
+      "newPassword": "",
+      "confirmPassword": "",
+    },
+    resolver: yupResolver(resetSchema),
+    mode: "onChange",
+  });
 
   useEffect(() => {
     let interval;
@@ -135,7 +172,7 @@ const ResetPassword = (isDark) => {
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0].focus();
 
-      submitMessageSetter("verify-otp", true, data.message); //has a delay
+      submitMessageSetter("verify-otp", true, data.message);
     }catch(error){
         submitMessageSetter("verify-otp", false, error.message);
     }
@@ -169,24 +206,25 @@ const ResetPassword = (isDark) => {
   };
 
   // تغيير كلمة المرور
-  const resetPassword = async (e) => {
-    e.preventDefault();
-    if (password.length < 8) {
-      alert('كلمة المرور يجب أن تكون 8 أحرف على الأقل');
-      return;
-    }
-    if (password !== confirmPassword) {
-      alert('كلمتا المرور غير متطابقتين');
+  const resetPassword = async (formData) => {
+    console.log("formData-> ", formData);
+    const {newPassword, confirmPassword} = formData;
+
+    if (newPassword !== confirmPassword) {
+      // alert('كلمتا المرور غير متطابقتين');
+      submitMessageSetter("reset-password", false,' كلمتا المرور غير متطابقتين', false);
       return;
     }
 
     try{
-      const response= await fetch("http://127.0.0.1:8080/auth/password/reset", 
-        {method: "POST", headers:{"Content-Type": "application/json"}, 
-        body: JSON.stringify({"email": email, "newPassword": password, "confirmPassword": confirmPassword})});
+      const response= await fetch("http://127.0.0.1:8080/auth/password/reset", {
+         method: "POST",
+         headers:{"Content-Type": "application/json"}, 
+         body: JSON.stringify({"email": email, "newPassword": newPassword, "confirmPassword": confirmPassword})
+        });
 
       const data= await response.json();
-      console.log("reset password data-> ", data);
+      console.log("reset-password data-> ", data);
 
       if(!response.ok)
         return submitMessageSetter("reset-password", false, data.message);
@@ -223,16 +261,18 @@ const ResetPassword = (isDark) => {
       <div className="content">
         {/*form 1 */}
         <form className={`step ${step === 1 ? 'active' : ''}`} onSubmit={sendVerification}>
-          {submitMessage.form==="send-otp" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
+          {submitMessage.form==="send-otp"  && submitMessage.message && <p className={`${submitMessage.success? "success-message" : "error-message"}`}>{submitMessage.message}</p>}
           
-          <div className="input-group">
+          <div className="form-group">
             <label>البريد الإلكتروني</label>
             <input 
               type="email" 
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={onEmailChange}
+              className= {emailError? "error": ""}
               placeholder="example@domain.com"
             />
+            {emailError && <span className="field-error">{emailError}</span>}
           </div>
 
           <button type="submit" className="btn-primary">
@@ -248,7 +288,7 @@ const ResetPassword = (isDark) => {
 
         {/*  form 2 */}
         <form className={`step ${step === 2 ? 'active' : ''}`} onSubmit={verifyCode}>
-          {submitMessage.form==="verify-otp" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
+          {submitMessage.form==="verify-otp" && submitMessage.message && <p className={`${submitMessage.success? "success-message" : "error-message"}`}>{submitMessage.message}</p>}
 
           <button type="button" className="back-btn" onClick={goToPage1}>
             <span>→</span> رجوع
@@ -264,7 +304,7 @@ const ResetPassword = (isDark) => {
             </div>
           </div>
 
-          <div className="input-group">
+          <div className="form-group">
             <div className="verification-code" dir="ltr">
               {code.map((digit, index) => (
                 <input
@@ -287,31 +327,60 @@ const ResetPassword = (isDark) => {
         </form>
 
         {/*   form  3 */}
-        <form className={`step ${step === 3 ? 'active' : ''}`} onSubmit={resetPassword}>
-          {submitMessage.form==="reset-password" && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
+        <form className={`step ${step === 3 ? 'active' : ''}`} onSubmit={handleSubmit(resetPassword)}>
+          {submitMessage.form==="reset-password"  && submitMessage.message && <p className={`${submitMessage.success? "success-message" : "error-message"}`}>{submitMessage.message}</p>}
 
-          <button type="button" className="back-btn" onClick={goToPage2}>
+          {/* <button type="button" className="back-btn" onClick={goToPage2}>
             <span>→</span> رجوع
-          </button>
+          </button> */}
 
-          <div className="password-field">
+          <div className="form-group">
             <label>كلمة المرور الجديدة *</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="********"
-            />
+            <div className="password-input-wrapper">
+              <input 
+                type={showPassword? "text": "password"}
+                className= {errors.newPassword?.message? "error": ""}
+                placeholder="********"
+                {...register("newPassword")}
+              />
+              <button
+                type="button"
+                className="eye-icon"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
+            {errors.newPassword?.message && <span className="field-error">{errors.newPassword?.message}</span>}
           </div>
 
-          <div className="password-field">
+          <div className="form-group">
             <label>تأكيد كلمة المرور الجديدة *</label>
-            <input 
-              type="password" 
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="********"
-            />
+            <div className="password-input-wrapper">
+              <input 
+                type={showConfirmPassword? "text": "password"}
+                className= {errors.confirmPassword?.message? "error": ""}
+                placeholder="********"
+                {...register("confirmPassword")}
+              />
+              <button
+                type="button"
+                className="eye-icon"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} />
+                ) : (
+                  <Eye size={20} />
+                )}
+              </button>
+            </div>
+
+            {errors.confirmPassword?.message && <span className="field-error">{errors.confirmPassword?.message}</span>}
           </div>
 
           <button type="submit" className="btn-primary">

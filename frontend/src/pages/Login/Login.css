@@ -68,18 +68,18 @@
   color: var(--نص-رئيسي);
 }
 
-.input-group {
+.form-group {
   text-align: right;
   margin-bottom: 20px;
 }
 
-.input-group label {
+.form-group label {
   display: block;
   margin-bottom: 8px;
   font-size: 14px;
 }
 
-.input-group input {
+.form-group input {
   width: 100%;
   padding: 12px 15px;
   border-radius: var(--راديوس-الحقل);
@@ -88,13 +88,12 @@
   outline: none;
   color: var(--نص-رئيسي);
 }
-/* ا ضافه */
-.input-group input:focus {
+
+.form-group input:focus {
   border-color: var(--حد-تركيز);
   background: var(--خلفية-3);
   box-shadow: var(--ظل-تركيز-الحقل);
 }
-/* ..... */
 
 .form-options {
   display: flex;
@@ -110,18 +109,4 @@
   font-weight: bold;
 }
 
-.error-message, .submit-message{
-  text-align: center;
-  font-size: 1.1em;
-  font-weight: 500;
-  line-height:1.2em;
-  margin-top: 0.5em;
-}
-
-.submit-message.success{
-  color: var(--اخضر-نجاح);
-}
-
-.submit-message.fail, .error-message{
-  color: var(--أحمر-خطأ);
-}
+ /* ..... */

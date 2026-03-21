@@ -406,7 +406,6 @@ const Register = () => {
   return (
     <div className="container">
       <div className="role-selection">
-        <div className="role-selection-buttons">
           <button
             className= {`role-btn client ${selectedRole == "client"? "active" : ""}`}
             onClick={() => handleRoleSelect("client")}
@@ -418,8 +417,8 @@ const Register = () => {
             onClick={() => handleRoleSelect("store_owner")}
             tabIndex={0}
           > صاحب محل </button>
-        </div>
       </div>
+      
       <div className="registration-form-container">
 
         <div className="form-header">
