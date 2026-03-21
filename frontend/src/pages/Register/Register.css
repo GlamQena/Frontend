@@ -1,27 +1,20 @@
 .container {
-  /* min-height: 100vh; */
   background-color: var(--خلفية-الصفحة);
-  /* background-image: 
-    radial-gradient(circle at 20% 30%, rgba(167, 79, 255, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255, 113, 212, 0.1) 0%, transparent 40%); */
   color: var(--نص-رئيسي);
+  max-width: var(--عرض-البطاقة);
   position: relative;
   overflow: hidden;
 }
 
-/* === Role Selection Buttons === */
+/* Role Selection Buttons */
 
 .role-selection {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 40px;
-  /* margin-bottom: 15px; */
-}
-
-.role-selection-buttons {
-  display: flex;
+  padding: 30px;
   gap: 20px;
+  background-color: var(--خلفية-الصفحة);
 }
 
 .role-btn {
@@ -73,21 +66,8 @@
 /* Registration Form */
 .registration-form-container {
   width: 100%;
-  max-width: var(--عرض-البطاقة);
-  margin: var(--مارجن-البطاقة);
+  margin-top: 20px;
   padding: 20px;
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .back-btn {
@@ -250,28 +230,6 @@
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-.error-message {
-  background: var(--أحمر-خافت);
-  border: 1px solid var(--أحمر-خطأ);
-  color: var(--أحمر-خطأ);
-  padding: 12px 16px;
-  border-radius: var(--راديوس-الحقل);
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.success-message {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid var(--أخضر-نجاح);
-  color: var(--أخضر-نجاح);
-  padding: 12px 16px;
-  border-radius: var(--راديوس-الحقل);
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 14px;
 }
 
 .terms {
@@ -470,35 +428,6 @@
 
 .gender-btn.active svg {
   color: white;
-}
-
-/* Fields with errors */
-.form-group input.error,
-.form-group select.error {
-  border-color: var(--أحمر-خطأ) !important;
-  background-color: var(--أحمر-خافت) !important;
-}
-
-.field-error {
-  color: var(--أحمر-خطأ);
-  font-size: 13px;
-  margin-top: 5px;
-  text-align: right;
-  display: block;
-}
-
-.field-hint {
-  color: var(--نص-خافت);
-  font-size: 12px;
-  margin-top: 5px;
-  display: block;
-  opacity: 0.8;
-}
-
-.required-star {
-  color: var(--أحمر-خطأ);
-  margin-right: 4px;
-  font-size: 16px;
 }
 
 /* Mobile improvements */

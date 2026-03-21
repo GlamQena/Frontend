@@ -1,10 +1,11 @@
 import "./Login.css"
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff , User } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import {useForm} from "react-hook-form";
 import * as yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
+import {passwordField} from "../../services/authService";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -50,20 +51,14 @@ const Login = () => {
           return true;
         }
       }),
-    "password": yup.string()
-      .required("كلمة المرور مطلوبة")
-      .min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل")
-      .max(64, "كلمة المرور يجب ألا تتجاوز 64 حرف")
-      .matches(/[A-Z]/, "كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل")
-      .matches(/[a-z]/, "كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل")
-      .matches(/[0-9]/, "كلمة المرور يجب أن تحتوي على رقم واحد على الأقل"),
+    "password": passwordField,
     "rememberMe": yup.boolean()
   });
 
   let {register, handleSubmit, formState: { errors}}= useForm({
     resolver: yupResolver(loginSchema),
     defaultValues: {usernameOrEmail: "", password: ""},
-    mode: "onBlur"
+    mode: "onChange"
   });
 
   const onSubmit = async (formData) => {
@@ -116,23 +111,27 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="login-form">
-          <div className="input-group">
-            <label>اسم المستخدم أو البريد الإلكتروني <span className="required">*</span></label>
+          {submitMessage.message && <p className={`submit-message ${submitMessage.success? "success-message" : "error-message"}`}>{submitMessage.message}</p>}
+
+          <div className="form-group">
+            <label>اسم المستخدم أو البريد الإلكتروني <span className="required-star">*</span></label>
             <input 
               type="text" 
               name="usernameOrEmail"
+              className={errors.usernameOrEmail?.message ? "error" : ""}
               placeholder="اسم المستخدم أو البريد الإلكتروني"
               {...register("usernameOrEmail")}
             />
-            {errors.usernameOrEmail?.message && <p className= "error-message">{errors.usernameOrEmail?.message}</p>}
+            {errors.usernameOrEmail?.message && <p className= "field-error">{errors.usernameOrEmail?.message}</p>}
           </div>
 
-          <div className="input-group">
-            <label>كلمة المرور <span className="required">*</span></label>
+          <div className="form-group">
+            <label>كلمة المرور <span className="required-star">*</span></label>
             <div className="password-input-wrapper">
               <input 
                 type={showPassword ? "text" : "password"} 
                 name="password"
+                className={errors.password?.message ? "error" : ""}
                 placeholder="........"
                 {...register("password")}
               />
@@ -144,7 +143,7 @@ const Login = () => {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {errors.password?.message && <p className= "error-message">{errors.password?.message}</p>}
+            {errors.password?.message && <p className= "field-error">{errors.password?.message}</p>}
           </div>
 
           <div className="form-options">
@@ -165,7 +164,6 @@ const Login = () => {
           <button type="submit" className="submit-btn">
             تسجيل الدخول &larr; {/* html character for left arrow icon*/}
           </button>
-          {submitMessage.message && <p className={`submit-message ${submitMessage.success? "success" : "fail"}`}>{submitMessage.message}</p>}
         </form>
       </div>
     </div>
