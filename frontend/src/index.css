@@ -26,3 +26,54 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* form submit error and success messages */
+.error-message, .success-message {
+  padding: 12px 16px;
+  border-radius: var(--راديوس-الحقل);
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.error-message{
+  background: var(--أحمر-خافت);
+  border: 1px solid var(--أحمر-خطأ);
+  color: var(--أحمر-خطأ);
+}
+
+.success-message {
+  background: var(--أخضر-خافت);
+  border: 1px solid var(--أخضر-نجاح);
+  color: var(--أخضر-نجاح);
+}
+
+/* Fields with errors */
+.form-group input.error,
+.form-group select.error {
+  border-color: var(--أحمر-خطأ) !important;
+  background-color: var(--أحمر-خافت) !important;
+}
+
+/* fields related messages*/
+.field-error {
+  color: var(--أحمر-خطأ);
+  font-size: 13px;
+  margin-top: 5px;
+  text-align: right;
+  display: block;
+}
+
+.field-hint {
+  color: var(--نص-خافت);
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+  opacity: 0.8;
+}
+
+.required-star {
+  color: var(--أحمر-خطأ);
+  margin-right: 4px;
+  font-size: 16px;
+}
