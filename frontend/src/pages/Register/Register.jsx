@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import {
   User,
   Store,
-  ChevronRight,
   Mail,
   Lock,
   User as UserIcon,
@@ -19,353 +21,183 @@ import {
   Building2,
   MapPinned,
 } from "lucide-react";
-import { registerUser } from "../../services/authService";
+import { registerUser, passwordField } from "../../services/authService";
 import "./Register.css";
+
+// Define validation schemas
+const commonFieldsSchema = {
+  username: yup.string()
+    .required("اسم المستخدم مطلوب")
+    .min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل")
+    .max(64, "اسم المستخدم يجب أن يكون أقل من 64 حرف")
+    .matches(/^[a-z0-9_]+$/, "اسم المستخدم يمكن أن يحتوي فقط على أحرف إنجليزية صغيرة وأرقام وشرطة سفلية"),
+  
+  email: yup.string()
+    .required("البريد الإلكتروني مطلوب")
+    .email("البريد الإلكتروني غير صالح")
+    .max(254, "البريد الإلكتروني طويل جداً"),
+  
+  password: passwordField, // Assuming this is defined in authService
+  
+  confirmPassword: yup.string()
+    .required("تأكيد كلمة المرور مطلوب")
+    .oneOf([yup.ref("password")], "كلمة المرور غير متطابقة"),
+  
+  phone: yup.string()
+    .required("رقم الهاتف مطلوب")
+    .matches(/^01[0125][0-9]{8}$/, "رقم الهاتف غير صالح (يجب أن يبدأ بـ 010, 011, 012, 015 ثم 8 أرقام)"),
+  
+  gender: yup.string()
+    .nullable()
+    .optional()
+    .oneOf(["male", "female"], "الجنس يجب أن يكون ذكر أو أنثى"),
+  
+  birthdate: yup.string().nullable().optional(),
+  
+  address: yup.object({
+    city: yup.string().max(50, "اسم المدينة يجب أن يكون أقل من 50 حرف").optional(),
+    district: yup.string().max(50, "اسم المنطقة يجب أن يكون أقل من 50 حرف").optional(),
+    street: yup.string().max(100, "اسم الشارع يجب أن يكون أقل من 100 حرف").optional(),
+  }).optional()
+};
+
+const clientSchema = yup.object(commonFieldsSchema);
+
+const storeOwnerSchema = yup.object({
+  ...commonFieldsSchema,
+  store_name: yup.string()
+    .required("اسم المحل مطلوب")
+    .max(100, "اسم المحل يجب أن يكون أقل من 100 حرف"),
+  
+  store_email: yup.string()
+    .required("البريد الإلكتروني للمحل مطلوب")
+    .email("البريد الإلكتروني للمحل غير صالح"),
+  
+  store_phone: yup.string()
+    .required("رقم هاتف المحل مطلوب")
+    .matches(/^01[0125][0-9]{8}$/, "رقم هاتف المحل غير صالح (يجب أن يبدأ بـ 010, 011, 012, 015 ثم 8 أرقام)"),
+  
+  store_address: yup.object({
+    city: yup.string()
+      .required("مدينة المحل مطلوبة")
+      .max(50, "اسم المدينة يجب أن يكون أقل من 50 حرف"),
+    district: yup.string()
+      .required("منطقة المحل مطلوبة")
+      .max(50, "اسم المنطقة يجب أن يكون أقل من 50 حرف"),
+    street: yup.string()
+      .required("شارع المحل مطلوب")
+      .max(100, "اسم الشارع يجب أن يكون أقل من 100 حرف"),
+  })
+});
 
 const Register = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState("client");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [submitMessage, setSubmitMessage] = useState({ success: false, message: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
 
-  const [formData, setFormData] = useState({
-    // بيانات مشتركة
-    firstName: "",
-    lastName: "",
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    phone: "",
-    birthdate: "",
-    gender: "",
+  // Get the appropriate schema based on selected role
+  const getCurrentSchema = () => {
+    return selectedRole === "client" ? clientSchema : storeOwnerSchema;
+  };
 
-    // العنوان الرئيسي (object)
-    address: {
-      city: "",
-      district: "",
-      street: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+    getValues,
+    trigger
+  } = useForm({
+    resolver: yupResolver(getCurrentSchema()),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phone: "",
+      birthdate: "",
+      gender: "",
+      address: {
+        city: "",
+        district: "",
+        street: "",
+      },
+      store_name: "",
+      store_email: "",
+      store_phone: "",
+      store_address: {
+        city: "",
+        district: "",
+        street: "",
+      },
     },
-
-    // بيانات خاصة بصاحب المحل
-    store_name: "",
-    store_email: "",
-    store_phone: "",
-    store_address: {
-      city: "",
-      district: "",
-      street: "",
-    },
+    mode: "onChange"
   });
 
-  // التحقق الفوري من الحقول - مطابق لقواعد Zod
-  const validateField = (name, value) => {
-    let error = "";
+  // Watch password for confirmPassword validation
+  const password = watch("password");
 
-    switch (name) {
-      // case "firstName":
-      //   if (!value.trim()) error = "الاسم الأول مطلوب";
-      //   else if (value.length > 40)
-      //     error = "الاسم الأول يجب أن يكون أقل من 40 حرف";
-      //   break;
-
-      // case "lastName":
-      //   if (!value.trim()) error = "الاسم الأخير مطلوب";
-      //   else if (value.length > 40)
-      //     error = "الاسم الأخير يجب أن يكون أقل من 40 حرف";
-      //   break;
-
-      case "username":
-        if (!value.trim()) error = "اسم المستخدم مطلوب";
-        else if (value.length < 3)
-          error = "اسم المستخدم يجب أن يكون 3 أحرف على الأقل";
-        else if (value.length > 64)
-          error = "اسم المستخدم يجب أن يكون أقل من 64 حرف";
-        else if (!/^[a-z0-9_]+$/.test(value))
-          error =
-            "اسم المستخدم يمكن أن يحتوي فقط على أحرف إنجليزية صغيرة وأرقام وشرطة سفلية";
-        break;
-
-      case "email":
-        if (!value.trim()) error = "البريد الإلكتروني مطلوب";
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) //[^/s@] matches any character that is not a white space or @
-          error = "البريد الإلكتروني غير صالح";
-        else if (value.length > 254) error = "البريد الإلكتروني طويل جداً";
-        break;
-
-      case "password":
-        if (!value) error = "كلمة المرور مطلوبة";
-        else if (value.length < 8)
-          error = "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
-        else if (value.length > 64)
-          error = "كلمة المرور يجب أن تكون أقل من 64 حرف";
-        else if (!/[A-Z]/.test(value))
-          error = "كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل";
-        else if (!/[a-z]/.test(value))
-          error = "كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل";
-        else if (!/[0-9]/.test(value))
-          error = "كلمة المرور يجب أن تحتوي على رقم واحد على الأقل";
-        break;
-
-      case "confirmPassword":
-        if (!value) error = "تأكيد كلمة المرور مطلوب";
-        else if (value !== formData.password) error = "كلمة المرور غير متطابقة";
-        break;
-
-      case "phone":
-        if (!value.trim()) error = "رقم الهاتف مطلوب";
-        else if (!/^01[0125][0-9]{8}$/.test(value))
-          error =
-            "رقم الهاتف غير صالح (يجب أن يبدأ بـ 010, 011, 012, 015 ثم 8 أرقام)";
-        break;
-
-      case "gender":
-        if (value && !["male", "female"].includes(value))
-          error = "الجنس يجب أن يكون ذكر أو أنثى";
-        break;
-
-      case "store_name":
-        if (selectedRole === "store_owner" && !value.trim())
-          error = "اسم المحل مطلوب";
-        else if (value.length > 100)
-          error = "اسم المحل يجب أن يكون أقل من 100 حرف";
-        break;
-
-      case "store_email":
-        if (selectedRole === "store_owner" && !value.trim())
-          error = "البريد الإلكتروني للمحل مطلوب";
-        else if (
-          selectedRole === "store_owner" &&
-          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-        )
-          error = "البريد الإلكتروني للمحل غير صالح";
-        break;
-
-      case "store_phone":
-        if (selectedRole === "store_owner" && !value.trim())
-          error = "رقم هاتف المحل مطلوب";
-        else if (
-          selectedRole === "store_owner" &&
-          !/^01[0125][0-9]{8}$/.test(value)
-        )
-          error =
-            "رقم هاتف المحل غير صالح (يجب أن يبدأ بـ 010, 011, 012, 015 ثم 8 أرقام)";
-        break;
-
-      case "address.city":
-        if (value && value.length > 50)
-          error = "اسم المدينة يجب أن يكون أقل من 50 حرف";
-        break;
-
-      case "address.district":
-        if (value && value.length > 50)
-          error = "اسم المنطقة يجب أن يكون أقل من 50 حرف";
-        break;
-
-      case "address.street":
-        if (value && value.length > 100)
-          error = "اسم الشارع يجب أن يكون أقل من 100 حرف";
-        break;
-
-      case "store_address.city":
-        if (selectedRole === "store_owner" && !value.trim())
-          error = "مدينة المحل مطلوبة";
-        else if (value.length > 50)
-          error = "اسم المدينة يجب أن يكون أقل من 50 حرف";
-        break;
-
-      case "store_address.district":
-        if (selectedRole === "store_owner" && !value.trim())
-          error = "منطقة المحل مطلوبة";
-        else if (value.length > 50)
-          error = "اسم المنطقة يجب أن يكون أقل من 50 حرف";
-        break;
-
-      case "store_address.street":
-        if (selectedRole === "store_owner" && !value.trim())
-          error = "شارع المحل مطلوب";
-        else if (value.length > 100)
-          error = "اسم الشارع يجب أن يكون أقل من 100 حرف";
-        break;
-
-      default:
-        break;
-    }
-
-    return error;
-  };
-
-  // تحديث بيانات الفورم مع التحقق
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (name.includes(".")) { //to handle address fields
-      const [parent, child] = name.split(".");
-      setFormData((prev) => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value,
-        },
-      }));
-
-      const fieldError = validateField(name, value);
-      setFieldErrors((prev) => ({
-        ...prev,
-        [name]: fieldError,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-
-      const fieldError = validateField(name, value);
-      setFieldErrors((prev) => ({
-        ...prev,
-        [name]: fieldError,
-      }));
-    }
-
-    setError("");
-  };
-
-  // معالجة اختيار الجنس
-  const handleGenderSelect = (gender) => {
-    setFormData((prev) => ({
-      ...prev,
-      gender: gender,
-    }));
-    setFieldErrors((prev) => ({
-      ...prev,
-      gender: "",
-    }));
-  };
-
-  // معالجة اختيار الدور
+  // Handle role change
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
-    setError("");
-    setFieldErrors({});
+    // Clear errors when switching roles
+    setSubmitMessage({ success: false, message: "" });
   };
 
-  // التحقق الشامل من النموذج
-  const validateForm = () => {
-    const errors = {};
-    const fieldsToValidate = [
-      "firstName",
-      "lastName",
-      "username",
-      "email",
-      "password",
-      "confirmPassword",
-      "phone",
-    ];
-
-    if (selectedRole === "store_owner") {
-      fieldsToValidate.push("store_name", "store_email", "store_phone");
-      fieldsToValidate.push(
-        "store_address.city",
-        "store_address.district",
-        "store_address.street",
-      );
-    }
-
-    // التحقق من الحقول الاختيارية إذا كان لها قيم
-    if (formData.gender) {
-      const genderError = validateField("gender", formData.gender);
-      if (genderError) errors.gender = genderError;
-    }
-
-    if (
-      formData.address.city ||
-      formData.address.district ||
-      formData.address.street
-    ) {
-      if (formData.address.city) {
-        const cityError = validateField("address.city", formData.address.city);
-        if (cityError) errors["address.city"] = cityError;
-      }
-      if (formData.address.district) {
-        const districtError = validateField(
-          "address.district",
-          formData.address.district,
-        );
-        if (districtError) errors["address.district"] = districtError;
-      }
-      if (formData.address.street) {
-        const streetError = validateField(
-          "address.street",
-          formData.address.street,
-        );
-        if (streetError) errors["address.street"] = streetError;
-      }
-    }
-
-    fieldsToValidate.forEach((field) => {
-      let value;
-      if (field.includes(".")) {
-        const [parent, child] = field.split(".");
-        value = formData[parent]?.[child] || "";
-      } else {
-        value = formData[field] || "";
-      }
-
-      const error = validateField(field, value);
-      if (error) errors[field] = error;
-    });
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
+  // Handle gender selection
+  const handleGenderSelect = (gender) => {
+    setValue("gender", gender, { shouldValidate: true });
   };
 
-  // تسليم الفورم
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Handle address field changes
+  const handleAddressChange = (field, value) => {
+    setValue(`address.${field}`, value, { shouldValidate: true });
+  };
 
-    if (!validateForm()) {
-      setError("يرجى تصحيح الأخطاء في النموذج");
-      return;
-    }
+  // Handle store address field changes
+  const handleStoreAddressChange = (field, value) => {
+    setValue(`store_address.${field}`, value, { shouldValidate: true });
+  };
 
+  // Handle regular input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setValue(name, value, { shouldValidate: true });
+  };
+
+  // Form submission handler
+  const onSubmit = async (formData) => {
     setLoading(true);
-    setError("");
-    setSuccess("");
+    setSubmitMessage({ success: false, message: "" });
 
     try {
-      // تجهيز البيانات للإرسال - مطابق تماماً للسكيما
+      // Prepare data for API
       const registrationData = {
         role: selectedRole,
-        // firstName: formData.firstName,
-        // lastName: formData.lastName,
         username: formData.username.toLowerCase().trim(),
         email: formData.email.toLowerCase().trim(),
         password: formData.password,
-        confirmPassword: formData.confirmPassword, // مطلوب للسكيما
+        confirmPassword: formData.confirmPassword,
         phone: formData.phone || undefined,
         birthdate: formData.birthdate || undefined,
         gender: formData.gender || undefined,
-        address:
-          formData.address.city ||
-          formData.address.district ||
-          formData.address.street
-            ? {
-                city: formData.address.city || undefined,
-                district: formData.address.district || undefined,
-                street: formData.address.street || undefined,
-              }
-            : undefined,
+        address: (formData.address?.city || formData.address?.district || formData.address?.street)
+          ? {
+              city: formData.address.city || undefined,
+              district: formData.address.district || undefined,
+              street: formData.address.street || undefined,
+            }
+          : undefined,
       };
 
-      // إضافة البيانات الخاصة بصاحب المحل
+      // Add store owner specific data
       if (selectedRole === "store_owner") {
         registrationData.store_name = formData.store_name;
-        registrationData.store_email = formData.store_email
-          .toLowerCase()
-          .trim();
+        registrationData.store_email = formData.store_email.toLowerCase().trim();
         registrationData.store_phone = formData.store_phone;
         registrationData.store_address = {
           city: formData.store_address.city,
@@ -374,27 +206,32 @@ const Register = () => {
         };
       }
 
-      console.log("Sending data:", registrationData); // للتأكد من البيانات
+      console.log("Sending data:", registrationData);
       const responseData = await registerUser(registrationData);
+      
       window.scrollTo({ top: 0, behavior: "smooth" });
-      setSuccess(
-        responseData.message ||
-       "تم إرسال رابط التفعيل إلى بريدك الإلكتروني"
-      );
+      setSubmitMessage({
+        success: true,
+        message: responseData.message || "تم إرسال رابط التفعيل إلى بريدك الإلكتروني"
+      });
 
-      // setTimeout(() => {
-      //   navigate("/verify-email");
-      // }, 3000);
+      // Clear form on success
+      setTimeout(() => {
+        // Optional: navigate to verification page
+        // navigate("/verify-email");
+      }, 3000);
     } catch (err) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Registration error:", err);
-      setError(err.message || "حدث خطأ أثناء التسجيل");
+      setSubmitMessage({
+        success: false,
+        message: err.message || "حدث خطأ أثناء التسجيل"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // تبديل إظهار/إخفاء كلمة المرور
   const togglePasswordVisibility = (field) => {
     if (field === "password") {
       setShowPassword(!showPassword);
@@ -406,21 +243,26 @@ const Register = () => {
   return (
     <div className="container">
       <div className="role-selection">
-          <button
-            className= {`role-btn client ${selectedRole == "client"? "active" : ""}`}
-            onClick={() => handleRoleSelect("client")}
-            tabIndex={0}
-          > عميل </button>
+        <button
+          className={`role-btn client ${selectedRole === "client" ? "active" : ""}`}
+          onClick={() => handleRoleSelect("client")}
+          type="button"
+          tabIndex={0}
+        >
+          عميل
+        </button>
 
-          <button
-            className= {`role-btn owner  ${selectedRole == "store_owner"? "active" : ""}`}
-            onClick={() => handleRoleSelect("store_owner")}
-            tabIndex={0}
-          > صاحب محل </button>
+        <button
+          className={`role-btn owner ${selectedRole === "store_owner" ? "active" : ""}`}
+          onClick={() => handleRoleSelect("store_owner")}
+          type="button"
+          tabIndex={0}
+        >
+          صاحب محل
+        </button>
       </div>
-      
-      <div className="registration-form-container">
 
+      <div className="registration-form-container">
         <div className="form-header">
           <div className={`role-indicator ${selectedRole}`}>
             {selectedRole === "client" ? (
@@ -442,55 +284,14 @@ const Register = () => {
           <h2>أنشئ حسابك الجديد</h2>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        {submitMessage.message && (
+          <div className={`${submitMessage.success ? "success-message" : "error-message"}`}>
+            {submitMessage.message}
+          </div>
+        )}
 
-        {success && <div className="success-message">{success}</div>}
-
-        <form onSubmit={handleSubmit} className="registration-form">
-          {/* حقول الاسم */}
-          {/* <div className="form-row">
-            <div className="form-group half">
-              <label>
-                <UserCircle size={18} /> الاسم الأول{" "}
-                <span className="required-star">*</span>
-              </label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                placeholder="الاسم الأول"
-                required
-                disabled={loading}
-                className={fieldErrors.firstName ? "error" : ""}
-              />
-              {fieldErrors.firstName && (
-                <span className="field-error">{fieldErrors.firstName}</span>
-              )}
-            </div>
-
-            <div className="form-group half">
-              <label>
-                <UserCircle size={18} /> الاسم الأخير{" "}
-                <span className="required-star">*</span>
-              </label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                placeholder="الاسم الأخير"
-                required
-                disabled={loading}
-                className={fieldErrors.lastName ? "error" : ""}
-              />
-              {fieldErrors.lastName && (
-                <span className="field-error">{fieldErrors.lastName}</span>
-              )}
-            </div>
-          </div> */}
-
-          {/* باقي الحقول المشتركة */}
+        <form onSubmit={handleSubmit(onSubmit)} className="registration-form">
+          {/* Username Field */}
           <div className="form-group">
             <label>
               <UserIcon size={18} /> اسم المستخدم{" "}
@@ -499,22 +300,21 @@ const Register = () => {
             <input
               type="text"
               name="username"
-              value={formData.username}
+              {...register("username")}
               onChange={handleInputChange}
               placeholder="أدخل اسم المستخدم (أحرف إنجليزية صغيرة)"
-              required
               disabled={loading}
-              className={fieldErrors.username ? "error" : ""}
+              className={errors.username ? "error" : ""}
             />
-            {fieldErrors.username && (
-              <span className="field-error">{fieldErrors.username}</span>
+            {errors.username && (
+              <span className="field-error">{errors.username.message}</span>
             )}
             <small className="field-hint">
-              يمكن استخدام الأحرف الإنجليزية الصغيرة والأرقام والشرطة
-              السفلية فقط
+              يمكن استخدام الأحرف الإنجليزية الصغيرة والأرقام والشرطة السفلية فقط
             </small>
           </div>
 
+          {/* Email Field */}
           <div className="form-group">
             <label>
               <Mail size={18} /> البريد الإلكتروني{" "}
@@ -523,18 +323,18 @@ const Register = () => {
             <input
               type="email"
               name="email"
-              value={formData.email}
+              {...register("email")}
               onChange={handleInputChange}
               placeholder="example@domain.com"
-              required
               disabled={loading}
-              className={fieldErrors.email ? "error" : ""}
+              className={errors.email ? "error" : ""}
             />
-            {fieldErrors.email && (
-              <span className="field-error">{fieldErrors.email}</span>
+            {errors.email && (
+              <span className="field-error">{errors.email.message}</span>
             )}
           </div>
 
+          {/* Password Field */}
           <div className="form-group">
             <label>
               <Lock size={18} /> كلمة المرور{" "}
@@ -544,13 +344,11 @@ const Register = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                value={formData.password}
+                {...register("password")}
                 onChange={handleInputChange}
                 placeholder="٨ أحرف على الأقل"
-                required
-                minLength="8"
                 disabled={loading}
-                className={fieldErrors.password ? "error" : ""}
+                className={errors.password ? "error" : ""}
               />
               <button
                 type="button"
@@ -560,14 +358,15 @@ const Register = () => {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {fieldErrors.password && (
-              <span className="field-error">{fieldErrors.password}</span>
+            {errors.password && (
+              <span className="field-error">{errors.password.message}</span>
             )}
             <small className="field-hint">
               يجب أن تحتوي على حرف كبير وحرف صغير ورقم على الأقل
             </small>
           </div>
 
+          {/* Confirm Password Field */}
           <div className="form-group">
             <label>
               <Lock size={18} /> تأكيد كلمة المرور{" "}
@@ -577,32 +376,26 @@ const Register = () => {
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 name="confirmPassword"
-                value={formData.confirmPassword}
+                {...register("confirmPassword")}
                 onChange={handleInputChange}
                 placeholder="أعد إدخال كلمة المرور"
-                required
                 disabled={loading}
-                className={fieldErrors.confirmPassword ? "error" : ""}
+                className={errors.confirmPassword ? "error" : ""}
               />
               <button
                 type="button"
                 className="eye-icon"
                 onClick={() => togglePasswordVisibility("confirm")}
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {fieldErrors.confirmPassword && (
-              <span className="field-error">
-                {fieldErrors.confirmPassword}
-              </span>
+            {errors.confirmPassword && (
+              <span className="field-error">{errors.confirmPassword.message}</span>
             )}
           </div>
 
+          {/* Phone Field */}
           <div className="form-group">
             <label>
               <Phone size={18} /> رقم الهاتف{" "}
@@ -611,21 +404,21 @@ const Register = () => {
             <input
               type="tel"
               name="phone"
-              value={formData.phone}
+              {...register("phone")}
               onChange={handleInputChange}
               placeholder="مثال: 01234567890"
-              required
               disabled={loading}
-              className={fieldErrors.phone ? "error" : ""}
+              className={errors.phone ? "error" : ""}
             />
-            {fieldErrors.phone && (
-              <span className="field-error">{fieldErrors.phone}</span>
+            {errors.phone && (
+              <span className="field-error">{errors.phone.message}</span>
             )}
             <small className="field-hint">
               رقم مصري صحيح (010, 011, 012, 015 ثم 8 أرقام)
             </small>
           </div>
 
+          {/* Birthdate Field */}
           <div className="form-group">
             <label>
               <Calendar size={18} /> تاريخ الميلاد
@@ -633,14 +426,14 @@ const Register = () => {
             <input
               type="date"
               name="birthdate"
-              value={formData.birthdate}
+              {...register("birthdate")}
               onChange={handleInputChange}
               disabled={loading}
               max={new Date().toISOString().split("T")[0]}
             />
           </div>
 
-          {/* أزرار اختيار الجنس */}
+          {/* Gender Selection */}
           <div className="form-group">
             <label>
               <VenusAndMars size={18} /> الجنس
@@ -648,7 +441,7 @@ const Register = () => {
             <div className="gender-buttons">
               <button
                 type="button"
-                className={`gender-btn ${formData.gender === "male" ? "active" : ""}`}
+                className={`gender-btn ${getValues("gender") === "male" ? "active" : ""}`}
                 onClick={() => handleGenderSelect("male")}
               >
                 <Mars size={20} />
@@ -656,16 +449,19 @@ const Register = () => {
               </button>
               <button
                 type="button"
-                className={`gender-btn ${formData.gender === "female" ? "active" : ""}`}
+                className={`gender-btn ${getValues("gender") === "female" ? "active" : ""}`}
                 onClick={() => handleGenderSelect("female")}
               >
                 <Venus size={20} />
                 <span>أنثى</span>
               </button>
             </div>
+            {errors.gender && (
+              <span className="field-error">{errors.gender.message}</span>
+            )}
           </div>
 
-          {/* العنوان الرئيسي - اختياري */}
+          {/* Optional Address Section */}
           <div className="form-section-divider">
             <span>
               <MapPin size={16} /> العنوان (اختياري)
@@ -680,16 +476,14 @@ const Register = () => {
               <input
                 type="text"
                 name="address.city"
-                value={formData.address.city}
-                onChange={handleInputChange}
+                value={getValues("address.city") || ""}
+                onChange={(e) => handleAddressChange("city", e.target.value)}
                 placeholder="المدينة"
                 disabled={loading}
-                className={fieldErrors["address.city"] ? "error" : ""}
+                className={errors.address?.city ? "error" : ""}
               />
-              {fieldErrors["address.city"] && (
-                <span className="field-error">
-                  {fieldErrors["address.city"]}
-                </span>
+              {errors.address?.city && (
+                <span className="field-error">{errors.address.city.message}</span>
               )}
             </div>
 
@@ -700,16 +494,14 @@ const Register = () => {
               <input
                 type="text"
                 name="address.district"
-                value={formData.address.district}
-                onChange={handleInputChange}
+                value={getValues("address.district") || ""}
+                onChange={(e) => handleAddressChange("district", e.target.value)}
                 placeholder="المنطقة"
                 disabled={loading}
-                className={fieldErrors["address.district"] ? "error" : ""}
+                className={errors.address?.district ? "error" : ""}
               />
-              {fieldErrors["address.district"] && (
-                <span className="field-error">
-                  {fieldErrors["address.district"]}
-                </span>
+              {errors.address?.district && (
+                <span className="field-error">{errors.address.district.message}</span>
               )}
             </div>
           </div>
@@ -721,20 +513,18 @@ const Register = () => {
             <input
               type="text"
               name="address.street"
-              value={formData.address.street}
-              onChange={handleInputChange}
+              value={getValues("address.street") || ""}
+              onChange={(e) => handleAddressChange("street", e.target.value)}
               placeholder="الشارع"
               disabled={loading}
-              className={fieldErrors["address.street"] ? "error" : ""}
+              className={errors.address?.street ? "error" : ""}
             />
-            {fieldErrors["address.street"] && (
-              <span className="field-error">
-                {fieldErrors["address.street"]}
-              </span>
+            {errors.address?.street && (
+              <span className="field-error">{errors.address.street.message}</span>
             )}
           </div>
 
-          {/* حقول إضافية لصاحب المحل */}
+          {/* Store Owner Specific Fields */}
           {selectedRole === "store_owner" && (
             <>
               <div className="form-section-divider">
@@ -751,17 +541,14 @@ const Register = () => {
                 <input
                   type="text"
                   name="store_name"
-                  value={formData.store_name}
+                  {...register("store_name")}
                   onChange={handleInputChange}
                   placeholder="أدخل اسم المحل"
-                  required
                   disabled={loading}
-                  className={fieldErrors.store_name ? "error" : ""}
+                  className={errors.store_name ? "error" : ""}
                 />
-                {fieldErrors.store_name && (
-                  <span className="field-error">
-                    {fieldErrors.store_name}
-                  </span>
+                {errors.store_name && (
+                  <span className="field-error">{errors.store_name.message}</span>
                 )}
               </div>
 
@@ -773,17 +560,14 @@ const Register = () => {
                 <input
                   type="email"
                   name="store_email"
-                  value={formData.store_email}
+                  {...register("store_email")}
                   onChange={handleInputChange}
                   placeholder="store@example.com"
-                  required
                   disabled={loading}
-                  className={fieldErrors.store_email ? "error" : ""}
+                  className={errors.store_email ? "error" : ""}
                 />
-                {fieldErrors.store_email && (
-                  <span className="field-error">
-                    {fieldErrors.store_email}
-                  </span>
+                {errors.store_email && (
+                  <span className="field-error">{errors.store_email.message}</span>
                 )}
               </div>
 
@@ -795,24 +579,21 @@ const Register = () => {
                 <input
                   type="tel"
                   name="store_phone"
-                  value={formData.store_phone}
+                  {...register("store_phone")}
                   onChange={handleInputChange}
                   placeholder="مثال: 01234567890"
-                  required
                   disabled={loading}
-                  className={fieldErrors.store_phone ? "error" : ""}
+                  className={errors.store_phone ? "error" : ""}
                 />
-                {fieldErrors.store_phone && (
-                  <span className="field-error">
-                    {fieldErrors.store_phone}
-                  </span>
+                {errors.store_phone && (
+                  <span className="field-error">{errors.store_phone.message}</span>
                 )}
                 <small className="field-hint">
                   رقم مصري صحيح (010, 011, 012, 015 ثم 8 أرقام)
                 </small>
               </div>
 
-              {/* عنوان المحل - إلزامي */}
+              {/* Store Address - Required */}
               <div className="form-section-divider">
                 <span>
                   <MapPin size={16} /> عنوان المحل{" "}
@@ -829,19 +610,14 @@ const Register = () => {
                   <input
                     type="text"
                     name="store_address.city"
-                    value={formData.store_address.city}
-                    onChange={handleInputChange}
+                    value={getValues("store_address.city") || ""}
+                    onChange={(e) => handleStoreAddressChange("city", e.target.value)}
                     placeholder="مدينة المحل"
-                    required
                     disabled={loading}
-                    className={
-                      fieldErrors["store_address.city"] ? "error" : ""
-                    }
+                    className={errors.store_address?.city ? "error" : ""}
                   />
-                  {fieldErrors["store_address.city"] && (
-                    <span className="field-error">
-                      {fieldErrors["store_address.city"]}
-                    </span>
+                  {errors.store_address?.city && (
+                    <span className="field-error">{errors.store_address.city.message}</span>
                   )}
                 </div>
 
@@ -853,19 +629,14 @@ const Register = () => {
                   <input
                     type="text"
                     name="store_address.district"
-                    value={formData.store_address.district}
-                    onChange={handleInputChange}
+                    value={getValues("store_address.district") || ""}
+                    onChange={(e) => handleStoreAddressChange("district", e.target.value)}
                     placeholder="منطقة المحل"
-                    required
                     disabled={loading}
-                    className={
-                      fieldErrors["store_address.district"] ? "error" : ""
-                    }
+                    className={errors.store_address?.district ? "error" : ""}
                   />
-                  {fieldErrors["store_address.district"] && (
-                    <span className="field-error">
-                      {fieldErrors["store_address.district"]}
-                    </span>
+                  {errors.store_address?.district && (
+                    <span className="field-error">{errors.store_address.district.message}</span>
                   )}
                 </div>
               </div>
@@ -878,19 +649,14 @@ const Register = () => {
                 <input
                   type="text"
                   name="store_address.street"
-                  value={formData.store_address.street}
-                  onChange={handleInputChange}
+                  value={getValues("store_address.street") || ""}
+                  onChange={(e) => handleStoreAddressChange("street", e.target.value)}
                   placeholder="شارع المحل"
-                  required
                   disabled={loading}
-                  className={
-                    fieldErrors["store_address.street"] ? "error" : ""
-                  }
+                  className={errors.store_address?.street ? "error" : ""}
                 />
-                {fieldErrors["store_address.street"] && (
-                  <span className="field-error">
-                    {fieldErrors["store_address.street"]}
-                  </span>
+                {errors.store_address?.street && (
+                  <span className="field-error">{errors.store_address.street.message}</span>
                 )}
               </div>
             </>
