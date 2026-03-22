@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -17,7 +16,6 @@ import {
   VenusAndMars,
   Eye,
   EyeOff,
-  UserCircle,
   Building2,
   MapPinned,
 } from "lucide-react";
@@ -91,7 +89,6 @@ const storeOwnerSchema = yup.object({
 });
 
 const Register = () => {
-  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState("client");
   const [loading, setLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState({ success: false, message: "" });
@@ -107,10 +104,8 @@ const Register = () => {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
     setValue,
-    getValues,
-    trigger
+    getValues
   } = useForm({
     resolver: yupResolver(getCurrentSchema()),
     defaultValues: {
@@ -137,9 +132,6 @@ const Register = () => {
     },
     mode: "onChange"
   });
-
-  // Watch password for confirmPassword validation
-  const password = watch("password");
 
   // Handle role change
   const handleRoleSelect = (role) => {
@@ -215,11 +207,6 @@ const Register = () => {
         message: responseData.message || "تم إرسال رابط التفعيل إلى بريدك الإلكتروني"
       });
 
-      // Clear form on success
-      setTimeout(() => {
-        // Optional: navigate to verification page
-        // navigate("/verify-email");
-      }, 3000);
     } catch (err) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Registration error:", err);
