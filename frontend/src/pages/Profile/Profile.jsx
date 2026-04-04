@@ -7,14 +7,20 @@ const Profile= ()=>{
     const [formMessage, setFormMessage]= useState({success: false, message: ""});
 
     useEffect(()=>{
-        const user= localStorage.getItem("user");
-        if(!user)
-            getUserProfile();
-        else
-            setFormData({...user});
-        
-        console.log(formData);
+        loadUserData();
     }, []); //get the user profile data just when the component mount
+
+    const loadUserData= async()=>{
+        const user= localStorage.getItem("user");
+        if(user){
+            setFormData({...JSON.parse(user)});
+            setLoading(false);
+        }
+        else
+            await getUserProfile();
+
+        console.log(formData);
+    }
 
     const getUserProfile= async()=>{
         try{
@@ -31,6 +37,8 @@ const Profile= ()=>{
                 formMessageSetter(false, data.message);
 
             setFormData({...data.user});
+            setLoading(false);
+            localStorage.setItem("user", JSON.stringify(data.user));
             formMessageSetter(true, data.message);
         }catch(error){
             formMessageSetter(false, error.message);
@@ -67,7 +75,7 @@ const Profile= ()=>{
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-        setFormMessage("كلمة المرور غير متطابقة");
+        setFormMessage({success: false, message:"كلمة المرور غير متطابقة"});
         return;
         }
 
@@ -78,10 +86,10 @@ const Profile= ()=>{
             credentials: "include",
             body: JSON.stringify(formData)
         });
-        if (res.ok) setFormMessage("تم حفظ التعديلات بنجاح ");
-        else setFormMessage("فشل التعديل");
+        if (res.ok) setFormMessage({success: true, message:"تم حفظ التعديلات بنجاح "});
+        else setFormMessage({success: false, message:"فشل التعديل"});
         } catch (err) {
-        setFormMessage("خطأ في الاتصال بالسيرفر");
+        setFormMessage({success: false, message:"خطأ في الاتصال بالسيرفر"});
         }
     };
 
@@ -93,7 +101,7 @@ const Profile= ()=>{
                 {formMessage.message && <p className={formMessage.success? "success-message": "error-message"}>{formMessage.message}</p>}
 
                 <div className="profile-content-grid">    
-                    {/* 2. Right Side: Personal Info & Skincare */}
+                    {/* 2. Right Side: Personal Info*/}
                     <main className="main-form-content">
                         {/*common personal data */}
                         <section className="form-card">
