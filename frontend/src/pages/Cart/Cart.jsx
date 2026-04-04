@@ -1,6 +1,5 @@
 import React from 'react';
 
-// لازم تعرف الـ function الأول قبل ما تعمل لها export
 const Cart = () => {
   return (
     <div>
@@ -9,4 +8,4 @@ const Cart = () => {
   );
 };
 
-export default Cart; // كده الـ export هيكون شغال صح في App.js
+export default Cart; 

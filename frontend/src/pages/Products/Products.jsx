@@ -1,6 +1,5 @@
 import React from 'react';
 
-// لازم تعرف الـ function الأول قبل ما تعمل لها export
 const Products = () => {
   return (
     <div>
@@ -9,4 +8,4 @@ const Products = () => {
   );
 };
 
-export default Products; // كده الـ export هيكون شغال صح في App.js
+export default Products;

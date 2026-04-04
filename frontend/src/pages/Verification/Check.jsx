@@ -21,10 +21,10 @@ const VerificationCheck = () => {
             return setCheckMessage({success: false, message: "email and token must be provided"});
 
         verifyEmail();
-        // return ()=>{
-        //     if(timerRef.current)
-        //         clearTimeout(timerRef.current);
-        // }
+        return ()=>{
+            if(timerRef.current)
+                clearTimeout(timerRef.current);
+        }
     }
     , [email, token]);
 
@@ -37,11 +37,15 @@ const VerificationCheck = () => {
 
             setCheckMessage({success: true, message: data.message});
             setIsVerified(true);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            const user= data.user;
+            localStorage.setItem("user", JSON.stringify(user));
 
-            // timerRef.current = setTimeout(()=>{
-            //     navigate("/dashboard");
-            // }, 4000);
+            timerRef.current = setTimeout(()=>{
+              if(user.role === "client")
+                navigate("/");
+              else
+                navigate("/dashboard");
+            }, 4000);
 
         }catch(error){
             setCheckMessage({success: false, message: error.message});
