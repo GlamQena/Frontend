@@ -79,8 +79,14 @@ const Login = () => {
 
       if(response.ok){
         console.log(data);
-        localStorage.setItem("user", JSON.stringify(data.user));
+        const user= data.user;
+        localStorage.setItem("user", JSON.stringify(user));
         submitMessageSetter(true, data.message);
+
+        if(user.role==="client")
+          navigate("/")
+        else
+          navigate("/dashboard");
       }
       else{
         submitMessageSetter(false, data.message);
@@ -98,7 +104,7 @@ const Login = () => {
   }
 
   return (
-    <div class="container">
+    <div className="container">
       <div className="login-header">
         <h2>مرحباً بك في Glam Qena</h2>
         <p className="hint">سجل دخولك أو أنشئ حساب جديد</p>
