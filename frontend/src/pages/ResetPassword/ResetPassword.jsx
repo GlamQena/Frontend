@@ -119,7 +119,7 @@ const ResetPassword = (isDark) => {
   };
 
   const timerFormatter= ()=> {
-    if(timeLeft==60)
+    if(timeLeft===60)
       return "01:00"
     else if(timeLeft<10)
       return `00:0${timeLeft}`;
