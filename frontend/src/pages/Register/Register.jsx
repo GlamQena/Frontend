@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import {useNavigate} from "react-router-dom";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -89,6 +90,7 @@ const storeOwnerSchema = yup.object({
 });
 
 const Register = () => {
+  const navigate= useNavigate();
   const [selectedRole, setSelectedRole] = useState("client");
   const [loading, setLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState({ success: false, message: "" });
@@ -207,6 +209,14 @@ const Register = () => {
         message: responseData.message || "تم إرسال رابط التفعيل إلى بريدك الإلكتروني"
       });
 
+      localStorage.setItem("user", JSON.stringify(responseData.user));
+      localStorage.setItem("accessToken", responseData.accessToken);
+      localStorage.setItem("refreshToken", responseData.refreshToken);
+
+      if(responseData.user.role === "client")
+          navigate("/")
+      else
+          navigate("/dashboard");
     } catch (err) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Registration error:", err);

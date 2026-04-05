@@ -81,6 +81,8 @@ const Login = () => {
         console.log(data);
         const user= data.user;
         localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
         submitMessageSetter(true, data.message);
 
         if(user.role==="client")
