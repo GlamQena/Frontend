@@ -1,4 +1,4 @@
-/*  loading */
+/* ===== Loading ===== */
 .loading {
     text-align: center;
     font-size: 1.5rem;
@@ -6,15 +6,15 @@
     color: var(--نص-رئيسي);
     font-weight: 500;
     background: var(--خلفية-البطاقة);
-    border-radius: var(--راديوس-البطاقة);
     margin: var(--مارجن-البطاقة);
+    border-radius: var(--راديوس-البطاقة);
     max-width: 400px;
     margin: 2rem auto;
     box-shadow: var(--ظل-البطاقة);
     border: 1px solid var(--حد-واضح);
 }
 
-/* main page  */
+/* ===== Main Page ===== */
 .profile-page-wrapper {
     max-width: 1400px;
     margin: var(--مارجن-البطاقة);
@@ -41,34 +41,97 @@ form {
     padding: 2rem 2rem 1.5rem;
 }
 
-/*   access&fail */
-.success-message {
-    background: var(--أخضر-نجاح);
-    background: linear-gradient(135deg, var(--أخضر-نجاح) 0%, #16a34a 100%);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: var(--راديوس-الحقل);
-    border-right: 5px solid var(--ذهبي);
+/* ===== Header Card ===== */
+.profile-header-card {
+    background: var(--تدرج-الأزرار);
+    border-radius: var(--راديوس-البطاقة);
+    padding: 1.8rem 2rem;
     margin-bottom: 1.5rem;
-    font-weight: 500;
+    color: white;
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
-    animation: slideIn 0.3s ease-out;
+    flex-wrap: wrap;
+    gap: 1.5rem;
 }
 
-.error-message {
-    background: var(--أحمر-خافت);
-    color: var(--أحمر-خطأ);
-    padding: 1rem 1.5rem;
-    border-radius: var(--راديوس-الحقل);
-    border-right: 5px solid var(--أحمر-خطأ);
-    margin-bottom: 1.5rem;
-    font-weight: 500;
+.user-main-info {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    animation: slideIn 0.3s ease-out;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    background: white;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-text h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.status-badges {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.3rem;
+}
+
+.badge-purple,
+.badge-green,
+.badge-red {
+    padding: 0.25rem 0.9rem;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.badge-green {
+    background: #10b981;
+}
+
+.badge-red {
+    background: #ef4444;
+}
+
+.last-seen {
+    font-size: 0.7rem;
+    opacity: 0.85;
+}
+
+.quick-stats {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.quick-stats .stat {
+    text-align: center;
+}
+
+.quick-stats .stat span {
+    display: block;
+    font-size: 0.7rem;
+    opacity: 0.85;
+}
+
+.quick-stats .stat strong {
+    font-size: 1.3rem;
 }
 
 @keyframes slideIn {
@@ -92,7 +155,7 @@ form {
     color: var(--نص-ثانوي);
 }
 
-
+/* ===== Grid Layout ===== */
 .profile-content-grid {
     display: flex;
     gap: 2rem;
@@ -109,8 +172,9 @@ form {
     min-width: 260px;
 }
 
-/* cards  */
-.form-card {
+/* ===== Cards ===== */
+.form-card,
+.info-card{
     background: var(--خلفية-البطاقة);
     border-radius: var(--راديوس-البطاقة);
     padding: 1.5rem;
@@ -120,13 +184,14 @@ form {
     transition: all 0.3s ease;
 }
 
-.form-card:hover {
+.form-card:not(:has(input[readonly])):hover, .form-card:not(:has([disabled])):hover{
     transform: translateY(-2px);
     border-color: var(--بنفسجي);
-    box-shadow: 0 20px 40px rgba(168, 85, 247, 0.15);
-}
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.15);
+} /*doesn't work properly*/
 
-.form-card h3 {
+.form-card h3,
+.info-card h3 {
     font-size: 1.35rem;
     font-weight: 600;
     margin-bottom: 1.2rem;
@@ -136,7 +201,7 @@ form {
     display: inline-block;
 }
 
-
+/* ===== Inputs Grid ===== */
 .inputs-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -152,7 +217,10 @@ form {
     margin-bottom: 0.5rem;
 }
 
-.input-field input {
+.input-field input,
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
     width: 100%;
     padding: var(--padding-الحقل);
     border: 1px solid var(--حد-خافت);
@@ -165,18 +233,30 @@ form {
     height: var(--ارتفاع-الحقل);
 }
 
-.input-field input:focus {
+.input-field input:not([readonly]):focus,
+input:not([type="checkbox"]):not([readonly]):focus,
+textarea:focus,
+select:focus {
     outline: none;
     border-color: var(--حد-تركيز);
     box-shadow: var(--ظل-تركيز-الحقل);
     background: var(--خلفية-3);
 }
 
-.input-field input::placeholder {
-    color: var(--نص-placeholder);
+input[readonly] {
+    background: var(--خلفية-3);
+    cursor: not-allowed;
 }
 
-/* gender  */
+input[readonly]:focus{
+    outline: none;
+}
+
+button[disabled]{
+    border: none;
+}
+
+/* ===== Gender Toggle ===== */
 .gender-toggle {
     display: flex;
     align-items: center;
@@ -205,7 +285,7 @@ form {
     color: var(--نص-ثانوي);
 }
 
-.gender-toggle button:hover {
+.gender-toggle button:not([disabled]):hover {
     background: var(--خلفية-3);
     transform: scale(1.05);
     border-color: var(--بنفسجي);
@@ -218,7 +298,7 @@ form {
     border: none;
 }
 
-/*  address */
+/* ===== Address Fields ===== */
 .address-fields h3 {
     margin: 1rem 0 0.8rem;
     font-size: 1.1rem;
@@ -249,16 +329,14 @@ form {
     background: var(--خلفية-3);
 }
 
-.address-inputs input::placeholder {
-    color: var(--نص-placeholder);
-}
-
-/*  skine care buttons  */
-.skin-types, .skin-interests {
+/* ===== Skin Care Buttons ===== */
+.skin-types,
+.skin-interests {
     margin: 1rem 0;
 }
 
-.skin-types p, .skin-interests p {
+.skin-types p,
+.skin-interests p {
     font-weight: 600;
     margin-bottom: 0.8rem;
     color: var(--نص-رئيسي);
@@ -290,11 +368,14 @@ form {
     border: none;
 }
 
-/*   owner fields */
-input[name="storeName"], 
-textarea[name="storeDescription"], 
-input[name="bankOwner"], 
-input[name="iban"] {
+/* ===== Store Owner Fields ===== */
+input[name="store_name"],
+input[name="store_email"],
+input[name="store_phone"],
+input[name="bankName"],
+input[name="iban"],
+input[name="accountName"],
+textarea[name="storeDescription"] {
     width: 100%;
     padding: var(--padding-الحقل);
     margin: 0.5rem 0;
@@ -304,23 +385,6 @@ input[name="iban"] {
     transition: all 0.3s ease;
     background: var(--خلفية-2);
     color: var(--نص-رئيسي);
-}
-
-input[name="storeName"]:focus,
-textarea[name="storeDescription"]:focus,
-input[name="bankOwner"]:focus,
-input[name="iban"]:focus {
-    outline: none;
-    border-color: var(--حد-تركيز);
-    box-shadow: var(--ظل-تركيز-الحقل);
-    background: var(--خلفية-3);
-}
-
-input[name="storeName"]::placeholder,
-textarea::placeholder,
-input[name="bankOwner"]::placeholder,
-input[name="iban"]::placeholder {
-    color: var(--نص-placeholder);
 }
 
 textarea {
@@ -335,7 +399,7 @@ hr {
     background: var(--حد-واضح);
 }
 
-/*  admin permissions */
+/* ===== Admin Permissions ===== */
 .permissions-grid {
     display: flex;
     flex-direction: column;
@@ -371,7 +435,7 @@ hr {
     cursor: pointer;
 }
 
-
+/* ===== Checkbox Items ===== */
 .checkbox-item {
     display: flex;
     align-items: center;
@@ -385,9 +449,14 @@ hr {
     border-radius: var(--راديوس-الحقل);
 }
 
-.checkbox-item:hover {
+.checkbox-item:not(:has(input[disabled])):hover {
     background: var(--بنفسجي-خافت);
     transform: translateX(5px);
+}
+
+.checkbox-item:has(input[disabled]), button[disabled]{
+    pointer-events: none; /*prevent the default styles of blue highlight on click*/
+    cursor: not-allowed;
 }
 
 .checkbox-item input {
@@ -397,7 +466,15 @@ hr {
     cursor: pointer;
 }
 
-/*  password field  */
+/* ===== Password Form ===== */
+.password-form {
+    margin-top: 0.5rem;
+    padding: 1.5rem;
+    background: var(--خلفية-البطاقة);
+    border-radius: var(--راديوس-البطاقة);
+    border: 1px solid var(--حد-واضح);
+}
+
 .password-form input[type="password"] {
     width: 100%;
     padding: var(--padding-الحقل);
@@ -417,45 +494,59 @@ hr {
     background: var(--خلفية-3);
 }
 
-.password-form input[type="password"]::placeholder {
-    color: var(--نص-placeholder);
-}
-
-/* footer  */
-.sticky-footer {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--حد-واضح);
-    flex-wrap: wrap;
-    position: sticky;
-    bottom: 0;
-    background: var(--خلفية-البطاقة);
-    z-index: 10;
-}
-
-/* buttons */
-.btn-primary {
+.password-form button {
+    width: 100%;
     background: var(--تدرج-الأزرار);
     border: none;
-    padding: 0 2rem;
+    padding: 0.7rem;
     border-radius: var(--راديوس-الزر);
     font-weight: 600;
     font-size: 1rem;
     color: white;
     cursor: pointer;
+    margin-top: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.password-form button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ظل-الزر);
+}
+
+/* ===== Controllers (Buttons Container) ===== */
+.controllers {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+/* ===== Buttons ===== */
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+    padding: 0 2rem;
+    border-radius: var(--راديوس-الزر);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
     font-family: inherit;
     transition: all 0.3s ease;
-    box-shadow: var(--ظل-الزر);
     height: var(--ارتفاع-الزر);
+    flex: 1;
+    min-width: 120px;
+}
+
+.btn-primary {
+    background: var(--تدرج-الأزرار);
+    border: none;
+    color: white;
+    box-shadow: var(--ظل-الزر);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(168, 85, 247, 0.5);
+    box-shadow: 0 6px 25px rgba(139, 92, 246, 0.5);
 }
 
 .btn-primary:active {
@@ -465,14 +556,7 @@ hr {
 .btn-secondary {
     background: var(--خلفية-2);
     border: 1px solid var(--حد-واضح);
-    padding: 0 2rem;
-    border-radius: var(--راديوس-الزر);
-    font-weight: 500;
-    cursor: pointer;
-    font-family: inherit;
     color: var(--نص-ثانوي);
-    transition: all 0.3s ease;
-    height: var(--ارتفاع-الزر);
 }
 
 .btn-secondary:hover {
@@ -482,28 +566,60 @@ hr {
     color: var(--نص-رئيسي);
 }
 
-/* responsive */
+.btn-danger {
+    background: #ef4444;
+    border: none;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+}
+
+/* ===== Responsive Design ===== */
 @media (max-width: 850px) {
-    body {
-        padding: 1rem;
+    .profile-page-wrapper, .loading {
+        margin: 5rem auto;
     }
     
     form {
         padding: 1.2rem;
     }
     
-    .form-card {
+    .form-card,
+    .info-card {
         padding: 1.2rem;
+    }
+    
+    .profile-header-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .user-main-info {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .status-badges {
+        justify-content: center;
     }
 }
 
 @media (max-width: 640px) {
-    .sticky-footer {
+    .profile-content-grid {
+        flex-direction: column;
+    }
+    
+    .controllers {
         justify-content: center;
         flex-direction: column;
     }
     
-    .btn-primary, .btn-secondary {
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
         width: 100%;
         text-align: center;
     }
@@ -519,59 +635,14 @@ hr {
     .address-inputs {
         flex-direction: column;
     }
+    
+    .quick-stats {
+        justify-content: center;
+        width: 100%;
+    }
 }
 
-
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--خلفية-2);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--بنفسجي);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--وردي);
-}
-
-/*    info-card */
-.info-card {
-    background: var(--خلفية-البطاقة);
-    border-radius: var(--راديوس-البطاقة);
-    padding: 1.5rem;
-    margin-bottom: 1.8rem;
-    box-shadow: var(--ظل-البطاقة);
-    border: 1px solid var(--حد-واضح);
-}
-
-.info-card h3 {
-    font-size: 1.35rem;
-    font-weight: 600;
-    margin-bottom: 1.2rem;
-    color: var(--نص-رئيسي);
-    border-right: 4px solid var(--بنفسجي);
-    padding-right: 0.8rem;
-    display: inline-block;
-}
-
-/*   skincare-section */
-.skincare-section {
-    background: var(--خلفية-البطاقة);
-    border: 1px solid var(--حد-واضح);
-}
-
-/*    hover    */
-section:hover {
-    border-color: var(--بنفسجي);
-}
-
-/*  icon & links  */
+/* ===== Links ===== */
 a {
     color: var(--بنفسجي);
     text-decoration: none;
