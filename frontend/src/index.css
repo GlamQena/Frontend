@@ -19,6 +19,25 @@ body {
   padding: 20px;
 }
 
+/* ===== Scrollbar Styling ===== */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--خلفية-الصفحة);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--بنفسجي);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--وردي);
+}
+
 #root{
   width: 100%;
   min-height: 100vh;

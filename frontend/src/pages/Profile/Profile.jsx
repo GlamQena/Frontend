@@ -8,19 +8,17 @@ const Profile= ()=>{
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
     const [profileForm, setProfileForm] = useState(null);
+    const [avatarImg, setAvatarImg] = useState(null);
     const [passwordForm, setPasswordForm] = useState({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
     });
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
     const [formMessage, setFormMessage]= useState({success: false, message: ""});
 
     useEffect(()=>{
         loadUserData();
-    }, []); //get the user profile data just when the component mount
-
-    useEffect(()=>{
-        getUserProfile();
     }, [editMode]);
 
     const loadUserData= async ()=> {
@@ -70,14 +68,15 @@ const Profile= ()=>{
         }, 6000);
     }
 
-    //TODO=> method to fetch the endpoint /profile/edit when the user click "حفظ التغيرات" "onSubmit" and send the form data in the request body
-
-    //TODO=> method to fetch the endpoint /profile/delete when the user click "حذف الحساب"
-
     const handleChangeInput = (e) => {
         const { name, value, type, checked } = e.target;
         if(type === "password")
             setPasswordForm(prev => ({...prev, [name]: value}));
+
+        else if(type === "file"){
+            const file = e.target.files[0];
+            setAvatarImg(file);
+        }
 
         else if (type === "checkbox"){
             let newNotifications= [...profileForm.notifications];
@@ -92,6 +91,7 @@ const Profile= ()=>{
                 notifications: newNotifications,
             }));
         }
+
         else 
             setProfileForm(prev => ({ ...prev, [name]: value }));
     };
@@ -113,32 +113,47 @@ const Profile= ()=>{
     };
 
     const getAccessToken= async()=>{
-        let accessToken= localStorage.getItem("accessToken");
-        if(!accessToken)
-            return formMessageSetter(false, "please login first");
-
-        const decodedAccessToken= JSON.parse(atob(accessToken.split(".")[1]));
-        //atob is a global javaScript method for decoding (ASCII to binary)
-
-        if(decodedAccessToken.exp*1000 < Date.now()){
-            const response= await fetch("http://127.0.0.1:8080/auth/refresh-token", 
-                {
-                    credentials: "include",
-                    headers:{
-                    "Authorization": `Bearer ${localStorage.getItem("refreshToken")}`,
-                    "Content-Type": "application/json",
-                }});
-            const refreshData= await response.json();
-            console.log("refresh token response => ", refreshData);
-            if(refreshData.message.includes("expired"))
-                return formMessageSetter(false, "your session ended, please login");
-            else{
-                localStorage.setItem("user", JSON.stringify(refreshData.user));
-                localStorage.setItem("accessToken", refreshData.accessToken);
-                accessToken= refreshData.accessToken;
+        try{
+            let accessToken= localStorage.getItem("accessToken");
+            if(!accessToken){
+                formMessageSetter(false, "please login first");
+                return null;
             }
+
+            const decodedAccessToken= JSON.parse(atob(accessToken.split(".")[1]));
+            //atob is a global javaScript method for decoding (ASCII to binary)
+
+            if(decodedAccessToken.exp*1000 < Date.now()){
+                const response= await fetch("http://127.0.0.1:8080/auth/refresh-token", 
+                    {
+                        credentials: "include",
+                        headers:{
+                        "Authorization": `Bearer ${localStorage.getItem("refreshToken")}`,
+                        "Content-Type": "application/json",
+                    }});
+                const refreshData= await response.json();
+                console.log("refresh token response => ", refreshData);
+                if(refreshData.message.includes("expired")){
+                    formMessageSetter(false, "your session ended, please login");
+                    return null;
+                }
+                else if(!response.ok){
+                    formMessageSetter(false, refreshData.message);
+                    //TODO=> handle the not found account case
+                    return null;
+                }
+                else{
+                    localStorage.setItem("user", JSON.stringify(refreshData.user));
+                    localStorage.setItem("accessToken", refreshData.accessToken);
+                    accessToken= refreshData.accessToken;
+                }
+            }
+            return accessToken;
+
+        }catch(error){
+            formMessageSetter(false, "your session ended, please login");
+            return null;
         }
-        return accessToken;
     }
 
     const handleChangePassword= async (e)=> {
@@ -170,7 +185,7 @@ const Profile= ()=>{
 
             const data= await response.json();
             if(!response.ok)
-                formMessageSetter(false, data.message);
+                return formMessageSetter(false, data.message);
 
             formMessageSetter(true, data.message);
 
@@ -186,27 +201,56 @@ const Profile= ()=>{
 
     const handleEditProfile = async (e) => {
         e.preventDefault();
-        let accessToken= await getAccessToken();
+        let accessToken = await getAccessToken();
+        console.log("profile data=> ", profileForm);
+
+        if (avatarImg && avatarImg instanceof File) {
+            const imageFormData= new FormData();
+            imageFormData.append('image', avatarImg);
+            console.log('Appended image:', imageFormData.get("image").name);
+
+            try{
+                const response = await fetch("http://127.0.0.1:8080/profile/avatar", {
+                    method: "PATCH",
+                    headers: { 
+                        "Authorization": `Bearer ${accessToken}`
+                    }, //the Content-Type will be by default multipart/form-data due to the file field
+                    credentials: "include",
+                    body: imageFormData
+                });
+
+                const avatarResData= await response.json();
+                if(!response.ok)
+                    return formMessageSetter(false, avatarResData.message);
+
+                formMessageSetter(true, avatarResData.message);
+
+            }catch(error){
+                formMessageSetter(false, error.message);
+            }
+        }
 
         try {
-        const res = await fetch("http://127.0.0.1:8080/profile/edit", {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
-            },
-            credentials: "include",
-            body: JSON.stringify(profileForm)
-        });
 
-        const data= await res.json();
+            const res = await fetch("http://127.0.0.1:8080/profile/edit", {
+                method: "PUT",
+                headers: { 
+                    "Authorization": `Bearer ${accessToken}`,
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify(profileForm)
+            });
 
-        if (res.ok) {
-            formMessageSetter(true, data.message || "تم حفظ التعديلات بنجاح ");
-            setEditMode(false);
-        }
-        else 
-            formMessageSetter(false, data.message || "فشل التعديل");
+            const data= await res.json();
+
+            if (res.ok) {
+                formMessageSetter(true, data.message || "تم حفظ التعديلات بنجاح ");
+                localStorage.setItem("user", JSON.stringify(data.user));
+                setEditMode(false);
+            }
+            else 
+                formMessageSetter(false, data.message || "فشل التعديل");
 
         } 
         catch (err) {
@@ -259,15 +303,21 @@ const Profile= ()=>{
                 <section className="profile-header-card">
                     <div className="user-main-info">
                         <div className="profile-avatar">
-                            <img src={profileForm.image} alt="Profile" />
+                            {profileForm.image && <img src={profileForm.image} alt="Profile"/>}
                             {/*ToDo => edit image by uploading file (handled with multer in back) */}
+                            {editMode && <input type="file" name="image" placeholder="upload image" onChange={handleChangeInput}></input>}
                         </div>
+
                         <div className="user-text">
-                            <h2>{(profileForm.firstName + " " + profileForm.lastName) || ""}</h2>
+                            {(profileForm.firstName && profileForm.lastName) && <h2>profileForm.firstName + " " + profileForm.lastName</h2>}
                             <div className="status-badges">
-                                <span className="badge-purple">{profileForm.role}</span>
-                                <span className="badge-green">{profileForm.isEmailVerified && "الإيميل مفعل"}</span>
-                                <span className="badge-green">{profileForm.isPhoneVerified && "رقم الهاتف مفعل"}</span>
+                                {profileForm.isEmailVerified?
+                                 <span className="badge-green">الإيميل مفعل</span>:
+                                 <span className="badge-red">الإيميل غير مفعل</span>}
+
+                                 {profileForm.isPhoneVerified?
+                                <span className="badge-green">رقم الهاتف مفعل</span>:
+                                <span className="badge-red">رقم الهاتف غير مفعل</span>}
                             </div>
 
                             {profileForm.role === "admin" &&
@@ -279,11 +329,11 @@ const Profile= ()=>{
                     <div className="quick-stats">
                         <div className="stat">
                             <span>الطلبات</span>
-                            <strong>12</strong>
+                            <strong>{profileForm.totalOrders}</strong>
                         </div>
                         <div className="stat">
                             <span>إجمالي المشتريات</span>
-                            <strong>2,450 EGP</strong>
+                            <strong>{profileForm.totalSpent} EGP</strong>
                         </div>
                     </div>}
                 </section>
@@ -351,22 +401,22 @@ const Profile= ()=>{
                             <div className="address-fields">
                                 <h3>العنوان</h3>
                                 <div className="address-inputs">
-                                    {((profileForm.address.city && !editMode) || editMode) &&
+                                    {(editMode || (profileForm.address?.city && !editMode)) &&
                                     <div className="input-field">
                                     <label>المدينة</label>
-                                    <input name="city" value={profileForm.address.city} onChange={handleChangeInput} readOnly={!editMode}/>
+                                    <input name="city" value={profileForm.address?.city || ''} onChange={handleChangeInput} readOnly={!editMode}/>
                                     </div>}
 
-                                    {((profileForm.address.district && !editMode) || editMode) &&
+                                    {((profileForm.address?.district && !editMode) || editMode) &&
                                     <div className="input-field">
                                     <label>المنطقة</label>
-                                    <input name="district" value={profileForm.address.district} onChange={handleChangeInput} readOnly={!editMode}/>
+                                    <input name="district" value={profileForm.address?.district || ""} onChange={handleChangeInput} readOnly={!editMode}/>
                                     </div>}
 
-                                    {((profileForm.address.street && !editMode) || editMode) &&
+                                    {((profileForm.address?.street && !editMode) || editMode) &&
                                     <div className="input-field">
                                     <label>الشارع</label>
-                                    <input name="street" value={profileForm.address.street} onChange={handleChangeInput} readOnly={!editMode}/>
+                                    <input name="street" value={profileForm.address?.street || ""} onChange={handleChangeInput} readOnly={!editMode}/>
                                     </div>}
                                 </div>
                             </div>}
@@ -419,39 +469,36 @@ const Profile= ()=>{
 
                                 <div className="input-field">
                                     <label>اسم المتجر</label>
-                                    <input name="storeName" value={profileForm.store_name} onChange={handleChangeInput} />
+                                    <input name="store_name" value={profileForm.store_name} onChange={handleChangeInput} readOnly={!editMode} />
                                 </div>
 
                                 <div className="input-field">
                                     <label>بريد المتجر</label>
-                                    <input name="storeEmail" value={profileForm.store_email} onChange={handleChangeInput}/>
+                                    <input name="store_email" value={profileForm.store_email} onChange={handleChangeInput} readOnly={!editMode}/>
                                 </div>
 
                                 <div className="input-field">
                                     <label>رقم هاتف المتجر</label>
-                                    <input name="storePhone" value={profileForm.store_phone} onChange={handleChangeInput}/>
+                                    <input name="store_phone" value={profileForm.store_phone} onChange={handleChangeInput} readOnly={!editMode}/>
                                 </div>
                                 <br/>
                                 <div className="store_address">
                                     <p>عنوان المتجر</p>
                                     <div className="address-inputs">
-                                        {((profileForm.store_address.city && !editMode) || editMode) &&
                                         <div className="input-field">
                                         <label>المدينة</label>
                                         <input name="city" value={profileForm.store_address.city} onChange={handleChangeInput} readOnly={!editMode}/>
-                                        </div>}
+                                        </div>
 
-                                        {((profileForm.store_address.district && !editMode) || editMode) &&
                                         <div className="input-field">
                                         <label>المنطقة</label>
                                         <input name="district" value={profileForm.store_address.district} onChange={handleChangeInput} readOnly={!editMode}/>
-                                        </div>}
+                                        </div>
 
-                                        {((profileForm.store_address.street && !editMode) || editMode) &&
                                         <div className="input-field">
                                         <label>الشارع</label>
                                         <input name="street" value={profileForm.store_address.street} onChange={handleChangeInput} readOnly={!editMode}/>
-                                        </div>}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -460,7 +507,7 @@ const Profile= ()=>{
                                     name="storeDescription"
                                     value={profileForm.store_description}
                                     onChange={handleChangeInput}
-                                    placeholder="وصف المتجر"
+                                    readOnly={!editMode}
                                 />}
                             </section>
                             <hr />
@@ -473,19 +520,19 @@ const Profile= ()=>{
                                 {((profileForm.bankAccount.bankName && !editMode) || editMode) &&
                                 <div className="input-field">
                                     <label>اسم البنك</label>
-                                    <input name="bankName" value={profileForm.bankName} onChange={handleChangeInput}/>
+                                    <input name="bankName" value={profileForm.bankName} onChange={handleChangeInput} readOnly={!editMode}/>
                                 </div>}
 
                                 {((profileForm.bankAccount.accountNumber && !editMode) || editMode) &&
                                 <div className="input-field">
                                     <label>IBAN رقم الحساب</label>
-                                    <input name="iban" value={profileForm.iban} onChange={handleChangeInput} />
+                                    <input name="iban" value={profileForm.iban} onChange={handleChangeInput} readOnly={!editMode} />
                                 </div>}
 
                                 {((profileForm.bankAccount.accountName && !editMode) || editMode) &&
                                 <div className="input-field">
                                     <label>اسم الحساب</label>
-                                    <input name="accountName" value={profileForm.accountName} onChange={handleChangeInput}/>
+                                    <input name="accountName" value={profileForm.accountName} onChange={handleChangeInput} readOnly={!editMode}/>
                                 </div>}
                             </section>}
                         </React.Fragment>}
@@ -497,9 +544,9 @@ const Profile= ()=>{
                                 <h3>الصلاحيات الممنوحة</h3>
                                 <div className="permissions-grid">
                                     {profileForm.permissions.map(perm => (
-                                    <div key={perm.id} className="permission-item">
-                                        <span>{perm.name}</span>
-                                        <input type="checkbox" checked={perm.active} readOnly />
+                                    <div key={perm} className="permission-item">
+                                        <span>{perm}</span>
+                                        <input type="checkbox" checked readOnly />
                                     </div>
                                     ))}
                                 </div>
@@ -528,21 +575,23 @@ const Profile= ()=>{
                         <div className="controllers">
                             {/* {formMessage.message && <p className="status-msg">{formMessage.message}</p>} */}
                             {editMode && <><button type="submit" className="btn-primary">حفظ التغييرات</button>
-                            <button type="button" className="btn-secondary" onClick={loadUserData}>إلغاء</button></>}
+                            <button type="button" className="btn-secondary" onClick={()=>{loadUserData(); setEditMode(false);}}>إلغاء</button></>}
 
-                            {!editMode && <><button className="btn-primary" onClick= {()=> setEditMode(true)}>تعديل البيانات</button>
+                            {!editMode && <><button className="btn-primary" onClick= {()=> {setEditMode(true);  setShowPasswordForm(false);}}>تعديل البيانات</button>
                             <button type="button" className="btn-danger" onClick={handleDeleteProfile}>حذف الحساب</button></>}
                         </div>
                     </aside>
                 </div>
             </form>
 
-            <form className="password-form form-card">
+            <form className="password-form form-card" onClick={()=>setShowPasswordForm(true)}>
                 <h3>تغيير كلمة المرور</h3>
+                { showPasswordForm && <React.Fragment>
                 <input type="password" name="currentPassword" value={passwordForm.currentPassword} placeholder="كلمة المرور الحالية" onChange={handleChangeInput} />
                 <input type="password" name="newPassword" value={passwordForm.newPassword} placeholder="كلمة المرور الجديدة" onChange={handleChangeInput} />
                 <input type="password" name="confirmPassword" value={passwordForm.confirmPassword} placeholder="تأكيد كلمة المرور" onChange={handleChangeInput} />
                 <button type="submit" onClick= {handleChangePassword}>تغيير</button>
+                </React.Fragment>}
             </form>
         </div>
     );

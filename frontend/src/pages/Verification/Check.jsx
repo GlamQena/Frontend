@@ -9,7 +9,7 @@ const VerificationCheck = () => {
     const [isVerified, setIsVerified]= useState(false);
     const timerRef= useRef(null);
 
-    const urlParams= new URLSearchParams(window.location.search);
+    const urlParams= new URLSearchParams(window.location.search); //gets the query params
     const email= urlParams.get("email");
     const token= urlParams.get("token");
 
