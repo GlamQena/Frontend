@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {useNavigate} from "react-router-dom";
-import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   User,
@@ -20,80 +19,14 @@ import {
   Building2,
   MapPinned,
 } from "lucide-react";
-import { registerUser, passwordField } from "../../services/authService";
+import { registerUser, formMessageSetter, clientSchema, storeOwnerSchema, } from "../../services/authService";
 import "./Register.css";
-
-// Define validation schemas
-const commonFieldsSchema = {
-  username: yup.string()
-    .required("اسم المستخدم مطلوب")
-    .min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل")
-    .max(64, "اسم المستخدم يجب أن يكون أقل من 64 حرف")
-    .matches(/^[a-z0-9_]+$/, "اسم المستخدم يمكن أن يحتوي فقط على أحرف إنجليزية صغيرة وأرقام وشرطة سفلية"),
-  
-  email: yup.string()
-    .required("البريد الإلكتروني مطلوب")
-    .email("البريد الإلكتروني غير صالح")
-    .max(254, "البريد الإلكتروني طويل جداً"),
-  
-  password: passwordField, // Assuming this is defined in authService
-  
-  confirmPassword: yup.string()
-    .required("تأكيد كلمة المرور مطلوب")
-    .oneOf([yup.ref("password")], "كلمة المرور غير متطابقة"),
-  
-  phone: yup.string()
-    .required("رقم الهاتف مطلوب")
-    .matches(/^01[0125][0-9]{8}$/, "رقم الهاتف غير صالح (يجب أن يبدأ بـ 010, 011, 012, 015 ثم 8 أرقام)"),
-  
-  gender: yup.string()
-    .nullable()
-    .optional()
-    .oneOf(["male", "female"], "الجنس يجب أن يكون ذكر أو أنثى"),
-  
-  birthdate: yup.string().nullable().optional(),
-  
-  address: yup.object({
-    city: yup.string().max(50, "اسم المدينة يجب أن يكون أقل من 50 حرف").optional(),
-    district: yup.string().max(50, "اسم المنطقة يجب أن يكون أقل من 50 حرف").optional(),
-    street: yup.string().max(100, "اسم الشارع يجب أن يكون أقل من 100 حرف").optional(),
-  }).optional()
-};
-
-const clientSchema = yup.object(commonFieldsSchema);
-
-const storeOwnerSchema = yup.object({
-  ...commonFieldsSchema,
-  store_name: yup.string()
-    .required("اسم المحل مطلوب")
-    .max(100, "اسم المحل يجب أن يكون أقل من 100 حرف"),
-  
-  store_email: yup.string()
-    .required("البريد الإلكتروني للمحل مطلوب")
-    .email("البريد الإلكتروني للمحل غير صالح"),
-  
-  store_phone: yup.string()
-    .required("رقم هاتف المحل مطلوب")
-    .matches(/^01[0125][0-9]{8}$/, "رقم هاتف المحل غير صالح (يجب أن يبدأ بـ 010, 011, 012, 015 ثم 8 أرقام)"),
-  
-  store_address: yup.object({
-    city: yup.string()
-      .required("مدينة المحل مطلوبة")
-      .max(50, "اسم المدينة يجب أن يكون أقل من 50 حرف"),
-    district: yup.string()
-      .required("منطقة المحل مطلوبة")
-      .max(50, "اسم المنطقة يجب أن يكون أقل من 50 حرف"),
-    street: yup.string()
-      .required("شارع المحل مطلوب")
-      .max(100, "اسم الشارع يجب أن يكون أقل من 100 حرف"),
-  })
-});
 
 const Register = () => {
   const navigate= useNavigate();
   const [selectedRole, setSelectedRole] = useState("client");
   const [loading, setLoading] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState({ success: false, message: "" });
+  const [submitMessage, setSubmitMessage] = useState({success: false, message: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -139,7 +72,7 @@ const Register = () => {
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
     // Clear errors when switching roles
-    setSubmitMessage({ success: false, message: "" });
+    formMessageSetter(false, "" , setSubmitMessage);
   };
 
   // Handle gender selection
@@ -166,7 +99,7 @@ const Register = () => {
   // Form submission handler
   const onSubmit = async (formData) => {
     setLoading(true);
-    setSubmitMessage({ success: false, message: "" });
+    formMessageSetter(false, "" , setSubmitMessage);
 
     try {
       // Prepare data for API
@@ -204,10 +137,10 @@ const Register = () => {
       const responseData = await registerUser(registrationData);
       
       window.scrollTo({ top: 0, behavior: "smooth" });
-      setSubmitMessage({
-        success: true,
-        message: responseData.message || "تم إرسال رابط التفعيل إلى بريدك الإلكتروني"
-      });
+      formMessageSetter(true,
+        responseData.message || "تم إرسال رابط التفعيل إلى بريدك الإلكتروني",
+        setSubmitMessage
+      );
 
       localStorage.setItem("user", JSON.stringify(responseData.user));
       localStorage.setItem("accessToken", responseData.accessToken);
@@ -220,10 +153,10 @@ const Register = () => {
     } catch (err) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Registration error:", err);
-      setSubmitMessage({
-        success: false,
-        message: err.message || "حدث خطأ أثناء التسجيل"
-      });
+      formMessageSetter(false,
+        err.message || "حدث خطأ أثناء التسجيل",
+        setSubmitMessage
+      );
     } finally {
       setLoading(false);
     }
@@ -396,7 +329,6 @@ const Register = () => {
           <div className="form-group">
             <label>
               <Phone size={18} /> رقم الهاتف{" "}
-              <span className="required-star">*</span>
             </label>
             <input
               type="tel"
