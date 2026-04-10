@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import {useForm} from "react-hook-form";
-import * as yup from "yup";
 import {yupResolver} from "@hookform/resolvers/yup";
-import {passwordField} from "../../services/authService";
+import {loginSchema, formMessageSetter, login} from "../../services/authService";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,46 +13,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const [submitMessage, setSubmitMessage]= useState({success: false, message: ""});
-
-  const loginSchema = yup.object({
-    "usernameOrEmail": yup.string()
-      .required("يرجى إدخال اسم المستخدم أو البريد الإلكتروني")
-      .test("usernameOrEmail", "صيغة غير صالحة!", function(value) {
-        if (value.includes("@")) {
-          // Email validation
-          if (value.length > 254)
-            return this.createError({ message: "البريد الإلكتروني يجب ألا يتجاوز 254 حرف" });
-
-          const isValid = yup.string().email().isValidSync(value);
-          if (!isValid) {
-            return this.createError({ 
-              message: "يرجى إدخال بريد إلكتروني صالح" 
-            });
-          }
-          return true;
-        } else {
-          // Username validation
-          if (value.length < 3) {
-            return this.createError({ 
-              message: "اسم المستخدم يجب أن يكون 3 أحرف على الأقل" 
-            });
-          }
-          if (value.length > 64) {
-            return this.createError({ 
-              message: "اسم المستخدم لا يمكن أن يتجاوز 64 حرف" 
-            });
-          }
-          if (!/^[a-z0-9_]+$/.test(value)) {
-            return this.createError({ 
-              message: "اسم المستخدم يمكن أن يحتوي فقط على أحرف صغيرة وأرقام وشرطة سفلية" 
-            });
-          }
-          return true;
-        }
-      }),
-    "password": passwordField,
-    "rememberMe": yup.boolean()
-  });
 
   let {register, handleSubmit, formState: { errors}}= useForm({
     resolver: yupResolver(loginSchema),
@@ -68,13 +27,7 @@ const Login = () => {
     console.log("data to be sent-> ", bodyData);
 
     try{
-      const response= await fetch("http://127.0.0.1:8080/auth/login", {
-        method: "POST", 
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bodyData)
-      })
+      const response= await login(bodyData);
       const data= await response.json();
 
       if(response.ok){
@@ -83,7 +36,7 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
-        submitMessageSetter(true, data.message);
+        formMessageSetter(true, data.message, setSubmitMessage);
 
         if(user.role==="client")
           navigate("/")
@@ -91,19 +44,12 @@ const Login = () => {
           navigate("/dashboard");
       }
       else{
-        submitMessageSetter(false, data.message);
+        formMessageSetter(false, data.message, setSubmitMessage);
       }
     }catch(error){
-      submitMessageSetter(false, error.message);
+      formMessageSetter(false, error.message, setSubmitMessage);
     }
   };
-
-  function submitMessageSetter(success, message){
-    setSubmitMessage({success, message});
-      setTimeout(()=>{
-        setSubmitMessage({success: false, message: ""});
-      }, 4000);
-  }
 
   return (
     <div className="container">

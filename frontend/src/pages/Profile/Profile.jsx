@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from "react";
 import "./Profile.css";
 import { useNavigate } from "react-router-dom";
+import { formMessageSetter, isUserLogged, logout } from "../../services/authService";
+import { changePassword, deleteProfile, editProfile, editAvatar, getProfile } from "../../services/profileService";
 
 //TODO=> yub validations schema for the edit form
 const Profile= ()=>{
@@ -23,53 +25,37 @@ const Profile= ()=>{
 
     const loadUserData= async ()=> {
         const user= localStorage.getItem("user");
-        if(user && user!==undefined){
+        if(user && user !== "undefined" && user !== "null" && user !== ""){
             setProfileForm({...JSON.parse(user)});
             setLoading(false);
+            console.log(profileForm);
         }
         else{
             localStorage.removeItem("user");
             await getUserProfile();
+            console.log(profileForm);
         }
-
-        console.log(profileForm);
     }
 
     const getUserProfile= async()=>{
-        const accessToken= await getAccessToken();
-
         try{
-            const response= await fetch("http://127.0.0.1:8080/profile/",{
-                method: "GET",
-                headers:{
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`,
-                },
-                credentials: "include", //send browser cookies including accessToken
-            });
+            const response= await getProfile(setFormMessage);
             const data= await response.json();
 
             if(!response.ok)
-                formMessageSetter(false, data.message);
+                formMessageSetter(false, data.message, setFormMessage);
 
             setProfileForm({...data.user});
             setLoading(false);
             localStorage.setItem("user", JSON.stringify(data.user));
             console.log(data.message);
         }catch(error){
-            formMessageSetter(false, error.message);
+            formMessageSetter(false, error.message, setFormMessage);
         }
     }
 
-    function formMessageSetter(success, message){
-        setFormMessage({success, message});
-        setTimeout(()=>{
-            setFormMessage({success: false, message: ""});
-        }, 6000);
-    }
-
     const handleChangeInput = (e) => {
-        const { name, value, type, checked } = e.target;
+        let { name, value, type, checked } = e.target;
         if(type === "password")
             setPasswordForm(prev => ({...prev, [name]: value}));
 
@@ -92,6 +78,16 @@ const Profile= ()=>{
             }));
         }
 
+        else if (name.includes("store_address")){
+            name = name.split(".")[1];
+            setProfileForm(prev => ({ ...prev, store_address: {...prev.store_address, [name]: value} }));
+        }
+
+        else if (name.includes("address")){
+            name = name.split(".")[1];
+            setProfileForm(prev => ({ ...prev, address: {...prev.address, [name]: value} }));
+        }
+
         else 
             setProfileForm(prev => ({ ...prev, [name]: value }));
     };
@@ -112,60 +108,14 @@ const Profile= ()=>{
             setProfileForm(prev => ({ ...prev, [field]: value }));
     };
 
-    const getAccessToken= async()=>{
-        try{
-            let accessToken= localStorage.getItem("accessToken");
-            if(!accessToken){
-                formMessageSetter(false, "please login first");
-                return null;
-            }
-
-            const decodedAccessToken= JSON.parse(atob(accessToken.split(".")[1]));
-            //atob is a global javaScript method for decoding (ASCII to binary)
-
-            if(decodedAccessToken.exp*1000 < Date.now()){
-                const response= await fetch("http://127.0.0.1:8080/auth/refresh-token", 
-                    {
-                        credentials: "include",
-                        headers:{
-                        "Authorization": `Bearer ${localStorage.getItem("refreshToken")}`,
-                        "Content-Type": "application/json",
-                    }});
-                const refreshData= await response.json();
-                console.log("refresh token response => ", refreshData);
-                if(refreshData.message.includes("expired")){
-                    formMessageSetter(false, "your session ended, please login");
-                    return null;
-                }
-                else if(!response.ok){
-                    formMessageSetter(false, refreshData.message);
-                    //TODO=> handle the not found account case
-                    return null;
-                }
-                else{
-                    localStorage.setItem("user", JSON.stringify(refreshData.user));
-                    localStorage.setItem("accessToken", refreshData.accessToken);
-                    accessToken= refreshData.accessToken;
-                }
-            }
-            return accessToken;
-
-        }catch(error){
-            formMessageSetter(false, "your session ended, please login");
-            return null;
-        }
-    }
-
     const handleChangePassword= async (e)=> {
         e.preventDefault();
         if (passwordForm.newPassword && passwordForm.newPassword !== passwordForm.confirmPassword) {
-        formMessageSetter(false, "كلمة المرور غير متطابقة");
+        formMessageSetter(false, "كلمة المرور غير متطابقة", setFormMessage);
         return;
         }
 
         try{
-            let accessToken= await getAccessToken();
-
             const reqBody=JSON.stringify({
                     email: profileForm.email,
                     currentPassword: passwordForm.currentPassword,
@@ -173,36 +123,27 @@ const Profile= ()=>{
                     confirmNewPassword: passwordForm.confirmPassword
                 });
 
-            const response= await fetch("http://127.0.0.1:8080/profile/change-password", {
-                method: "PATCH",
-                headers:{
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`
-                },
-                credentials: "include",
-                body: reqBody
-            });
+            const response= await changePassword(reqBody, setFormMessage);
 
             const data= await response.json();
             if(!response.ok)
-                return formMessageSetter(false, data.message);
+                return formMessageSetter(false, data.message, setFormMessage);
 
-            formMessageSetter(true, data.message);
+            formMessageSetter(true, data.message, setFormMessage);
 
             setTimeout(()=>{
                 navigate("/login");
             }, 6000);
 
         }catch(e){
-            formMessageSetter(false, e.message);
+            formMessageSetter(false, e.message, setFormMessage);
             console.error(e.error);
         }
     }
 
     const handleEditProfile = async (e) => {
         e.preventDefault();
-        let accessToken = await getAccessToken();
-        console.log("profile data=> ", profileForm);
+        console.log("profile data=> ", profileForm, avatarImg);
 
         if (avatarImg && avatarImg instanceof File) {
             const imageFormData= new FormData();
@@ -210,106 +151,105 @@ const Profile= ()=>{
             console.log('Appended image:', imageFormData.get("image").name);
 
             try{
-                const response = await fetch("http://127.0.0.1:8080/profile/avatar", {
-                    method: "PATCH",
-                    headers: { 
-                        "Authorization": `Bearer ${accessToken}`
-                    }, //the Content-Type will be by default multipart/form-data due to the file field
-                    credentials: "include",
-                    body: imageFormData
-                });
+                const response = await editAvatar(imageFormData, setFormMessage);
 
                 const avatarResData= await response.json();
                 if(!response.ok)
-                    return formMessageSetter(false, avatarResData.message);
+                    return formMessageSetter(false, avatarResData.message, setFormMessage);
 
-                formMessageSetter(true, avatarResData.message);
+                formMessageSetter(true, avatarResData.message, setFormMessage);
 
             }catch(error){
-                formMessageSetter(false, error.message);
+                formMessageSetter(false, error.message, setFormMessage);
             }
         }
 
         try {
 
-            const res = await fetch("http://127.0.0.1:8080/profile/edit", {
-                method: "PUT",
-                headers: { 
-                    "Authorization": `Bearer ${accessToken}`,
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify(profileForm)
-            });
+            const res = await editProfile(profileForm, setFormMessage);
 
             const data= await res.json();
 
             if (res.ok) {
-                formMessageSetter(true, data.message || "تم حفظ التعديلات بنجاح ");
+                formMessageSetter(true, data.message || "تم حفظ التعديلات بنجاح ", setFormMessage);
                 localStorage.setItem("user", JSON.stringify(data.user));
                 setEditMode(false);
             }
             else 
-                formMessageSetter(false, data.message || "فشل التعديل");
+                formMessageSetter(false, data.message || "فشل التعديل", setFormMessage);
 
         } 
         catch (err) {
-            formMessageSetter(false, "خطأ في الاتصال بالسيرفر");
+            formMessageSetter(false, err.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
         }
     };
 
     const handleDeleteProfile = async () => {
-        let accessToken= await getAccessToken();
-
         try {
-        const res = await fetch("http://127.0.0.1:8080/profile/delete", {
-            method: "DELETE",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
-            },
-            credentials: "include"
-        });
+        const res = await deleteProfile(setFormMessage);
 
         const data= await res.json();
 
         if (res.ok) {
-            formMessageSetter(true,  data.message);
-            const response= await fetch("http://127.0.0.1:8080/auth/logout", {method: "DELETE"});
-            const logoutData= await response.json();
-            if(!response.ok)
-                console.error(logoutData.message);
-            console.log(logoutData.message)
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
+            formMessageSetter(true,  data.message, setFormMessage);
+            await logout();
 
             setTimeout(()=>{
                 navigate("/");
             }, 6000);
         }
-        else formMessageSetter(false,  data.message);
+        else formMessageSetter(false,  data.message, setFormMessage);
 
         } catch (err) {
-            formMessageSetter(false, "خطأ في الاتصال بالسيرفر");
+            formMessageSetter(false, "خطأ في الاتصال بالسيرفر", setFormMessage);
         }
     };
 
-    if (loading) return <div className="loading">جاري تحميل البيانات...</div>;
+    if (!isUserLogged()) {
+        return (
+            <div className="profile-page-wrapper" dir="rtl">
+                <div className="notAuth-message">
+                    <p className="error-message">Your session ended, please login</p>
+                </div>
+            </div>
+        );
+    }
 
-    return(
+    if (loading) {
+        return (
+            <div className="profile-page-wrapper" dir="rtl">
+                <div className="loading">جاري تحميل البيانات...</div>
+            </div>
+        );
+    }
+
+    if (!profileForm) {
+        return (
+            <div className="profile-page-wrapper" dir="rtl">
+                <div className="notAuth-message">
+                    <p className="error-message">
+                        {formMessage.message || "Unable to load profile data"}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
         <div className="profile-page-wrapper" dir="rtl">
             <form onSubmit={handleEditProfile}>
                 {/* 1. Header Section (Top Card) */}
                 <section className="profile-header-card">
                     <div className="user-main-info">
                         <div className="profile-avatar">
-                            {profileForm.image && <img src={profileForm.image} alt="Profile"/>}
-                            {/*ToDo => edit image by uploading file (handled with multer in back) */}
+                            {/* {console.log("formatted image => ", encodeURI(profileForm.image.replace(/\\/g , "//").replace("uploads", "http://127.0.0.1:8080")))}  */}
+                            {profileForm.image && <img src={encodeURI(profileForm.image.replace(/\\/g , "//").replace("uploads", "http://127.0.0.1:8080"))} alt="Profile"/>}
+                            {/*error revealing the multer handled image*/}
                             {editMode && <input type="file" name="image" placeholder="upload image" onChange={handleChangeInput}></input>}
                         </div>
 
                         <div className="user-text">
-                            {(profileForm.firstName && profileForm.lastName) && <h2>profileForm.firstName + " " + profileForm.lastName</h2>}
+                            {(profileForm.firstName || profileForm.lastName) && <h2>{(profileForm.firstName || '') + " " + (profileForm.lastName || '')}</h2>} {/*+ has more precedence than || so it needs association*/}
                             <div className="status-badges">
                                 {profileForm.isEmailVerified?
                                  <span className="badge-green">الإيميل مفعل</span>:
@@ -404,19 +344,19 @@ const Profile= ()=>{
                                     {(editMode || (profileForm.address?.city && !editMode)) &&
                                     <div className="input-field">
                                     <label>المدينة</label>
-                                    <input name="city" value={profileForm.address?.city || ''} onChange={handleChangeInput} readOnly={!editMode}/>
+                                    <input name="address.city" value={profileForm.address?.city || ''} onChange={handleChangeInput} readOnly={!editMode}/>
                                     </div>}
 
                                     {((profileForm.address?.district && !editMode) || editMode) &&
                                     <div className="input-field">
                                     <label>المنطقة</label>
-                                    <input name="district" value={profileForm.address?.district || ""} onChange={handleChangeInput} readOnly={!editMode}/>
+                                    <input name="address.district" value={profileForm.address?.district || ""} onChange={handleChangeInput} readOnly={!editMode}/>
                                     </div>}
 
                                     {((profileForm.address?.street && !editMode) || editMode) &&
                                     <div className="input-field">
                                     <label>الشارع</label>
-                                    <input name="street" value={profileForm.address?.street || ""} onChange={handleChangeInput} readOnly={!editMode}/>
+                                    <input name="address.street" value={profileForm.address?.street || ""} onChange={handleChangeInput} readOnly={!editMode}/>
                                     </div>}
                                 </div>
                             </div>}
@@ -487,17 +427,17 @@ const Profile= ()=>{
                                     <div className="address-inputs">
                                         <div className="input-field">
                                         <label>المدينة</label>
-                                        <input name="city" value={profileForm.store_address.city} onChange={handleChangeInput} readOnly={!editMode}/>
+                                        <input name="store_address.city" value={profileForm.store_address.city} onChange={handleChangeInput} readOnly={!editMode}/>
                                         </div>
 
                                         <div className="input-field">
                                         <label>المنطقة</label>
-                                        <input name="district" value={profileForm.store_address.district} onChange={handleChangeInput} readOnly={!editMode}/>
+                                        <input name="store_address.district" value={profileForm.store_address.district} onChange={handleChangeInput} readOnly={!editMode}/>
                                         </div>
 
                                         <div className="input-field">
                                         <label>الشارع</label>
-                                        <input name="street" value={profileForm.store_address.street} onChange={handleChangeInput} readOnly={!editMode}/>
+                                        <input name="store_address.street" value={profileForm.store_address.street} onChange={handleChangeInput} readOnly={!editMode}/>
                                         </div>
                                     </div>
                                 </div>

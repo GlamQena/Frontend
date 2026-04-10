@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ResetPassword.css';
-import * as yup from "yup";
 import {useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
-import {passwordField, emailField} from "../../services/authService";
+import {emailField, resetPasswordSchema, sendOtp, verifyOtp, resetPassword} from "../../services/authService";
 import { EyeOff, Eye } from 'lucide-react';
 
 const ResetPassword = (isDark) => {
@@ -37,17 +36,12 @@ const ResetPassword = (isDark) => {
     validateEmail(value);
   }
 
-  const resetSchema= yup.object({
-    "newPassword": passwordField,
-    "confirmPassword": passwordField,
-  });
-
   const {register, handleSubmit, formState: { errors }} = useForm({
     defaultValues:{
       "newPassword": "",
       "confirmPassword": "",
     },
-    resolver: yupResolver(resetSchema),
+    resolver: yupResolver(resetPasswordSchema),
     mode: "onChange",
   });
 
@@ -156,9 +150,7 @@ const ResetPassword = (isDark) => {
     }
     
     try{
-      const response= await fetch("http://127.0.0.1:8080/auth/password/send-otp", 
-        {method: "POST", headers:{"Content-Type": "application/json"}, 
-        body: JSON.stringify({"email": email})});
+      const response= await sendOtp({"email": email});
 
       const data= await response.json();
       console.log("verify otp data-> ", data);
@@ -189,9 +181,7 @@ const ResetPassword = (isDark) => {
     try{
       console.log("entered otp-> ", code.join(""));
 
-      const response= await fetch("http://127.0.0.1:8080/auth/password/verify-otp", 
-        {method: "POST", headers:{"Content-Type": "application/json"}, 
-        body: JSON.stringify({"email": email, "otp": code.join("")})});
+      const response= await verifyOtp({"email": email, "otp": code.join("")});
 
       const data= await response.json();
       console.log("verify otp data-> ", data);
@@ -206,7 +196,7 @@ const ResetPassword = (isDark) => {
   };
 
   // تغيير كلمة المرور
-  const resetPassword = async (formData) => {
+  const resetPasswordHandler = async (formData) => {
     console.log("formData-> ", formData);
     const {newPassword, confirmPassword} = formData;
 
@@ -217,11 +207,7 @@ const ResetPassword = (isDark) => {
     }
 
     try{
-      const response= await fetch("http://127.0.0.1:8080/auth/password/reset", {
-         method: "POST",
-         headers:{"Content-Type": "application/json"}, 
-         body: JSON.stringify({"email": email, "newPassword": newPassword, "confirmPassword": confirmPassword})
-        });
+      const response= await resetPassword({"email": email, "newPassword": newPassword, "confirmPassword": confirmPassword});
 
       const data= await response.json();
       console.log("reset-password data-> ", data);
@@ -327,7 +313,7 @@ const ResetPassword = (isDark) => {
         </form>
 
         {/*   form  3 */}
-        <form className={`step ${step === 3 ? 'active' : ''}`} onSubmit={handleSubmit(resetPassword)}>
+        <form className={`step ${step === 3 ? 'active' : ''}`} onSubmit={handleSubmit(resetPasswordHandler)}>
           {submitMessage.form==="reset-password"  && submitMessage.message && <p className={`${submitMessage.success? "success-message" : "error-message"}`}>{submitMessage.message}</p>}
 
           {/* <button type="button" className="back-btn" onClick={goToPage2}>
