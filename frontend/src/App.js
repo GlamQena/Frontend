@@ -15,8 +15,10 @@ import Navbar from "./components/Navbar";
 import { ThemeProvider } from "./components/ThemeProvider";
 import VerificationCheck from "./pages/Verification/Check";
 import Profile from "./pages/Profile/Profile";
+import { closeTabHandler } from "./services/authService";
 
 function App() {
+  closeTabHandler();
   return (
       <BrowserRouter>
         <ThemeProvider>
