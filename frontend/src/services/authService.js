@@ -74,7 +74,9 @@ export const resetPassword = async (data) => {
 
 export const logout = async () => {
   try {
-    const response = await fetch(`${API_URL}/logout`, {method: "DELETE"});
+    const session_id= sessionStorage.getItem("session_id");
+
+    const response = await fetch(`${API_URL}/logout${session_id? `?session_id=${session_id}`: ""}`, {method: "DELETE"});
 
     const logoutData= await response.json();
     if(!response.ok)
@@ -84,6 +86,7 @@ export const logout = async () => {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
 
+    window.location.reload();
   }catch(error){
     throw error
   }
@@ -137,6 +140,15 @@ export function formMessageSetter(success, message, setFormMessage){
     setTimeout(()=>{
         setFormMessage({success: false, message: ""});
     }, 6000);
+}
+
+export function closeTabHandler(){
+  window.removeEventListener("beforeunload", beforeUnloadHandler);
+  window.addEventListener("beforeunload", beforeUnloadHandler);
+}
+
+const beforeUnloadHandler= async ()=>{
+  await logout();
 }
 
 const passwordField= yup.string().required("كلمة المرور مطلوبة")
