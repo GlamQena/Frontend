@@ -145,7 +145,7 @@ export function formMessageSetter(success, message, setFormMessage){
 export function closeTabHandler(){
   window.removeEventListener("beforeunload", beforeUnloadHandler);
   window.addEventListener("beforeunload", beforeUnloadHandler);
-}
+} //doesn't called properly
 
 const beforeUnloadHandler= async ()=>{
   await logout();
