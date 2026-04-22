@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // استيراد الصفحات من الفولدرات الخاصة بها
 import Home from "./pages/Home/Home";
 import About from "./pages/About/AboutUs";
 import Contact from "./pages/Contact/ContactUs";
-import Products from "./pages/Products/Products";
+import StoreProducts from "./pages/StoreProducts/Store";
 import Cart from "./pages/Cart/Cart";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Login from "./pages/Login/Login";
@@ -15,10 +15,9 @@ import Navbar from "./components/Navbar";
 import { ThemeProvider } from "./components/ThemeProvider";
 import VerificationCheck from "./pages/Verification/Check";
 import Profile from "./pages/Profile/Profile";
-import { closeTabHandler } from "./services/authService";
+import { closeTabHandler, logout } from "./services/authService";
 
 function App() {
-  closeTabHandler();
   return (
       <BrowserRouter>
         <ThemeProvider>
@@ -28,7 +27,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/products" element={<Products />} />
+            <Route path="/store/products" element={<StoreProducts />} />
             <Route path="/cart" element={<Cart />} />
 
             {/* صفحات الحساب والدخول */}
