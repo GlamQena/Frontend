@@ -457,22 +457,22 @@ const Profile= ()=>{
                             <section className="form-card">
                                 <h3>بيانات الدفع</h3>
 
-                                {((profileForm.bankAccount.bankName && !editMode) || editMode) &&
+                                {((profileForm.bankAccount?.bankName && !editMode) || editMode) &&
                                 <div className="input-field">
                                     <label>اسم البنك</label>
-                                    <input name="bankName" value={profileForm.bankName} onChange={handleChangeInput} readOnly={!editMode}/>
+                                    <input name="bankName" value={profileForm.bankAccount?.bankName} onChange={handleChangeInput} readOnly={!editMode}/>
                                 </div>}
 
-                                {((profileForm.bankAccount.accountNumber && !editMode) || editMode) &&
+                                {((profileForm.bankAccount?.accountNumber && !editMode) || editMode) &&
                                 <div className="input-field">
                                     <label>IBAN رقم الحساب</label>
-                                    <input name="iban" value={profileForm.iban} onChange={handleChangeInput} readOnly={!editMode} />
+                                    <input name="iban" value={profileForm.bankAccount?.accountNumber} onChange={handleChangeInput} readOnly={!editMode} />
                                 </div>}
 
-                                {((profileForm.bankAccount.accountName && !editMode) || editMode) &&
+                                {((profileForm.bankAccount?.accountName && !editMode) || editMode) &&
                                 <div className="input-field">
                                     <label>اسم الحساب</label>
-                                    <input name="accountName" value={profileForm.accountName} onChange={handleChangeInput} readOnly={!editMode}/>
+                                    <input name="accountName" value={profileForm.bankAccount?.accountName} onChange={handleChangeInput} readOnly={!editMode}/>
                                 </div>}
                             </section>}
                         </React.Fragment>}
