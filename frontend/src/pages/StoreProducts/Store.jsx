@@ -12,7 +12,7 @@ const Store = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8080/stores/${STORE_ID}`);
+        const res = await fetch(`http://127.0.0.1:3001/stores/${STORE_ID}`);
         
         if (!res.ok) throw new Error("السيرفر مش شغال");
 
@@ -39,8 +39,8 @@ const Store = () => {
     
     const fixedPath = imgArray[0].replace(/\\/g, "/");
     
-    // return `http://127.0.0.1:8080${fixedPath.startsWith('/') ? '' : '/'}${fixedPath}`;
-    return fixedPath.replace("uploads", "http://127.0.0.1:8080");
+    // return `http://127.0.0.1:3001${fixedPath.startsWith('/') ? '' : '/'}${fixedPath}`;
+    return fixedPath.replace("uploads", "http://127.0.0.1:3001");
   };
 
   if (loading) return (

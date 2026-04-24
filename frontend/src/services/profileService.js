@@ -19,7 +19,7 @@ export const getProfile= async (setFormMessage) => {
 
 export const changePassword= async (data, setFormMessage) => {
     try{
-        const res= await fetch("http://127.0.0.1:8080/profile/change-password", {
+        const res= await fetch("http://127.0.0.1:3001/profile/change-password", {
             method: "PATCH",
             headers:{
                 "Content-Type": "application/json",
