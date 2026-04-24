@@ -30,6 +30,7 @@ import Dashboard     from "./pages/Dashboard/Dashboard";
 
 // 404
 import NotFound      from "./pages/NotFound/NotFound";
+import MyOrders from "./pages/MyOrders/MyOrders";
 
 function App() {
   return (
@@ -50,7 +51,7 @@ function App() {
           {/* ── Shopping ── */}
           <Route path="/cart"          element={<Cart />} />
           {/* <Route path="/wishlist"      element={<Wishlist />} /> */}
-          <Route path="/orders"        element={<Orders />} />
+          <Route path="/orders"        element={<MyOrders />} />
           <Route path="/orders/:id"    element={<OrderDetails />} />
 
           {/* ── Auth ── */}
