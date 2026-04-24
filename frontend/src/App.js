@@ -15,6 +15,7 @@ import Navbar from "./components/Navbar";
 import { ThemeProvider } from "./components/ThemeProvider";
 import VerificationCheck from "./pages/Verification/Check";
 import Profile from "./pages/Profile/Profile";
+import Shipping_info from "./pages/Shipping_info/Shipping_info";
 import { closeTabHandler, logout } from "./services/authService";
 
 function App() {
@@ -29,6 +30,8 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/store/products" element={<StoreProducts />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/Shipping/Info" element={<Shipping_info/>} />
+
 
             {/* صفحات الحساب والدخول */}
             <Route path="/login" element={<Login />} />

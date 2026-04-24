@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as yup from "yup";
 
-const API_URL = "http://localhost:8080/auth";
+const API_URL = "http://localhost:3001/auth";
 export const isUserLogged = () => {
   const user = localStorage.getItem("user");
   if(!user || user === "undefined" || Object.keys(user) === 0)
