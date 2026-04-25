@@ -1,37 +1,36 @@
 "use client";
 import { useState, useEffect } from "react";
 import "./Cart.css";
+import { addToCart, getCart } from "../../services/cart";
+import { getSessionId, responseMessageSetter } from "../../services/authService";
 
 const BASE_URL = "http://127.0.0.1:8080";
 
 /* ─── session_id helper ─── */
-function getSessionId() {
-  let sid = sessionStorage.getItem("session_id");
-  if (!sid) {
-    sid = crypto.randomUUID();
-    sessionStorage.setItem("session_id", sid);
-  }
-  return sid;
-}
+
 
 /* ─── Wishlist static (مفيش endpoint ليها) ─── */
 const initialWishlist = [
-  { id: 101, brand: "بريستيج", name: "CERAVE Hydrating Cleanser",     price: 380 },
-  { id: 102, brand: "ماسة",    name: "L'OREAL Lash Paradise Mascara", price: 220 },
+  { id: 101, brand: "بريستيج", name: "CERAVE Hydrating Cleanser", price: 380 },
+  { id: 102, brand: "ماسة", name: "L'OREAL Lash Paradise Mascara", price: 220 },
 ];
 
-const DISCOUNT_CODE   = "GLAM25";
+const DISCOUNT_CODE = "GLAM25";
 const DISCOUNT_AMOUNT = 25;
 
 const brandEmoji = {
-  "MAYBELLINE":     "💄",
-  "THE ORDINARY":   "🧴",
+  MAYBELLINE: "💄",
+  "THE ORDINARY": "🧴",
   "LA ROCHE-POSAY": "🧴",
-  "CERAVE":         "🧴",
-  "L'OREAL":        "💄",
+  CERAVE: "🧴",
+  "L'OREAL": "💄",
 };
 function getEmoji(str = "") {
-  return Object.entries(brandEmoji).find(([k]) => str.toUpperCase().startsWith(k))?.[1] ?? "🛍️";
+  return (
+    Object.entries(brandEmoji).find(([k]) =>
+      str.toUpperCase().startsWith(k),
+    )?.[1] ?? "🛍️"
+  );
 }
 
 /* ════════════════════════════════════════
@@ -39,92 +38,103 @@ function getEmoji(str = "") {
 ════════════════════════════════════════ */
 export default function CartPage() {
   /* ── State ── */
-  const [groups,          setGroups]          = useState([]);
-  const [summary,         setSummary]         = useState({ total_price: 0, total_items: 0, is_cart_empty: true });
-  const [loading,         setLoading]         = useState(true);
-  const [actionMsg,       setActionMsg]       = useState("");
+  const [groups, setGroups] = useState([]); //cart products
+  const [summary, setSummary] = useState({
+    total_price: 0,
+    total_items: 0,
+    is_cart_empty: true,
+  });
+  const [loading, setLoading] = useState(true);
+  const [actionMsg, setActionMsg] = useState({success: false, message: ""});
 
-  const [promoCode,       setPromoCode]       = useState("");
-  const [appliedDiscount, setAppliedDiscount] = useState(0);
-  const [promoError,      setPromoError]      = useState("");
+  // const [promoCode, setPromoCode] = useState("");
+  // const [appliedDiscount, setAppliedDiscount] = useState(0);
+  // const [promoError, setPromoError] = useState("");
 
-  const [wishlist,        setWishlist]        = useState(initialWishlist);
+  const [wishlist, setWishlist] = useState(initialWishlist);
 
   /* checkout modal */
-  const [showCheckout,    setShowCheckout]    = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [billingData,     setBillingData]     = useState({
-    first_name: "", last_name: "", email: "",
-    phone_number: "", city: "", street: "",
-    apartment: "", building: "", floor: "", country: "EG",
+  const [billingData, setBillingData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone_number: "",
+    city: "",
+    street: "",
+    apartment: "",
+    building: "",
+    floor: "",
+    country: "EG",
   });
-  const [paymentMethod,   setPaymentMethod]   = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("card");
 
   const SHIPPING = (summary.total_items || 0) > 0 ? 50 : 0;
-  const total    = (summary.total_price || 0) + SHIPPING - appliedDiscount;
+  const total = (summary.total_price || 0) + SHIPPING ;//- appliedDiscount;
 
   /* ════ 1. GET CART ════ */
   async function fetchCart() {
     try {
       setLoading(true);
-      const sid = getSessionId();
-      const res  = await fetch(`${BASE_URL}/cart/?session_id=${sid}`);
+      const res = await getCart();
       const json = await res.json();
       if (json.success) {
         setGroups(json.data.products || []);
-        setSummary(json.data.summary  || {});
+        setSummary(json.data.summary || {});
+        responseMessageSetter(true, json.message, setActionMsg);
       }
+      else{
+        responseMessageSetter(false, json.message || "خطأ فى جلب منتجات الكارت", setActionMsg);
+      }
+
     } catch (err) {
       console.error("fetchCart error:", err);
+      responseMessageSetter(false, err.message || "خطأ فى جلب منتجات الكارت" , setActionMsg);
+
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => { fetchCart(); }, []);
-
-  /* ── show toast message ── */
-  function showMsg(msg) {
-    setActionMsg(msg);
-    setTimeout(() => setActionMsg(""), 3000);
-  }
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
   /* ════ 2. ADD TO CART (زيادة كمية أو إضافة من الـ Wishlist) ════ */
-  async function addToCart(productId) {
-    try {
-      const sid = getSessionId();
-      const res  = await fetch(`${BASE_URL}/cart/product`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sid,
-          product_id: String(productId),
-          quantity:   1,
-        }),
-      });
+  const handleAddToCart = async (product_id) => {
+    try{
+      const res= await addToCart(product_id)
+
       const json = await res.json();
-      showMsg(json.message || "تمت الإضافة ✓");
-      fetchCart();
-    } catch (err) {
+      if (json.success) {
+        responseMessageSetter(true, json.message, setActionMsg);
+      }
+      else{
+        responseMessageSetter(false, json.message || "خطأ فى إضافة منتج للكارت" , setActionMsg);
+      }
+
+    }catch (err) {
       console.error("addToCart error:", err);
-    }
+      responseMessageSetter(false, err.message || "خطأ فى إضافة منتج للكارت" , setActionMsg);
+    } 
   }
 
   /* ════ 3. REMOVE / DECREASE ════ */
   async function removeItem(productId, storeId, removeAll = false) {
     try {
       const sid = getSessionId();
-      const res  = await fetch(`${BASE_URL}/cart/product/${productId}`, {
-        method:  "DELETE",
+      const res = await fetch(`${BASE_URL}/cart/product/${productId}`, {
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          session_id:     sid,
+          session_id: sid,
           owner_store_id: storeId,
-          remove_all:     removeAll,
+          remove_all: removeAll,
         }),
       });
       const json = await res.json();
-      showMsg(json.message || "تم التعديل ✓");
+      responseMessageSetter(true, json.message || "تم التعديل ✓", setActionMsg);
       fetchCart();
     } catch (err) {
       console.error("removeItem error:", err);
@@ -135,8 +145,8 @@ export default function CartPage() {
   async function placeOrder() {
     try {
       setCheckoutLoading(true);
-      const res  = await fetch(`${BASE_URL}/order/`, {
-        method:  "POST",
+      const res = await fetch(`${BASE_URL}/order/`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
       });
@@ -144,7 +154,7 @@ export default function CartPage() {
       if (json.order?._id) {
         await checkoutPayment(json.order._id);
       } else {
-        showMsg(json.message || "حدث خطأ أثناء تأكيد الطلب");
+        responseMessageSetter(true, json.message || "حدث خطأ أثناء تأكيد الطلب", setActionMsg);
         setCheckoutLoading(false);
       }
     } catch (err) {
@@ -158,23 +168,23 @@ export default function CartPage() {
     try {
       /* default values للـ fields الفاضية - مطلوبة من الـ backend */
       const filledBilling = {
-        first_name:   billingData.first_name   || "Guest",
-        last_name:    billingData.last_name    || "User",
-        email:        billingData.email        || "guest@example.com",
+        first_name: billingData.first_name || "Guest",
+        last_name: billingData.last_name || "User",
+        email: billingData.email || "guest@example.com",
         phone_number: billingData.phone_number || "01000000000",
-        city:         billingData.city         || "Cairo",
-        street:       billingData.street       || "N/A",
-        apartment:    billingData.apartment    || "1",
-        building:     billingData.building     || "1",
-        floor:        billingData.floor        || "1",
-        country:      billingData.country      || "EG",
+        city: billingData.city || "Cairo",
+        street: billingData.street || "N/A",
+        apartment: billingData.apartment || "1",
+        building: billingData.building || "1",
+        floor: billingData.floor || "1",
+        country: billingData.country || "EG",
       };
 
-      const res  = await fetch(`${BASE_URL}/order/${orderId}/payment`, {
-        method:  "POST",
+      const res = await fetch(`${BASE_URL}/order/${orderId}/payment`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          billing_data:   filledBilling,
+          billing_data: filledBilling,
           payment_method: paymentMethod,
         }),
       });
@@ -183,7 +193,7 @@ export default function CartPage() {
       if (paymentMethod === "wallet" && json.redirect_url) {
         window.location.href = json.redirect_url;
       } else {
-        showMsg(json.message || "تم إرسال رابط الدفع على إيميلك ✓");
+        responseMessageSetter(true, json.message || "تم إرسال رابط الدفع على إيميلك ✓", setActionMsg);
         setShowCheckout(false);
         fetchCart();
       }
@@ -195,15 +205,15 @@ export default function CartPage() {
   }
 
   /* ── Promo ── */
-  function applyPromo() {
-    if (promoCode.trim().toUpperCase() === DISCOUNT_CODE) {
-      setAppliedDiscount(DISCOUNT_AMOUNT);
-      setPromoError("");
-    } else {
-      setPromoError("كود الخصم غير صحيح");
-      setAppliedDiscount(0);
-    }
-  }
+  // function applyPromo() {
+  //   if (promoCode.trim().toUpperCase() === DISCOUNT_CODE) {
+  //     setAppliedDiscount(DISCOUNT_AMOUNT);
+  //     setPromoError("");
+  //   } else {
+  //     setPromoError("كود الخصم غير صحيح");
+  //     setAppliedDiscount(0);
+  //   }
+  // }
 
   function removeFromWishlist(id) {
     setWishlist((prev) => prev.filter((w) => w.id !== id));
@@ -214,16 +224,25 @@ export default function CartPage() {
   ════════════════════════════════════════ */
   return (
     <div className="cart-page">
-
       {/* ── Toast Message ── */}
-      {actionMsg && (
-        <div style={{
-          position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
-          background: "#7C3AED", color: "white", padding: "10px 24px",
-          borderRadius: 12, zIndex: 9999, fontWeight: 600, fontSize: 15,
-          boxShadow: "0 4px 20px rgba(124,58,237,0.3)"
-        }}>
-          {actionMsg}
+      {actionMsg.message && (
+        <div
+          style={{
+            position: "fixed",
+            top: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#7C3AED",
+            color: "white",
+            padding: "10px 24px",
+            borderRadius: 12,
+            zIndex: 9999,
+            fontWeight: 600,
+            fontSize: 15,
+            boxShadow: "0 4px 20px rgba(124,58,237,0.3)",
+          }}
+        >
+          {actionMsg.message}
         </div>
       )}
 
@@ -240,14 +259,15 @@ export default function CartPage() {
 
       {/* ── Main layout ── */}
       <div className="cart-layout">
-
         {/* ════ LEFT: Order Summary ════ */}
         <aside className="cart-summary-card">
           <h2 className="cart-summary-title">ملخص الطلب</h2>
 
           <div className="cart-summary-row">
             <span className="cart-summary-label">المجموع الفرعي</span>
-            <span className="cart-summary-value">{(summary.total_price || 0).toLocaleString("ar-EG")} ج</span>
+            <span className="cart-summary-value">
+              {(summary.total_price || 0).toLocaleString("ar-EG")} ج
+            </span>
           </div>
 
           <div className="cart-summary-row">
@@ -255,23 +275,29 @@ export default function CartPage() {
             <span className="cart-summary-value">{SHIPPING} ج</span>
           </div>
 
-          {appliedDiscount > 0 && (
+          {/* {appliedDiscount > 0 && (
             <div className="cart-summary-row">
               <span className="cart-summary-label">الخصم</span>
-              <span className="cart-summary-value--discount">{appliedDiscount}− ج</span>
+              <span className="cart-summary-value--discount">
+                {appliedDiscount}− ج
+              </span>
             </div>
-          )}
+          )} */}
 
           <hr className="cart-summary-divider" />
 
           <div className="cart-summary-total-row">
             <span className="cart-summary-total-label">الإجمالي</span>
-            <span className="cart-summary-total-value">{total.toLocaleString("ar-EG")} ج</span>
+            <span className="cart-summary-total-value">
+              {total.toLocaleString("ar-EG")} ج
+            </span>
           </div>
 
-          <p className="cart-promo-label">كود الخصم</p>
+          {/* <p className="cart-promo-label">كود الخصم</p>
           <div className="cart-promo-row">
-            <button className="cart-promo-btn" onClick={applyPromo}>تطبيق</button>
+            <button className="cart-promo-btn" onClick={applyPromo}>
+              تطبيق
+            </button>
             <input
               className="cart-promo-input"
               placeholder="أدخل الكود هنا"
@@ -279,14 +305,19 @@ export default function CartPage() {
               onChange={(e) => setPromoCode(e.target.value)}
             />
           </div>
-          {promoError       && <p className="cart-promo-error">{promoError}</p>}
-          {appliedDiscount > 0 && <p className="cart-promo-success">✓ تم تطبيق الكود بنجاح</p>}
+          {promoError && <p className="cart-promo-error">{promoError}</p>}
+          {appliedDiscount > 0 && (
+            <p className="cart-promo-success">✓ تم تطبيق الكود بنجاح</p>
+          )} */}
 
           <button
             className="cart-checkout-btn"
             onClick={() => setShowCheckout(true)}
             disabled={summary.is_cart_empty}
-            style={{ opacity: summary.is_cart_empty ? 0.5 : 1, cursor: summary.is_cart_empty ? "not-allowed" : "pointer" }}
+            style={{
+              opacity: summary.is_cart_empty ? 0.5 : 1,
+              cursor: summary.is_cart_empty ? "not-allowed" : "pointer",
+            }}
           >
             إتمام الشراء
           </button>
@@ -295,15 +326,21 @@ export default function CartPage() {
         {/* ════ RIGHT: Cart Items ════ */}
         <section className="cart-items-section">
           {loading ? (
-            <p style={{ textAlign: "center", color: "#888", padding: 40 }}>جاري تحميل السلة...</p>
+            <p style={{ textAlign: "center", color: "#888", padding: 40 }}>
+              جاري تحميل السلة...
+            </p>
           ) : summary.is_cart_empty ? (
-            <p style={{ textAlign: "center", color: "#888", padding: 40 }}>السلة فاضية 🛒</p>
+            <p style={{ textAlign: "center", color: "#888", padding: 40 }}>
+              السلة فاضية 🛒
+            </p>
           ) : (
             groups.map((group, gi) => (
               <div key={gi} className="cart-seller-group">
                 <div className="cart-seller-header">
                   <span className="cart-seller-name">{group.store_name}</span>
-                  <div className="cart-seller-avatar">{group.store_name?.[0]}</div>
+                  <div className="cart-seller-avatar">
+                    {group.store_name?.[0]}
+                  </div>
                 </div>
 
                 {group.products.map((item) => (
@@ -311,8 +348,12 @@ export default function CartPage() {
                     key={item.product_id}
                     item={item}
                     onIncrease={() => addToCart(item.product_id)}
-                    onDecrease={() => removeItem(item.product_id, group.store_id, false)}
-                    onRemove={()   => removeItem(item.product_id, group.store_id, true)}
+                    onDecrease={() =>
+                      removeItem(item.product_id, group.store_id, false)
+                    }
+                    onRemove={() =>
+                      removeItem(item.product_id, group.store_id, true)
+                    }
                   />
                 ))}
               </div>
@@ -334,7 +375,7 @@ export default function CartPage() {
               key={w.id}
               item={w}
               emoji={getEmoji(w.name)}
-              onAdd={()    => addToCart(String(w.id))}
+              onAdd={() => handleAddToCart(String(w.id))}
               onRemove={() => removeFromWishlist(w.id)}
             />
           ))}
@@ -343,38 +384,77 @@ export default function CartPage() {
             <div className="cart-wishlist-more-icon">+</div>
             <span>عرض المزيد</span>
           </button>
+          {/*TODO => go to the whishlist page*/}
         </div>
       </div>
 
       {/* ════ CHECKOUT MODAL ════ */}
       {showCheckout && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
-          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
-        }}>
-          <div style={{
-            background: "white", borderRadius: 20, padding: 32,
-            width: "min(500px, 95vw)", maxHeight: "90vh", overflowY: "auto",
-            direction: "rtl"
-          }}>
-            <h2 style={{ marginBottom: 20, fontSize: 20, fontWeight: 700 }}>بيانات الشحن والدفع</h2>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: 20,
+              padding: 32,
+              width: "min(500px, 95vw)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              direction: "rtl",
+            }}
+          >
+            <h2 style={{ marginBottom: 20, fontSize: 20, fontWeight: 700 }}>
+              بيانات الشحن والدفع
+            </h2>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+              }}
+            >
               {[
-                ["first_name","الاسم الأول"], ["last_name","الاسم الأخير"],
-                ["email","الإيميل"],          ["phone_number","رقم الموبايل"],
-                ["city","المدينة"],           ["street","الشارع"],
-                ["building","رقم المبنى"],    ["floor","الدور"],
-                ["apartment","رقم الشقة"],    ["country","الدولة"],
+                ["first_name", "الاسم الأول"],
+                ["last_name", "الاسم الأخير"],
+                ["email", "الإيميل"],
+                ["phone_number", "رقم الموبايل"],
+                ["city", "المدينة"],
+                ["street", "الشارع"],
+                ["building", "رقم المبنى"],
+                ["floor", "الدور"],
+                ["apartment", "رقم الشقة"],
+                ["country", "الدولة"],
               ].map(([key, label]) => (
-                <div key={key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div
+                  key={key}
+                  style={{ display: "flex", flexDirection: "column", gap: 4 }}
+                >
                   <label style={{ fontSize: 12, color: "#888" }}>{label}</label>
                   <input
                     value={billingData[key]}
-                    onChange={(e) => setBillingData(prev => ({ ...prev, [key]: e.target.value }))}
+                    onChange={(e) =>
+                      setBillingData((prev) => ({
+                        ...prev,
+                        [key]: e.target.value,
+                      }))
+                    }
                     style={{
-                      border: "1.5px solid #E5E7EB", borderRadius: 8,
-                      padding: "8px 10px", fontSize: 13, outline: "none", textAlign: "right"
+                      border: "1.5px solid #E5E7EB",
+                      borderRadius: 8,
+                      padding: "8px 10px",
+                      fontSize: 13,
+                      outline: "none",
+                      textAlign: "right",
                     }}
                   />
                 </div>
@@ -383,18 +463,24 @@ export default function CartPage() {
 
             {/* طريقة الدفع */}
             <div style={{ marginTop: 20 }}>
-              <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>طريقة الدفع</p>
+              <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>
+                طريقة الدفع
+              </p>
               <div style={{ display: "flex", gap: 12 }}>
                 {["card", "wallet"].map((m) => (
                   <button
                     key={m}
                     onClick={() => setPaymentMethod(m)}
                     style={{
-                      flex: 1, padding: "10px 0", borderRadius: 10, cursor: "pointer",
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: 10,
+                      cursor: "pointer",
                       border: `2px solid ${paymentMethod === m ? "#7C3AED" : "#E5E7EB"}`,
                       background: paymentMethod === m ? "#F5F0FF" : "white",
                       color: paymentMethod === m ? "#7C3AED" : "#555",
-                      fontWeight: 600, fontSize: 14,
+                      fontWeight: 600,
+                      fontSize: 14,
                     }}
                   >
                     {m === "card" ? "💳 بطاقة" : "📱 محفظة"}
@@ -409,9 +495,15 @@ export default function CartPage() {
                 onClick={placeOrder}
                 disabled={checkoutLoading}
                 style={{
-                  flex: 1, padding: "13px 0", borderRadius: 12, cursor: "pointer",
-                  background: "#7C3AED", color: "white", border: "none",
-                  fontWeight: 700, fontSize: 15,
+                  flex: 1,
+                  padding: "13px 0",
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  background: "#7C3AED",
+                  color: "white",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: 15,
                   opacity: checkoutLoading ? 0.7 : 1,
                 }}
               >
@@ -420,9 +512,13 @@ export default function CartPage() {
               <button
                 onClick={() => setShowCheckout(false)}
                 style={{
-                  padding: "13px 20px", borderRadius: 12, cursor: "pointer",
-                  background: "white", color: "#888",
-                  border: "1.5px solid #E5E7EB", fontWeight: 600,
+                  padding: "13px 20px",
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  background: "white",
+                  color: "#888",
+                  border: "1.5px solid #E5E7EB",
+                  fontWeight: 600,
                 }}
               >
                 إلغاء
@@ -431,10 +527,13 @@ export default function CartPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
+
+const formattedImage = (image) => {
+  return image.replace("uploads", BASE_URL);
+};
 
 /* ══════════════════════════════════════
    CART ITEM
@@ -443,29 +542,43 @@ function CartItem({ item, onIncrease, onDecrease, onRemove }) {
   return (
     <div className="cart-item">
       <div className="cart-item-image">
-        {item.image
-          ? <img src={`${BASE_URL}/${item.image}`} alt={item.name}
-              style={{ width: 70, height: 70, objectFit: "contain" }} />
-          : "🛍️"
-        }
+        {item.images ? (
+          <img
+            src={`${() => formattedImage(item.images[0])}`}
+            alt={item.name}
+            style={{ width: 70, height: 70, objectFit: "contain" }}
+          />
+        ) : (
+          "🛍️"
+        )}
       </div>
 
       <div className="cart-item-info">
         <p className="cart-item-brand">{item.description || ""}</p>
         <p className="cart-item-name">{item.name}</p>
-        <p className="cart-item-price">{(item.subtotal || 0).toLocaleString("ar-EG")} ج</p>
+        <p className="cart-item-price">
+          {(item.subtotal || 0).toLocaleString("ar-EG")} ج
+        </p>
         {item.stock_warning && (
-          <p style={{ color: "#E91E63", fontSize: 11, margin: 0 }}>{item.stock_warning}</p>
+          <p style={{ color: "#E91E63", fontSize: 11, margin: 0 }}>
+            {item.stock_warning}
+          </p>
         )}
       </div>
 
       <div className="cart-qty-control">
-        <button className="cart-qty-btn" onClick={onIncrease}>+</button>
+        <button className="cart-qty-btn" onClick={onIncrease}>
+          +
+        </button>
         <span className="cart-qty-value">{item.quantity}</span>
-        <button className="cart-qty-btn" onClick={onDecrease}>−</button>
+        <button className="cart-qty-btn" onClick={onDecrease}>
+          −
+        </button>
       </div>
 
-      <button className="cart-delete-btn" onClick={onRemove}>🗑️</button>
+      <button className="cart-delete-btn" onClick={onRemove}>
+        🗑️
+      </button>
     </div>
   );
 }
@@ -478,7 +591,9 @@ function WishlistCard({ item, emoji, onAdd, onRemove }) {
     <div className="cart-wishlist-card">
       <div className="cart-wishlist-image-wrapper">
         <div className="cart-wishlist-image">{emoji}</div>
-        <button className="cart-wishlist-heart-btn" onClick={onRemove}>♥</button>
+        <button className="cart-wishlist-heart-btn" onClick={onRemove}>
+          ♥
+        </button>
       </div>
       <div className="cart-wishlist-info">
         <p className="cart-wishlist-brand">{item.brand}</p>
