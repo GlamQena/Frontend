@@ -13,10 +13,9 @@ body {
   background-color: var(--خلفية-الصفحة);
   width:100%;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 20px;
+  direction: rtl;
+  transition: all 0.3s ease;
 }
 
 /* ===== Scrollbar Styling ===== */
@@ -38,9 +37,14 @@ body {
     background: var(--وردي);
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 #root{
   width: 100%;
   min-height: 100vh;
+  background-color: var(--خلفية-الصفحة);
 }
 
 code {

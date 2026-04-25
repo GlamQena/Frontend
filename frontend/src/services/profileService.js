@@ -1,12 +1,14 @@
 import { getAccessToken } from "./authService";
 
-export const getProfile= async (setFormMessage) => {
+const BASE_URL = "http://localhost:8080/profile";
+
+export const getProfile= async (setResponseMessage) => {
     try{
-        const res= await fetch("http://127.0.0.1:8080/profile/",{
+        const res= await fetch(`${BASE_URL}/`,{
             method: "GET",
             headers:{
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${await getAccessToken(setFormMessage)}`,
+                "Authorization": `Bearer ${await getAccessToken(setResponseMessage)}`,
             },
             credentials: "include",
         });
@@ -17,13 +19,13 @@ export const getProfile= async (setFormMessage) => {
     }
 }
 
-export const changePassword= async (data, setFormMessage) => {
+export const changePassword= async (data, setResponseMessage) => {
     try{
-        const res= await fetch("http://127.0.0.1:3001/profile/change-password", {
+        const res= await fetch(`${BASE_URL}/change-password`, {
             method: "PATCH",
             headers:{
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${await getAccessToken(setFormMessage)}`
+                "Authorization": `Bearer ${await getAccessToken(setResponseMessage)}`
             },
             credentials: "include",
             body: data
@@ -35,12 +37,12 @@ export const changePassword= async (data, setFormMessage) => {
     }
 }
 
-export const editAvatar= async (data, setFormMessage) => {
+export const editAvatar= async (data, setResponseMessage) => {
     try{
-        const res= await fetch("http://127.0.0.1:8080/profile/avatar", {
+        const res= await fetch(`${BASE_URL}/avatar`, {
             method: "PATCH",
             headers: { 
-                "Authorization": `Bearer ${await getAccessToken(setFormMessage)}`
+                "Authorization": `Bearer ${await getAccessToken(setResponseMessage)}`
             }, //the Content-Type will be by default multipart/form-data due to the file field
             credentials: "include",
             body: data
@@ -52,12 +54,12 @@ export const editAvatar= async (data, setFormMessage) => {
     }
 }
 
-export const editProfile= async (data, setFormMessage) => {
+export const editProfile= async (data, setResponseMessage) => {
     try{
-        const res= await fetch("http://127.0.0.1:8080/profile/edit", {
+        const res= await fetch(`${BASE_URL}/edit`, {
             method: "PUT",
             headers: { 
-                "Authorization": `Bearer ${await getAccessToken(setFormMessage)}`,
+                "Authorization": `Bearer ${await getAccessToken(setResponseMessage)}`,
                 "Content-Type": "application/json",
             },
             credentials: "include",
@@ -70,13 +72,13 @@ export const editProfile= async (data, setFormMessage) => {
     }
 }
 
-export const deleteProfile= async (setFormMessage) => {
+export const deleteProfile= async (setResponseMessage) => {
     try{
-        const res= await fetch("http://127.0.0.1:8080/profile/delete", {
+        const res= await fetch(`${BASE_URL}/delete`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${await getAccessToken(setFormMessage)}`
+                "Authorization": `Bearer ${await getAccessToken(setResponseMessage)}`
             },
             credentials: "include"
         });
