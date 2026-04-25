@@ -105,7 +105,7 @@ export default function CheckoutPage() {
           <div className="card">
             <div className="card-title">
               <TruckIcon />
-              معلومات الشحن والفوتورة
+              معلومات الشحن والفاتورة
             </div>
             <div className="form-grid">
               <div className="form-group">
