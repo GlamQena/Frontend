@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import "./Cart.css";
 import { addToCart, getCart } from "../../services/cart";
 import { getSessionId, responseMessageSetter } from "../../services/authService";
+import { useTheme } from '../../components/ThemeProvider';
 
 const BASE_URL = "http://127.0.0.1:8080";
 

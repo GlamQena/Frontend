@@ -1,4 +1,14 @@
 /* ===== PAGE ===== */
+body{
+
+  margin: 0;
+  padding: 0;
+}
+*{
+
+  box-sizing: border-box;
+}
+
 .cart-page {
   min-height: 100vh;
   background: #F3F0FA;
