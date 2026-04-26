@@ -14,9 +14,9 @@ import ProductDetails from "./pages/ProductDetails/ProductDetails";
 
 // Shopping
 import Cart          from "./pages/Cart/Cart";
-import Wishlist      from "./pages/Wishlist/Wishlist";
-import Orders        from "./pages/Orders/Orders";
-import OrderDetails  from "./pages/Orders/OrderDetails";
+import Shipping_info from "./pages/Shipping_info/Shipping_info";
+import MyOrders      from "./pages/MyOrders/MyOrders";
+import OrderDetails  from "./pages/MyOrders/OrderDetails";
 
 // Auth
 import Login         from "./pages/Login/Login";
@@ -30,7 +30,6 @@ import Dashboard     from "./pages/Dashboard/Dashboard";
 
 // 404
 import NotFound      from "./pages/NotFound/NotFound";
-import MyOrders from "./pages/MyOrders/MyOrders";
 
 function App() {
   return (
@@ -50,10 +49,11 @@ function App() {
 
           {/* ── Shopping ── */}
           <Route path="/cart"          element={<Cart />} />
+          <Route path="/Shipping/Info" element={<Shipping_info/>} />
           {/* <Route path="/wishlist"      element={<Wishlist />} /> */}
           <Route path="/orders"        element={<MyOrders />} />
           <Route path="/orders/:id"    element={<OrderDetails />} />
-
+          
           {/* ── Auth ── */}
           <Route path="/login"          element={<Login />} />
           <Route path="/register"       element={<Register />} />

@@ -4,8 +4,10 @@ import * as yup from "yup";
 const BASE_URL = "http://localhost:8080/auth";
 
 export const isUserLogged = () => {
-  const user = localStorage.getItem("user");
-  if (!user || user === "undefined" || Object.keys(user) === 0) return false;
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user || user === "undefined" || Object.keys(user).length === 0) 
+    return false;
+  
   return true;
 };
 

@@ -1,191 +1,170 @@
+/* Cart.css - Compact Version with Global CSS Variables */
+
 /* ===== PAGE ===== */
 .cart-page {
   min-height: 100vh;
-  background: #F3F0FA;
+  background: var(--خلفية-الصفحة);
+  color: var(--نص-رئيسي);
   font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
   direction: rtl;
-  padding-bottom: 60px;
+  padding-bottom: 40px;
 }
 
 /* ===== HEADER ===== */
 .cart-header {
   text-align: right;
-  padding: 32px 60px 8px;
+  padding: 20px 60px 0;
 }
 
 .cart-header-brand {
   display: flex;
   align-items: center;
-  /*justify-content: flex-end;*/
-  gap: 10px;
+  gap: 8px;
 }
 
 .cart-header-title {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
-  color: #1a1a2e;
+  background: var(--تدرج-الأزرار);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .cart-header-icon {
-  font-size: 26px;
+  font-size: 22px;
 }
 
 .cart-header-subtitle {
-  font-size: 14px;
-  color: #888;
-  margin-top: 4px;
+  font-size: 12px;
+  color: var(--نص-خافت);
+  margin-top: 2px;
   text-align: right;
 }
 
 /* ===== MAIN LAYOUT ===== */
-/* summary LEFT · items RIGHT */
 .cart-layout {
   display: flex;
   flex-direction: row-reverse;
-  gap: 28px;
-  padding: 24px 60px;
+  gap: 20px;
+  padding: 20px 60px;
   align-items: flex-start;
-  max-width: 1300px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 /* ===== LEFT: ORDER SUMMARY ===== */
 .cart-summary-card {
-  width: 320px;
+  width: 280px;
   flex-shrink: 0;
-  position: relative;
-  top: 24px;
-  background: white;
-  border-radius: 20px;
-  padding: 28px 24px;
-  box-shadow: 0 4px 24px rgba(139, 92, 246, 0.08);
+  position: sticky;
+  top: 20px;
+  background: var(--خلفية-البطاقة);
+  border-radius: 16px;
+  padding: 20px 18px;
+  box-shadow: var(--ظل-البطاقة);
+  border: 1px solid var(--حد-واضح);
 }
 
 .cart-summary-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   text-align: center;
-  color: #1a1a2e;
-  margin-bottom: 24px;
+  color: var(--نص-رئيسي);
+  margin-bottom: 18px;
+  position: relative;
+}
+
+.cart-summary-title::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 2px;
+  background: var(--تدرج-الأزرار);
+  border-radius: 2px;
 }
 
 .cart-summary-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  font-size: 14px;
+  margin-bottom: 10px;
+  font-size: 13px;
 }
 
 .cart-summary-label {
-  color: #555;
+  color: var(--نص-خافت);
 }
 
 .cart-summary-value {
-  color: #1a1a2e;
+  color: var(--نص-رئيسي);
   font-weight: 500;
 }
 
 .cart-summary-value--discount {
-  color: #E91E63;
+  color: var(--أحمر-خطأ);
   font-weight: 500;
 }
 
 .cart-summary-divider {
   border: none;
-  border-top: 1.5px solid #E5E7EB;
-  margin: 16px 0;
+  border-top: 1px solid var(--حد-واضح);
+  margin: 12px 0;
 }
 
 .cart-summary-total-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .cart-summary-total-label {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--نص-رئيسي);
 }
 
 .cart-summary-total-value {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: #1a1a2e;
-}
-
-/* Promo */
-.cart-promo-label {
-  font-size: 13px;
-  color: #888;
-  margin-bottom: 8px;
-  text-align: right;
-}
-
-.cart-promo-row {
-  display: flex;
-  gap: 8px;
-  flex-direction: row;
-}
-
-.cart-promo-input {
-  flex: 1;
-  border: 1.5px solid #E5E7EB;
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 13px;
-  text-align: right;
-  direction: rtl;
-  outline: none;
-  background: #FAFAFA;
-  color: #333;
-}
-
-.cart-promo-input:focus {
-  border-color: #C9B8E8;
-}
-
-.cart-promo-btn {
-  background: none;
-  border: none;
-  color: #7C3AED;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 0 4px;
-  white-space: nowrap;
-}
-
-.cart-promo-error {
-  color: #E24B4A;
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-.cart-promo-success {
-  color: #3B6D11;
-  font-size: 12px;
-  margin-top: 4px;
+  background: var(--تدرج-الأزرار);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .cart-checkout-btn {
   width: 100%;
-  padding: 14px 0;
-  border: 2px solid #C9B8E8;
+  padding: 12px 0;
+  border: none;
   border-radius: 12px;
-  background: white;
-  color: #7C3AED;
+  background: var(--تدرج-الأزرار);
+  color: white;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
-  margin-top: 20px;
-  transition: background 0.15s;
+  margin-top: 16px;
+  transition: all 0.3s ease;
+  box-shadow: var(--ظل-الزر);
 }
 
-.cart-checkout-btn:hover {
-  background: #F5F0FF;
+.cart-checkout-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--ظل-الزر);
+  opacity: 0.9;
+}
+
+.cart-checkout-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.cart-checkout-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ===== RIGHT: CART ITEMS ===== */
@@ -195,60 +174,97 @@
 }
 
 .cart-seller-group {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .cart-seller-header {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 0 8px;
-  border-bottom: 2px solid #C9B8E8;
-  margin-bottom: 4px;
+  gap: 8px;
+  padding: 10px 0 6px;
+  border-bottom: 2px solid var(--بنفسجي);
+  margin-bottom: 2px;
 }
 
 .cart-seller-name {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  color: #8B5CF6;
+  color: var(--بنفسجي);
 }
 
 .cart-seller-avatar {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #E9D5FF;
-  color: #7C3AED;
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 /* Cart item card */
 .cart-item {
-  background: white;
-  border-radius: 16px;
-  padding: 16px 20px;
-  margin-bottom: 10px;
+  background: var(--خلفية-البطاقة);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
+  border: 1px solid var(--حد-واضح);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.cart-item:hover {
+  transform: translateX(-3px);
+  box-shadow: var(--ظل-البطاقة);
+  border-color: var(--بنفسجي);
+}
+
+.cart-item-wishlist-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--نص-خافت);
+  transition: all 0.3s ease;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.cart-item-wishlist-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  color: var(--أحمر-خطأ);
+}
+
+.cart-item-wishlist-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .cart-item-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  background: #F3F0FA;
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  background: var(--خلفية-2);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
+  font-size: 30px;
+  overflow: hidden;
+}
+
+.cart-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .cart-item-info {
@@ -257,85 +273,93 @@
 }
 
 .cart-item-brand {
-  font-size: 12px;
-  color: #888;
+  font-size: 11px;
+  color: var(--نص-خافت);
   margin: 0;
   letter-spacing: 0.3px;
 }
 
 .cart-item-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: #1a1a2e;
-  margin: 2px 0 6px;
+  color: var(--نص-رئيسي);
+  margin: 2px 0 4px;
 }
 
 .cart-item-price {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  color: #E91E63;
+  color: var(--بنفسجي);
   margin: 0;
+}
+
+.cart-item-warning {
+  color: var(--أحمر-خطأ);
+  font-size: 10px;
+  margin: 2px 0 0;
 }
 
 /* Qty control */
 .cart-qty-control {
   display: flex;
   align-items: center;
-  border: 1.5px solid #E5E7EB;
+  border: 1px solid var(--حد-خافت);
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
+  background: var(--خلفية-2);
 }
 
 .cart-qty-btn {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 18px;
-  color: #7C3AED;
+  font-size: 16px;
+  color: var(--بنفسجي);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.12s;
+  transition: all 0.2s ease;
 }
 
 .cart-qty-btn:hover {
-  background: #F5F0FF;
+  background: var(--بنفسجي-خافت);
 }
 
 .cart-qty-value {
-  width: 36px;
+  width: 32px;
   text-align: center;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
-  color: #1a1a2e;
-  border-left: 1px solid #E5E7EB;
-  border-right: 1px solid #E5E7EB;
-  padding: 6px 0;
+  color: var(--نص-رئيسي);
+  border-left: 1px solid var(--حد-خافت);
+  border-right: 1px solid var(--حد-خافت);
+  padding: 4px 0;
 }
 
 .cart-delete-btn {
   background: none;
   border: none;
   cursor: pointer;
-  color: #B0A8C8;
-  font-size: 18px;
+  color: var(--نص-خافت);
+  font-size: 16px;
   padding: 4px;
   flex-shrink: 0;
-  transition: color 0.12s;
+  transition: all 0.2s ease;
 }
 
 .cart-delete-btn:hover {
-  color: #E24B4A;
+  color: var(--أحمر-خطأ);
+  transform: scale(1.05);
 }
 
-/* ===== WISHLIST ===== */
+/* ===== ENHANCED WISHLIST STYLES - COMPACT ===== */
 .cart-wishlist-section {
   margin-top: 32px;
   padding: 0 60px;
-  max-width: 1300px;
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
   width: 100%;
@@ -344,140 +368,596 @@
 
 .cart-wishlist-header {
   text-align: right;
-  margin-bottom: 6px;
+  margin-bottom: 16px;
 }
 
 .cart-wishlist-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--نص-رئيسي);
   margin: 0;
+  position: relative;
+  display: inline-block;
+}
+
+.cart-wishlist-title::before {
+  content: '❤️';
+  position: absolute;
+  right: -28px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  opacity: 0.8;
 }
 
 .cart-wishlist-subtitle {
-  font-size: 13px;
-  color: #888;
+  font-size: 12px;
+  color: var(--نص-خافت);
   margin: 4px 0 0;
 }
 
+/* Wishlist Grid - Compact */
 .cart-wishlist-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 2fr;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
   margin-top: 16px;
 }
 
+/* Wishlist Card - Compact */
+.cart-wishlist-card {
+  background: var(--خلفية-البطاقة);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--حد-واضح);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.cart-wishlist-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--تدرج-الأزرار);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  z-index: 1;
+}
+
+.cart-wishlist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: var(--بنفسجي);
+}
+
+.cart-wishlist-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Image Wrapper - Compact */
+.cart-wishlist-image-wrapper {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--خلفية-2);
+  overflow: hidden;
+}
+
+.cart-wishlist-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.cart-wishlist-card:hover .cart-wishlist-image {
+  transform: scale(1.05);
+}
+
+/* Stock Badge - Compact */
+.cart-wishlist-stock-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+
+.cart-wishlist-stock-badge.in-stock {
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+}
+
+.cart-wishlist-stock-badge.out-of-stock {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+}
+
+/* Heart Button - Compact */
+.cart-wishlist-heart-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: #ef4444;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.cart-wishlist-card:hover .cart-wishlist-heart-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cart-wishlist-heart-btn:hover {
+  transform: scale(1.1);
+  background: white;
+}
+
+.cart-wishlist-heart-btn:active {
+  transform: scale(0.95);
+}
+
+/* Wishlist Info - Compact */
+.cart-wishlist-info {
+  padding: 12px 12px 14px;
+  text-align: right;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cart-wishlist-brand {
+  font-size: 10px;
+  color: var(--بنفسجي);
+  margin: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cart-wishlist-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--نص-رئيسي);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  min-height: 36px;
+}
+
+.cart-wishlist-price-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 4px 0;
+  gap: 8px;
+}
+
+.cart-wishlist-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--بنفسجي);
+  margin: 0;
+}
+
+.cart-wishlist-price currency {
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.cart-wishlist-original-price {
+  font-size: 12px;
+  color: var(--نص-خافت);
+  text-decoration: line-through;
+  margin: 0;
+}
+
+.cart-wishlist-discount {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+/* Stock Status - Compact */
+.cart-wishlist-stock {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  margin: 2px 0;
+}
+
+.cart-wishlist-stock.in-stock {
+  color: #22c55e;
+}
+
+.cart-wishlist-stock.out-of-stock {
+  color: #ef4444;
+}
+
+.stock-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.stock-indicator.in-stock {
+  background: #22c55e;
+  box-shadow: 0 0 4px #22c55e;
+}
+
+.stock-indicator.out-of-stock {
+  background: #ef4444;
+}
+
+/* Add to Cart Button - Compact */
+.cart-wishlist-add-btn {
+  width: 100%;
+  padding: 9px 0;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--بنفسجي) 0%, #a855f7 100%);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.cart-wishlist-add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.cart-wishlist-add-btn:active {
+  transform: translateY(0);
+}
+
+.cart-wishlist-add-btn span {
+  font-size: 14px;
+  transition: transform 0.3s ease;
+}
+
+.cart-wishlist-add-btn:hover span {
+  transform: translateX(-3px);
+}
+
+.cart-wishlist-add-btn.disabled,
+.cart-wishlist-add-btn:disabled {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* "View More" Button - Compact */
 .cart-wishlist-more {
-  border: 2px dashed #D8D0EF;
-  border-radius: 16px;
+  border: 2px dashed var(--حد-واضح);
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 100%;
-  aspect-ratio: auto;      /* شيلي أي قيمة قديمة */
-  width: 100%;
+  min-height: 240px;
   cursor: pointer;
-  color: #B0A8C8;
+  color: var(--نص-خافت);
   background: transparent;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.cart-wishlist-more:hover {
+  border-color: var(--بنفسجي);
+  color: var(--بنفسجي);
+  transform: translateY(-2px);
 }
 
 .cart-wishlist-more-icon {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 2px solid #C9B8E8;
+  border: 2px solid var(--حد-واضح);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  color: #C9B8E8;
+  transition: all 0.3s ease;
+}
+
+.cart-wishlist-more:hover .cart-wishlist-more-icon {
+  border-color: var(--بنفسجي);
+  background: var(--بنفسجي-خافت);
+  transform: rotate(90deg);
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateX(-50%) translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .cart-layout {
+    flex-direction: column;
+    padding: 20px 30px;
+  }
+  
+  .cart-summary-card {
+    width: 100%;
+    position: static;
+    margin-bottom: 16px;
+  }
+  
+  .cart-header {
+    padding: 16px 30px 0;
+  }
+  
+  .cart-wishlist-section {
+    padding: 0 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cart-layout {
+    padding: 16px 20px;
+    gap: 16px;
+  }
+  
+  .cart-header {
+    padding: 16px 20px 0;
+  }
+  
+  .cart-header-title {
+    font-size: 20px;
+  }
+  
+  .cart-header-subtitle {
+    font-size: 11px;
+  }
+  
+  .cart-item {
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+  
+  .cart-item-image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .cart-item-info {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .cart-item-name {
+    font-size: 13px;
+  }
+  
+  .cart-qty-control {
+    margin-right: auto;
+  }
+  
+  .cart-wishlist-section {
+    padding: 0 20px;
+    margin-top: 24px;
+  }
+  
+  .cart-wishlist-title {
+    font-size: 18px;
+  }
+  
+  .cart-wishlist-title::before {
+    display: none;
+  }
+  
+  .cart-wishlist-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  
+  .cart-wishlist-heart-btn {
+    opacity: 1;
+    transform: translateY(0);
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  
+  .cart-wishlist-info {
+    padding: 10px 10px 12px;
+  }
+  
+  .cart-wishlist-name {
+    font-size: 12px;
+    min-height: 32px;
+  }
+  
+  .cart-wishlist-price {
+    font-size: 14px;
+  }
+  
+  .cart-wishlist-add-btn {
+    padding: 8px 0;
+    font-size: 11px;
+  }
+  
+  .cart-wishlist-more {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-layout {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  
+  .cart-header {
+    padding: 12px 16px 0;
+  }
+  
+  .cart-header-title {
+    font-size: 18px;
+  }
+  
+  .cart-summary-card {
+    padding: 16px 14px;
+  }
+  
+  .cart-item {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .cart-item-info {
+    text-align: center;
+  }
+  
+  .cart-qty-control {
+    margin: 0 auto;
+  }
+  
+  .cart-delete-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+  }
+  
+  .cart-wishlist-section {
+    padding: 0 16px;
+    margin-top: 20px;
+  }
+  
+  .cart-wishlist-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .cart-wishlist-card {
+    max-width: 100%;
+  }
+  
+  .cart-wishlist-more {
+    min-height: 160px;
+    flex-direction: row;
+    gap: 8px;
+    padding: 16px;
+  }
+  
+  .cart-wishlist-more-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+}
+
+/* Loading State */
+.cart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.cart-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--حد-خافت);
+  border-top-color: var(--بنفسجي);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty Cart */
+.cart-empty {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--خلفية-2);
+  border-radius: 16px;
+  margin: 16px;
+  border: 1px dashed var(--حد-واضح);
+}
+
+.cart-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.cart-empty-text {
+  color: var(--نص-خافت);
+  font-size: 14px;
+}
+
+/* Card Entrance Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .cart-wishlist-card {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  animation: fadeInUp 0.3s ease forwards;
+  opacity: 0;
 }
 
-.cart-wishlist-image-wrapper {
-  position: relative;
-}
-
-.cart-wishlist-image {
-  height: 180px;
-  background: #F3F0FA;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 64px;
-}
-
-.cart-wishlist-heart-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: white;
-  border: none;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 16px;
-  color: #E91E63;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.cart-wishlist-info {
-  padding: 12px 14px 14px;
-  text-align: right;
-}
-
-.cart-wishlist-brand {
-  font-size: 11px;
-  color: #8B5CF6;
-  margin: 0 0 2px;
-  font-weight: 600;
-}
-
-.cart-wishlist-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a2e;
-  margin: 0 0 6px;
-}
-
-.cart-wishlist-price {
-  font-size: 15px;
-  font-weight: 700;
-  color: #1a1a2e;
-  margin: 0 0 12px;
-}
-
-.cart-wishlist-add-btn {
-  width: 100%;
-  padding: 9px 0;
-  border: 1.5px solid #E5E7EB;
-  border-radius: 10px;
-  background: white;
-  font-size: 13px;
-  color: #1a1a2e;
-  cursor: pointer;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: background 0.12s;
-}
-
-.cart-wishlist-add-btn:hover {
-  background: #F3F0FA;
-}
+.cart-wishlist-card:nth-child(1) { animation-delay: 0.03s; }
+.cart-wishlist-card:nth-child(2) { animation-delay: 0.06s; }
+.cart-wishlist-card:nth-child(3) { animation-delay: 0.09s; }
+.cart-wishlist-card:nth-child(4) { animation-delay: 0.12s; }
+.cart-wishlist-card:nth-child(5) { animation-delay: 0.15s; }
+.cart-wishlist-card:nth-child(6) { animation-delay: 0.18s; }
