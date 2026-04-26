@@ -1,42 +1,27 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Cart.css";
-import { addToCart, getCart } from "../../services/cart";
-import { getSessionId, responseMessageSetter } from "../../services/authService";
+import { addToCart, getCart, removeFromCart } from "../../services/cart";
+import { getSessionId, isUserLogged, responseMessageSetter } from "../../services/authService";
+import { addToWishlist, removeFromWishlist } from "../../services/users";
+import { placeOrder } from "../../services/order";
 
 const BASE_URL = "http://127.0.0.1:8080";
 
-/* ─── session_id helper ─── */
+const initialWishlist = () => {
+  if (isUserLogged()){
+    const user= JSON.parse(localStorage.getItem("user"));
+    if(user.role !== "client")
+      return null;
+    return user.wishlist;
+  }
 
-
-/* ─── Wishlist static (مفيش endpoint ليها) ─── */
-const initialWishlist = [
-  { id: 101, brand: "بريستيج", name: "CERAVE Hydrating Cleanser", price: 380 },
-  { id: 102, brand: "ماسة", name: "L'OREAL Lash Paradise Mascara", price: 220 },
-];
-
-const DISCOUNT_CODE = "GLAM25";
-const DISCOUNT_AMOUNT = 25;
-
-const brandEmoji = {
-  MAYBELLINE: "💄",
-  "THE ORDINARY": "🧴",
-  "LA ROCHE-POSAY": "🧴",
-  CERAVE: "🧴",
-  "L'OREAL": "💄",
-};
-function getEmoji(str = "") {
-  return (
-    Object.entries(brandEmoji).find(([k]) =>
-      str.toUpperCase().startsWith(k),
-    )?.[1] ?? "🛍️"
-  );
+  return null;
 }
 
-/* ════════════════════════════════════════
-   MAIN PAGE
-════════════════════════════════════════ */
 export default function CartPage() {
+  const navigate= useNavigate();
   /* ── State ── */
   const [groups, setGroups] = useState([]); //cart products
   const [summary, setSummary] = useState({
@@ -47,45 +32,27 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState({success: false, message: ""});
 
-  // const [promoCode, setPromoCode] = useState("");
-  // const [appliedDiscount, setAppliedDiscount] = useState(0);
-  // const [promoError, setPromoError] = useState("");
-
   const [wishlist, setWishlist] = useState(initialWishlist);
 
-  /* checkout modal */
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [billingData, setBillingData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone_number: "",
-    city: "",
-    street: "",
-    apartment: "",
-    building: "",
-    floor: "",
-    country: "EG",
-  });
-  const [paymentMethod, setPaymentMethod] = useState("card");
-
   const SHIPPING = (summary.total_items || 0) > 0 ? 50 : 0;
-  const total = (summary.total_price || 0) + SHIPPING ;//- appliedDiscount;
+  const total = (summary.total_price || 0) + SHIPPING ;  //- appliedDiscount;
 
   /* ════ 1. GET CART ════ */
   async function fetchCart() {
     try {
       setLoading(true);
-      const res = await getCart();
+      const res = await getCart(setActionMsg);
       const json = await res.json();
-      if (json.success) {
-        setGroups(json.data.products || []);
+
+      if(!res.ok)
+        return responseMessageSetter(false, json.message || "خطأ فى جلب منتجات الكارت", setActionMsg);
+
+      if (json.data.products) {
+        setGroups(json.data.products);
+        if(groups.length > 0)
+          console.log("the set groups => ", groups);
         setSummary(json.data.summary || {});
         responseMessageSetter(true, json.message, setActionMsg);
-      }
-      else{
-        responseMessageSetter(false, json.message || "خطأ فى جلب منتجات الكارت", setActionMsg);
       }
 
     } catch (err) {
@@ -104,11 +71,12 @@ export default function CartPage() {
   /* ════ 2. ADD TO CART (زيادة كمية أو إضافة من الـ Wishlist) ════ */
   const handleAddToCart = async (product_id) => {
     try{
-      const res= await addToCart(product_id)
+      const res= await addToCart(product_id, setActionMsg)
 
       const json = await res.json();
       if (json.success) {
         responseMessageSetter(true, json.message, setActionMsg);
+        fetchCart();
       }
       else{
         responseMessageSetter(false, json.message || "خطأ فى إضافة منتج للكارت" , setActionMsg);
@@ -124,16 +92,12 @@ export default function CartPage() {
   async function removeItem(productId, storeId, removeAll = false) {
     try {
       const sid = getSessionId();
-      const res = await fetch(`${BASE_URL}/cart/product/${productId}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sid,
-          owner_store_id: storeId,
-          remove_all: removeAll,
-        }),
-      });
+      const res = await removeFromCart(productId, storeId, removeAll , setActionMsg);
       const json = await res.json();
+
+      if(!res.ok)
+        return responseMessageSetter(false, json.message || `${removeAll ? "تم حذف المنتج" : "تم انقاص الكمية"}`, setActionMsg);
+
       responseMessageSetter(true, json.message || "تم التعديل ✓", setActionMsg);
       fetchCart();
     } catch (err) {
@@ -142,105 +106,86 @@ export default function CartPage() {
   }
 
   /* ════ 4. PLACE ORDER ════ */
-  async function placeOrder() {
-    try {
-      setCheckoutLoading(true);
-      const res = await fetch(`${BASE_URL}/order/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
+  async function placeOrderHandler() {
+    try {      
+      const res = await placeOrder(setActionMsg);
       const json = await res.json();
-      if (json.order?._id) {
-        await checkoutPayment(json.order._id);
+      if (res.ok) {
+        responseMessageSetter(true, json.message, setActionMsg);
+        setTimeout(()=>{
+          navigate("/Shipping/Info");
+        }, 3000);
       } else {
-        responseMessageSetter(true, json.message || "حدث خطأ أثناء تأكيد الطلب", setActionMsg);
-        setCheckoutLoading(false);
+        responseMessageSetter(false, json.message || "حدث خطأ أثناء تأكيد الطلب", setActionMsg);
       }
     } catch (err) {
       console.error("placeOrder error:", err);
-      setCheckoutLoading(false);
     }
   }
 
-  /* ════ 5. CHECKOUT PAYMENT ════ */
-  async function checkoutPayment(orderId) {
-    try {
-      /* default values للـ fields الفاضية - مطلوبة من الـ backend */
-      const filledBilling = {
-        first_name: billingData.first_name || "Guest",
-        last_name: billingData.last_name || "User",
-        email: billingData.email || "guest@example.com",
-        phone_number: billingData.phone_number || "01000000000",
-        city: billingData.city || "Cairo",
-        street: billingData.street || "N/A",
-        apartment: billingData.apartment || "1",
-        building: billingData.building || "1",
-        floor: billingData.floor || "1",
-        country: billingData.country || "EG",
-      };
+ const addToWishlistHandler = async (index, prod_id) => {
+    try{
+      const res= await addToWishlist(prod_id, setActionMsg);
+      const json= await res.json();
 
-      const res = await fetch(`${BASE_URL}/order/${orderId}/payment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          billing_data: filledBilling,
-          payment_method: paymentMethod,
-        }),
-      });
-      const json = await res.json();
+      if(!res.ok)
+        return responseMessageSetter(false, json.message || "خطأ فى الإضافة لقائمة الرغبات", setActionMsg);
 
-      if (paymentMethod === "wallet" && json.redirect_url) {
-        window.location.href = json.redirect_url;
-      } else {
-        responseMessageSetter(true, json.message || "تم إرسال رابط الدفع على إيميلك ✓", setActionMsg);
-        setShowCheckout(false);
-        fetchCart();
-      }
-    } catch (err) {
-      console.error("checkoutPayment error:", err);
-    } finally {
-      setCheckoutLoading(false);
+      const updatedWishlist= json.updatedClientData.wishlist;
+
+      setWishlist(updatedWishlist);
+
+      localStorage.setItem("user", JSON.stringify(json.updatedClientData));
+
+      responseMessageSetter(true, json.message || "تمت الإضافة بنجاح", setActionMsg);
+    }catch(err){
+      console.log(`${err.message || "خطأ فى الإضافة لقائمة الرغبات"}`);
     }
   }
 
-  /* ── Promo ── */
-  // function applyPromo() {
-  //   if (promoCode.trim().toUpperCase() === DISCOUNT_CODE) {
-  //     setAppliedDiscount(DISCOUNT_AMOUNT);
-  //     setPromoError("");
-  //   } else {
-  //     setPromoError("كود الخصم غير صحيح");
-  //     setAppliedDiscount(0);
-  //   }
-  // }
+    const removeFromWishlistHandler = async (index, prod_id) => {
+    try{
+      const res= await removeFromWishlist(prod_id, setActionMsg);
+      const json= await res.json();
 
-  function removeFromWishlist(id) {
-    setWishlist((prev) => prev.filter((w) => w.id !== id));
+      if(!res.ok)
+        return responseMessageSetter(false, json.message || "خطأ فى الإزالة من قائمة الرغبات", setActionMsg);
+
+      const updatedWishlist= json.updatedClientData.wishlist;
+
+      setWishlist(updatedWishlist);
+
+      localStorage.setItem("user", JSON.stringify(json.updatedClientData));
+
+      responseMessageSetter(true, json.message || "تمت الإزالة بنجاح", setActionMsg);
+    }catch(err){
+      console.log(`${err.message || "خطأ فى الإزالة من قائمة الرغبات"}`);
+    }
   }
 
   /* ════════════════════════════════════════
      RENDER
   ════════════════════════════════════════ */
+  if(loading)
+    return(
+      <p style={{ textAlign: "center", color: "#888", padding: 40 }}>
+        جاري تحميل السلة...
+      </p>
+    );
+  
+  if(summary.is_cart_empty)
+    return (
+      <p style={{ textAlign: "center", color: "#888", padding: 40 }}>
+        السلة فاضية 🛒
+      </p>
+    );
+
   return (
     <div className="cart-page">
       {/* ── Toast Message ── */}
       {actionMsg.message && (
         <div
-          style={{
-            position: "fixed",
-            top: 20,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#7C3AED",
-            color: "white",
-            padding: "10px 24px",
-            borderRadius: 12,
-            zIndex: 9999,
-            fontWeight: 600,
-            fontSize: 15,
-            boxShadow: "0 4px 20px rgba(124,58,237,0.3)",
-          }}
+          className={`response-message ${actionMsg.success ? "success-message" : "error-message"}`}
         >
           {actionMsg.message}
         </div>
@@ -275,15 +220,6 @@ export default function CartPage() {
             <span className="cart-summary-value">{SHIPPING} ج</span>
           </div>
 
-          {/* {appliedDiscount > 0 && (
-            <div className="cart-summary-row">
-              <span className="cart-summary-label">الخصم</span>
-              <span className="cart-summary-value--discount">
-                {appliedDiscount}− ج
-              </span>
-            </div>
-          )} */}
-
           <hr className="cart-summary-divider" />
 
           <div className="cart-summary-total-row">
@@ -293,26 +229,9 @@ export default function CartPage() {
             </span>
           </div>
 
-          {/* <p className="cart-promo-label">كود الخصم</p>
-          <div className="cart-promo-row">
-            <button className="cart-promo-btn" onClick={applyPromo}>
-              تطبيق
-            </button>
-            <input
-              className="cart-promo-input"
-              placeholder="أدخل الكود هنا"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-            />
-          </div>
-          {promoError && <p className="cart-promo-error">{promoError}</p>}
-          {appliedDiscount > 0 && (
-            <p className="cart-promo-success">✓ تم تطبيق الكود بنجاح</p>
-          )} */}
-
           <button
             className="cart-checkout-btn"
-            onClick={() => setShowCheckout(true)}
+            onClick={() => placeOrderHandler()}
             disabled={summary.is_cart_empty}
             style={{
               opacity: summary.is_cart_empty ? 0.5 : 1,
@@ -325,29 +244,20 @@ export default function CartPage() {
 
         {/* ════ RIGHT: Cart Items ════ */}
         <section className="cart-items-section">
-          {loading ? (
-            <p style={{ textAlign: "center", color: "#888", padding: 40 }}>
-              جاري تحميل السلة...
-            </p>
-          ) : summary.is_cart_empty ? (
-            <p style={{ textAlign: "center", color: "#888", padding: 40 }}>
-              السلة فاضية 🛒
-            </p>
-          ) : (
-            groups.map((group, gi) => (
+            {groups.map((group, gi) => (
               <div key={gi} className="cart-seller-group">
                 <div className="cart-seller-header">
                   <span className="cart-seller-name">{group.store_name}</span>
                   <div className="cart-seller-avatar">
-                    {group.store_name?.[0]}
+                    {group.store_name?.[0]} {/*?. is nullable operator to access array elements if its not null for safety */}
                   </div>
                 </div>
 
-                {group.products.map((item) => (
+                {group.products.map((item, index) => (
                   <CartItem
-                    key={item.product_id}
+                    key={item.product_id || index}
                     item={item}
-                    onIncrease={() => addToCart(item.product_id)}
+                    onIncrease={() => handleAddToCart(item.product_id)}
                     onDecrease={() =>
                       removeItem(item.product_id, group.store_id, false)
                     }
@@ -357,26 +267,25 @@ export default function CartPage() {
                   />
                 ))}
               </div>
-            ))
-          )}
+            ))}
         </section>
       </div>
 
       {/* ════ WISHLIST ════ */}
-      <div className="cart-wishlist-section">
+      {(wishlist && wishlist.length !== 0) && <div className="cart-wishlist-section">
         <div className="cart-wishlist-header">
           <h2 className="cart-wishlist-title">قائمة الرغبات</h2>
           <p className="cart-wishlist-subtitle">منتجات تودين شراؤها لاحقاً.</p>
         </div>
 
-        <div className="cart-wishlist-grid">
-          {wishlist.map((w) => (
+         <div className="cart-wishlist-grid">
+          {wishlist.map((w, index) => (
             <WishlistCard
-              key={w.id}
+              key={`${w.productId}-${index}`}
               item={w}
-              emoji={getEmoji(w.name)}
-              onAdd={() => handleAddToCart(String(w.id))}
-              onRemove={() => removeFromWishlist(w.id)}
+              // emoji={getEmoji(w.name)}
+              onAdd={() => handleAddToCart(String(w.productId))}
+              onRemove={() => removeFromWishlistHandler(index, String(w.productId))}
             />
           ))}
 
@@ -386,153 +295,15 @@ export default function CartPage() {
           </button>
           {/*TODO => go to the whishlist page*/}
         </div>
-      </div>
-
-      {/* ════ CHECKOUT MODAL ════ */}
-      {showCheckout && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.45)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              borderRadius: 20,
-              padding: 32,
-              width: "min(500px, 95vw)",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              direction: "rtl",
-            }}
-          >
-            <h2 style={{ marginBottom: 20, fontSize: 20, fontWeight: 700 }}>
-              بيانات الشحن والدفع
-            </h2>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-              }}
-            >
-              {[
-                ["first_name", "الاسم الأول"],
-                ["last_name", "الاسم الأخير"],
-                ["email", "الإيميل"],
-                ["phone_number", "رقم الموبايل"],
-                ["city", "المدينة"],
-                ["street", "الشارع"],
-                ["building", "رقم المبنى"],
-                ["floor", "الدور"],
-                ["apartment", "رقم الشقة"],
-                ["country", "الدولة"],
-              ].map(([key, label]) => (
-                <div
-                  key={key}
-                  style={{ display: "flex", flexDirection: "column", gap: 4 }}
-                >
-                  <label style={{ fontSize: 12, color: "#888" }}>{label}</label>
-                  <input
-                    value={billingData[key]}
-                    onChange={(e) =>
-                      setBillingData((prev) => ({
-                        ...prev,
-                        [key]: e.target.value,
-                      }))
-                    }
-                    style={{
-                      border: "1.5px solid #E5E7EB",
-                      borderRadius: 8,
-                      padding: "8px 10px",
-                      fontSize: 13,
-                      outline: "none",
-                      textAlign: "right",
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* طريقة الدفع */}
-            <div style={{ marginTop: 20 }}>
-              <p style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>
-                طريقة الدفع
-              </p>
-              <div style={{ display: "flex", gap: 12 }}>
-                {["card", "wallet"].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setPaymentMethod(m)}
-                    style={{
-                      flex: 1,
-                      padding: "10px 0",
-                      borderRadius: 10,
-                      cursor: "pointer",
-                      border: `2px solid ${paymentMethod === m ? "#7C3AED" : "#E5E7EB"}`,
-                      background: paymentMethod === m ? "#F5F0FF" : "white",
-                      color: paymentMethod === m ? "#7C3AED" : "#555",
-                      fontWeight: 600,
-                      fontSize: 14,
-                    }}
-                  >
-                    {m === "card" ? "💳 بطاقة" : "📱 محفظة"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-              <button
-                onClick={placeOrder}
-                disabled={checkoutLoading}
-                style={{
-                  flex: 1,
-                  padding: "13px 0",
-                  borderRadius: 12,
-                  cursor: "pointer",
-                  background: "#7C3AED",
-                  color: "white",
-                  border: "none",
-                  fontWeight: 700,
-                  fontSize: 15,
-                  opacity: checkoutLoading ? 0.7 : 1,
-                }}
-              >
-                {checkoutLoading ? "جاري المعالجة..." : "تأكيد الطلب"}
-              </button>
-              <button
-                onClick={() => setShowCheckout(false)}
-                style={{
-                  padding: "13px 20px",
-                  borderRadius: 12,
-                  cursor: "pointer",
-                  background: "white",
-                  color: "#888",
-                  border: "1.5px solid #E5E7EB",
-                  fontWeight: 600,
-                }}
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>}
     </div>
   );
 }
 
 const formattedImage = (image) => {
-  return image.replace("uploads", BASE_URL);
+  if(image)
+    return image.replace("uploads", BASE_URL);
+  return null;
 };
 
 /* ══════════════════════════════════════
@@ -542,9 +313,9 @@ function CartItem({ item, onIncrease, onDecrease, onRemove }) {
   return (
     <div className="cart-item">
       <div className="cart-item-image">
-        {item.images ? (
+        {item.image ? (
           <img
-            src={`${() => formattedImage(item.images[0])}`}
+            src={formattedImage(item.image)}
             alt={item.name}
             style={{ width: 70, height: 70, objectFit: "contain" }}
           />
@@ -554,7 +325,7 @@ function CartItem({ item, onIncrease, onDecrease, onRemove }) {
       </div>
 
       <div className="cart-item-info">
-        <p className="cart-item-brand">{item.description || ""}</p>
+        {/* <p className="cart-item-brand">{item.description || ""}</p> */}
         <p className="cart-item-name">{item.name}</p>
         <p className="cart-item-price">
           {(item.subtotal || 0).toLocaleString("ar-EG")} ج
@@ -586,19 +357,23 @@ function CartItem({ item, onIncrease, onDecrease, onRemove }) {
 /* ══════════════════════════════════════
    WISHLIST CARD
 ══════════════════════════════════════ */
-function WishlistCard({ item, emoji, onAdd, onRemove }) {
+function WishlistCard({ item, onAdd, onRemove }) {
+
   return (
     <div className="cart-wishlist-card">
       <div className="cart-wishlist-image-wrapper">
-        <div className="cart-wishlist-image">{emoji}</div>
+        <img src={formattedImage(item.image)} className="cart-wishlist-image"/>
         <button className="cart-wishlist-heart-btn" onClick={onRemove}>
           ♥
         </button>
       </div>
       <div className="cart-wishlist-info">
-        <p className="cart-wishlist-brand">{item.brand}</p>
-        <p className="cart-wishlist-name">{item.name}</p>
-        <p className="cart-wishlist-price">{item.price} ج</p>
+        {/* <p className="cart-wishlist-brand">{item.brand}</p> */}
+        <p className="cart-wishlist-name">{item.productName}</p>
+        <div>
+          <p className="cart-wishlist-price">{item.price} ج</p>
+          <span className={`cart-wishlist-inStock ${item.inStock ? "in-stock" : "out-of-stock"}`}>{item.inStock ? "متوفر" : "نفذ"}</span>
+        </div>
         <button className="cart-wishlist-add-btn" onClick={onAdd}>
           <span>🛒</span> أضف للسلة
         </button>
