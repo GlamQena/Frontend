@@ -173,6 +173,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
 
   padding: 0 18px;
 
@@ -302,7 +303,6 @@
 }
 
 @media (max-width: 768px) {
-
   .navbar-container {
     height: 60px;
   }
@@ -316,8 +316,19 @@
     font-size: 18px;
   }
 
-  .nav-btn-login,
+  /* Hide signup button completely on mobile */
   .nav-btn-signup {
+    display: none;
+  }
+
+  /* Make login button an icon only on mobile */
+  .nav-btn-login {
+    width: 40px;
+    padding: 0;
+    gap: 0;
+  }
+  
+  .nav-btn-login span {
     display: none;
   }
 
@@ -333,7 +344,6 @@
 }
 
 @media (max-width: 480px) {
-
   .logo-ar {
     display: none;
   }
