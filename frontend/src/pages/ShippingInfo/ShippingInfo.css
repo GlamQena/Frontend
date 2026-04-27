@@ -1,0 +1,265 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.page {
+  direction: rtl;
+  background: #f0eef8;
+  min-height: 100vh;
+  padding: 24px;
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+.back-link {
+  text-align: right;
+  font-size: 13px;
+  color: #8b6fc2;
+  margin-bottom: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 0.5px solid #e0d9f0;
+   /*box-shadow: 0 4px 24px rgba(155, 111, 240, 0.08), 
+              0 1px 4px rgba(0, 0, 0, 0.04);*/
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 12px;
+  color: #999;
+}
+
+input,
+textarea {
+  background: #f5f3fb;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #333;
+  width: 100%;
+  outline: none;
+  font-family: inherit;
+  direction: rtl;
+  transition: border-color 0.3s;
+}
+.form-group input {
+  border-radius: 50px;
+}
+
+.form-group textarea {
+  border-radius: 12px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #bbb;
+}
+
+input:focus,
+textarea:focus {
+  background: #ede9f8;
+}
+
+textarea {
+  resize: none;
+  height: 80px;
+}
+
+.pay-options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pay-opt {
+  flex: 1;
+  min-width: 100px;
+  background: #f5f3fb;
+  border: 1.5px solid transparent;
+  border-radius: 50px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #555;
+  transition: all 0.2s;
+}
+
+.pay-opt:hover {
+  background: #ede9f8;
+}
+
+.pay-opt.active {
+  border-color: #9b6ff0;
+  background: #faf8ff;
+  color: #7c4dca;
+}
+
+.pay-icon {
+  font-size: 20px;
+}
+
+.summary-card {
+  /*position: relative;
+  top: 20px;*/
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 0.5px solid #e0d9f0;
+}
+
+.summary-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 20px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.summary-row .summary-label {
+  color: #999;
+}
+.summary-row .Dis{
+  color: #e36b6b;
+
+}
+
+.summary-row .discount-val {
+  color: #e36b6b;
+}
+
+
+.divider {
+  border: none;
+  border-top: 1px solid #f0eef8;
+  margin: 14px 0;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 20px;
+}
+
+.confirm-btn {
+  width: 100%;
+  background:  linear-gradient(135deg, #dccef1, #b78cfc);
+  color: #0f0808;
+  border: none;
+  border-radius: 40px;
+  padding: 15px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  transition: opacity 0.2s;
+}
+
+.confirm-btn:hover {
+  opacity: 0.9;
+}
+
+.security-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #2c2121;
+  margin-top: 30px;
+  justify-content: center;
+  text-align: center;
+  background: #f7f2ff;
+  border: none;
+  border-radius: 40px;
+  padding:15px;
+
+}
+.card, .summary-card {
+  box-shadow: 0 4px 20px rgba(17, 11, 29, 0.08), 0 1px 4px rgba(11, 9, 9, 0.04);
+  border: none;
+}
+
+@media (max-width: 620px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    position: static;
+  }
+}
