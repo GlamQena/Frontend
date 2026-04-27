@@ -9,6 +9,8 @@ function Navbar() {
   const location = useLocation();
   const loggedIn = isUserLogged();
 
+  console.log("is user loggedIn => ", loggedIn);
+
   return (
     <div className="navbar-container" dir="rtl">
       <nav className="nav-bar">
@@ -24,11 +26,22 @@ function Navbar() {
         {/* ===== Actions (left) ===== */}
         <div className="nav-actions">
 
-          {loggedIn && (
-            <NavLink to="/cart" title="السلة" className="nav-icon">
-              <ShoppingCart size={20} />
+          {!loggedIn && location.pathname !== "/login" && (
+            <NavLink to="/login" className="nav-btn-login">
+              <LogIn size={18} />
+              <span>دخول</span>
             </NavLink>
           )}
+
+          {!loggedIn && location.pathname !== "/register" && (
+            <NavLink to="/register" className="nav-btn-signup">
+              إنشاء حساب
+            </NavLink>
+          )}
+
+          <NavLink to="/cart" title="السلة" className="nav-icon">
+            <ShoppingCart size={20} />
+          </NavLink>
 
           {loggedIn && (
             <NavLink to="/profile" title="الملف الشخصي" className="nav-icon">
@@ -40,14 +53,6 @@ function Navbar() {
             <button className="nav-icon" title="تسجيل الخروج" onClick={async () => await logout()}>
               <LogOut size={20} />
             </button>
-          )}
-
-          {!loggedIn && location.pathname !== "/login" && (
-            <NavLink to="/login" className="nav-btn-login">دخول</NavLink>
-          )}
-
-          {!loggedIn && location.pathname !== "/register" && (
-            <NavLink to="/register" className="nav-btn-signup">إنشاء حساب</NavLink>
           )}
 
           <button className="mode-toggler" title="تبديل المظهر"
