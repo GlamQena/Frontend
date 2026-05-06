@@ -45,7 +45,7 @@ export default function MyOrders() {
         setOrders(res.data.data || []);
       } catch (err) {
         console.error(err);
-        if (err.response?.status === 401) navigate("/login");
+        // if (err.response?.status === 401) navigate("/login");
       }
     };
     fetchOrders();

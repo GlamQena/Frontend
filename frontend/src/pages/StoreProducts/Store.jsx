@@ -212,7 +212,7 @@ const Store = () => {
       <div className="products-grid">
         {filteredProducts.length > 0 ? (
           filteredProducts.map((product, index) => (
-            <div key={product._id} className="product-card">
+            <div key={product._id} className="product-card" onClick={() => navigate(`/stores/${storeId}/products/${product._id}`)}>
               <div className="image-wrapper">
                 <img
                   src={getProductImage(product.images)}
@@ -226,7 +226,8 @@ const Store = () => {
                 />
                 <button 
                   className="wishlist-btn" 
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     if (!isUserLogged()) {
                       responseMessageSetter(false, "يرجى تسجيل الدخول أولاً", setResponseMessage);
                       return;
@@ -243,7 +244,7 @@ const Store = () => {
               <div className="product-info">
                 <h4>{product.name}</h4>
                 <p className="price">{product.price.toLocaleString()} ج.م</p>
-                <button className="add-to-cart-btn" onClick={() => handleAddToCart(product._id)}>
+                <button className="add-to-cart-btn" onClick={(e) => { e.stopPropagation(); handleAddToCart(product._id);}}>
                   🛒 أضف للسلة
                 </button>
               </div>

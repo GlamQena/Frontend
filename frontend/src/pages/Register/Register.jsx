@@ -158,6 +158,7 @@ const Register = () => {
         setSubmitMessage,
       );
 
+      // sessionStorage.removeItem("session_id");
       localStorage.setItem("user", JSON.stringify(responseData.user));
       localStorage.setItem("accessToken", responseData.accessToken);
       localStorage.setItem("refreshToken", responseData.refreshToken);
