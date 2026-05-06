@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "./components/ThemeProvider";
 import Navbar from "./components/Navbar";
 
 // Public pages
@@ -14,7 +13,7 @@ import ProductDetails from "./pages/ProductDetails/ProductDetails";
 
 // Shopping
 import Cart          from "./pages/Cart/Cart";
-import Shipping_info from "./pages/Shipping_info/Shipping_info";
+import ShippingInfo from "./pages/ShippingInfo/ShippingInfo";
 import MyOrders      from "./pages/MyOrders/MyOrders";
 import OrderDetails  from "./pages/MyOrders/OrderDetails";
 
@@ -34,7 +33,6 @@ import NotFound      from "./pages/NotFound/NotFound";
 function App() {
   return (
     <BrowserRouter>
-      <ThemeProvider>
         <Navbar />
         <Routes>
           {/* ── Public ── */}
@@ -49,7 +47,7 @@ function App() {
 
           {/* ── Shopping ── */}
           <Route path="/cart"          element={<Cart />} />
-          <Route path="/Shipping/Info" element={<Shipping_info/>} />
+          <Route path="/Shipping/Info" element={<ShippingInfo/>} />
           {/* <Route path="/wishlist"      element={<Wishlist />} /> */}
           <Route path="/orders"        element={<MyOrders />} />
           <Route path="/orders/:id"    element={<OrderDetails />} />
@@ -67,7 +65,6 @@ function App() {
           {/* ── Fallback ── */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </ThemeProvider>
     </BrowserRouter>
   );
 }

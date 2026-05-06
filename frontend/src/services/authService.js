@@ -5,20 +5,113 @@ const BASE_URL = "http://localhost:8080/auth";
 
 export const isUserLogged = () => {
   const user = JSON.parse(localStorage.getItem("user"));
-  if (!user || user === "undefined" || Object.keys(user).length === 0) 
+  if (!user || user === "undefined" || user === "null" || Object.keys(user).length === 0) 
     return false;
   
   return true;
 };
 
 export const getSessionId = () => {
+  // if(isUserLogged())
+  //   return null;
+
   let sid = sessionStorage.getItem("session_id");
   if (!sid) {
     sid = crypto.randomUUID();
     sessionStorage.setItem("session_id", sid);
   }
   return sid;
-  // return "b9f31afc-a09c-4428-9fd9-4d4ed951e897";
+};
+
+export const getAccessToken = async (setResponseMessage) => {
+  try {
+    let accessToken = localStorage.getItem("accessToken");
+    const decodedAccessToken = JSON.parse(atob(accessToken.split(".")[1]));
+    //atob is a global javaScript method for decoding (ASCII to binary)
+    const accessTokenEXP = decodedAccessToken.exp * 1000;
+
+    if (accessTokenEXP < Date.now()) {
+      localStorage.setItem("user", null);
+
+      let refreshToken  = localStorage.getItem("refreshToken");
+
+      if (!refreshToken || refreshToken === "null" || refreshToken === "undefined") {
+        responseMessageSetter(false, "please login first", setResponseMessage);
+        localStorage.setItem("user", null);
+        return null;
+      }
+
+      const decodedRefreshToken = JSON.parse(atob(refreshToken.split(".")[1]));
+      const refreshTokenEXP= decodedRefreshToken.exp * 1000;
+
+      if(refreshTokenEXP < Date.now()){
+        console.log("expired refresh token!");
+        responseMessageSetter(
+          false,
+          "your session ended, please login",
+          setResponseMessage,
+        );
+        return null;
+      }
+
+      const response = await fetch(`${BASE_URL}/refresh-token`, {
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const refreshData = await response.json();
+      console.log("refresh token response => ", refreshData);
+      if (!response.ok) {
+        responseMessageSetter(false, refreshData.message, setResponseMessage);
+        return null;
+      } else {
+        localStorage.setItem("user", JSON.stringify(refreshData.user));
+        localStorage.setItem("accessToken", refreshData.accessToken);
+        accessToken = refreshData.accessToken;
+      }
+    }
+    return accessToken;
+  } catch (error) {
+    responseMessageSetter(
+      false,
+      "your session ended, please login",
+      setResponseMessage,
+    );
+    return null;
+  }
+};
+
+export const sid_AuthHeader = async (setResponseMessage) => {
+  const sid = getSessionId();
+  let headers=  { 
+      "Content-Type": "application/json",
+  };
+
+  // if(!sid){
+      let accessToken = await getAccessToken(setResponseMessage);
+      if(accessToken)
+          headers["Authorization"] = `Bearer ${accessToken}`;
+  // }
+
+  return {sid, headers}
+}
+
+export function responseMessageSetter(success, message, setResponseMessage) {
+  setResponseMessage({ success, message });
+  setTimeout(() => {
+    setResponseMessage({ success: false, message: "" });
+  }, 6000);
+}
+
+export function closeTabHandler() {
+  window.removeEventListener("beforeunload", beforeUnloadHandler);
+  window.addEventListener("beforeunload", beforeUnloadHandler);
+} //doesn't called properly
+
+const beforeUnloadHandler = async () => {
+  await logout();
 };
 
 export const registerUser = async (data) => {
@@ -108,70 +201,6 @@ export const logout = async () => {
   } catch (error) {
     throw error;
   }
-};
-
-export const getAccessToken = async (setResponseMessage) => {
-  try {
-    let accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      responseMessageSetter(false, "please login first", setResponseMessage);
-      return null;
-    }
-
-    const decodedAccessToken = JSON.parse(atob(accessToken.split(".")[1]));
-    //atob is a global javaScript method for decoding (ASCII to binary)
-
-    if (decodedAccessToken.exp * 1000 < Date.now()) {
-      const response = await fetch(`${BASE_URL}/refresh-token`, {
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("refreshToken")}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const refreshData = await response.json();
-      console.log("refresh token response => ", refreshData);
-      if (refreshData.message.includes("expired")) {
-        responseMessageSetter(
-          false,
-          "your session ended, please login",
-          setResponseMessage,
-        );
-        return null;
-      } else if (!response.ok) {
-        responseMessageSetter(false, refreshData.message, setResponseMessage);
-        return null;
-      } else {
-        localStorage.setItem("user", JSON.stringify(refreshData.user));
-        localStorage.setItem("accessToken", refreshData.accessToken);
-        accessToken = refreshData.accessToken;
-      }
-    }
-    return accessToken;
-  } catch (error) {
-    responseMessageSetter(
-      false,
-      "your session ended, please login",
-      setResponseMessage,
-    );
-    return null;
-  }
-};
-
-export function responseMessageSetter(success, message, setResponseMessage) {
-  setResponseMessage({ success, message });
-  setTimeout(() => {
-    setResponseMessage({ success: false, message: "" });
-  }, 6000);
-}
-
-export function closeTabHandler() {
-  window.removeEventListener("beforeunload", beforeUnloadHandler);
-  window.addEventListener("beforeunload", beforeUnloadHandler);
-} //doesn't called properly
-
-const beforeUnloadHandler = async () => {
-  await logout();
 };
 
 const passwordField = yup

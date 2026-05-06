@@ -2,7 +2,6 @@
 
 .container  {
   max-width: var(--عرض-البطاقة);
-  width: 100%;
   transition: all 0.4s ease;
   direction: rtl;
   background: var(--خلفية-البطاقة);
@@ -10,6 +9,7 @@
   color: var(--نص-رئيسي);
   overflow: hidden;
   margin: var(--مارجن-البطاقة);
+  
 }
 
 .login-header { 
@@ -41,6 +41,7 @@
   background: var(--خلفية-البطاقة); 
   box-shadow: var(--ظل-البطاقة);
   border-radius:   var(--راديوس-البطاقة);
+  width: 90%;
 }
 
 .tabs-container {

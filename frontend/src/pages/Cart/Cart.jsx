@@ -50,9 +50,9 @@ export default function CartPage() {
       if (json.data.products) {
         setGroups(json.data.products);
         if(groups.length > 0)
-          console.log("the set groups => ", groups);
+          console.log("the products groups => ", groups);
         setSummary(json.data.summary || {});
-        responseMessageSetter(true, json.message, setActionMsg);
+        // responseMessageSetter(true, json.message, setActionMsg);
       }
 
     } catch (err) {
@@ -111,35 +111,16 @@ export default function CartPage() {
       const res = await placeOrder(setActionMsg);
       const json = await res.json();
       if (res.ok) {
+        console.log("placeOrder response => ", json);
         responseMessageSetter(true, json.message, setActionMsg);
         setTimeout(()=>{
-          navigate("/Shipping/Info");
+          navigate("/Shipping/Info", {state: {orderId: json.order._id, subtotal: summary.total_price, shipping: SHIPPING, total: total}});
         }, 3000);
       } else {
         responseMessageSetter(false, json.message || "حدث خطأ أثناء تأكيد الطلب", setActionMsg);
       }
     } catch (err) {
       console.error("placeOrder error:", err);
-    }
-  }
-
- const addToWishlistHandler = async (index, prod_id) => {
-    try{
-      const res= await addToWishlist(prod_id, setActionMsg);
-      const json= await res.json();
-
-      if(!res.ok)
-        return responseMessageSetter(false, json.message || "خطأ فى الإضافة لقائمة الرغبات", setActionMsg);
-
-      const updatedWishlist= json.updatedClientData.wishlist;
-
-      setWishlist(updatedWishlist);
-
-      localStorage.setItem("user", JSON.stringify(json.updatedClientData));
-
-      responseMessageSetter(true, json.message || "تمت الإضافة بنجاح", setActionMsg);
-    }catch(err){
-      console.log(`${err.message || "خطأ فى الإضافة لقائمة الرغبات"}`);
     }
   }
 

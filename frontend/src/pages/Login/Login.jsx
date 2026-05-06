@@ -47,6 +47,7 @@ const Login = () => {
       if (response.ok) {
         console.log(data);
         const user = data.user;
+        // sessionStorage.removeItem("session_id");
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);

@@ -20,3 +20,23 @@ export const placeOrder= async(setResponseMessage) => {
         throw error;
     }
 }
+
+export const checkoutPayment = async (orderId, body, setResponseMessage) => {
+    try{
+        const accessToken = await getAccessToken(setResponseMessage);
+
+        const res= await fetch(`${BASE_URL}/${orderId}/payment`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body,
+            credentials: "include",
+        });
+
+        return res;
+    }catch(error){
+        throw error;
+    }
+}

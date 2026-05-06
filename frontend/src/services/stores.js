@@ -7,9 +7,7 @@ export const getStores= async() => {
         const res= await fetch(`${BASE_URL}/`, {
             headers:{
                 "Content-Type": "application/json",
-                // "Authorization": `Bearer ${getAccessToken(setResponseMessage)}`
             },
-            // credentials: "include",
         });
         return res;
 
