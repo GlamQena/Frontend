@@ -4,21 +4,22 @@ import * as yup from "yup";
 const BASE_URL = "http://localhost:8080/auth";
 
 export const isUserLogged = () => {
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!user || user === "undefined" || user === "null" || Object.keys(user).length === 0) 
-    return false;
+  const userStr = localStorage.getItem("user");
+  if (!userStr || userStr === "undefined" || userStr === "null") return false;
   
-  return true;
+  try {
+    const user = JSON.parse(userStr);
+    return user && Object.keys(user).length > 0;
+  } catch {
+    return false;
+  }
 };
 
 export const getSessionId = () => {
-  // if(isUserLogged())
-  //   return null;
-
-  let sid = sessionStorage.getItem("session_id");
-  if (!sid) {
+  let sid = localStorage.getItem("session_id");
+  if (!sid && !isUserLogged()) {
     sid = crypto.randomUUID();
-    sessionStorage.setItem("session_id", sid);
+    localStorage.setItem("session_id", sid);
   }
   return sid;
 };
@@ -31,13 +32,13 @@ export const getAccessToken = async (setResponseMessage) => {
     const accessTokenEXP = decodedAccessToken.exp * 1000;
 
     if (accessTokenEXP < Date.now()) {
-      localStorage.setItem("user", null);
+      localStorage.removeItem("user");
 
       let refreshToken  = localStorage.getItem("refreshToken");
 
       if (!refreshToken || refreshToken === "null" || refreshToken === "undefined") {
         responseMessageSetter(false, "please login first", setResponseMessage);
-        localStorage.setItem("user", null);
+        localStorage.removeItem("user");
         return null;
       }
 
@@ -51,6 +52,7 @@ export const getAccessToken = async (setResponseMessage) => {
           "your session ended, please login",
           setResponseMessage,
         );
+        await logout();
         return null;
       }
 
@@ -89,11 +91,11 @@ export const sid_AuthHeader = async (setResponseMessage) => {
       "Content-Type": "application/json",
   };
 
-  // if(!sid){
+  if(!sid){
       let accessToken = await getAccessToken(setResponseMessage);
       if(accessToken)
           headers["Authorization"] = `Bearer ${accessToken}`;
-  // }
+  }
 
   return {sid, headers}
 }
@@ -183,7 +185,7 @@ export const resetPassword = async (data) => {
 
 export const logout = async () => {
   try {
-    const session_id = sessionStorage.getItem("session_id");
+    const session_id = localStorage.getItem("session_id");
 
     const response = await fetch(
       `${BASE_URL}/logout${session_id ? `?session_id=${session_id}` : ""}`,
@@ -196,6 +198,7 @@ export const logout = async () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+    localStorage.removeItem("session_id");
 
     window.location.reload();
   } catch (error) {

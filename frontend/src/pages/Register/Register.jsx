@@ -24,6 +24,7 @@ import {
   responseMessageSetter,
   clientSchema,
   storeOwnerSchema,
+  getSessionId,
 } from "../../services/authService";
 import "./Register.css";
 
@@ -147,6 +148,8 @@ const Register = () => {
           street: formData.store_address.street,
         };
       }
+      const session_id= getSessionId();
+      registrationData["session_id"] = session_id;
 
       console.log("Sending data:", registrationData);
       const responseData = await registerUser(registrationData);
@@ -158,13 +161,15 @@ const Register = () => {
         setSubmitMessage,
       );
 
-      // sessionStorage.removeItem("session_id");
+      localStorage.removeItem("session_id");
       localStorage.setItem("user", JSON.stringify(responseData.user));
       localStorage.setItem("accessToken", responseData.accessToken);
       localStorage.setItem("refreshToken", responseData.refreshToken);
 
-      if (responseData.user.role === "client") navigate("/");
-      else navigate("/dashboard");
+      const role = responseData.user.role;
+      if (role === "admin") navigate("/dashboard/admin_home");
+      else if(role === "store_owner") navigate("/dashboard/owner_home");
+      else navigate("/"); //client usual home
     } catch (err) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Registration error:", err);

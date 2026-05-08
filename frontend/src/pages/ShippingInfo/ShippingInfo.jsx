@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Banknote, CreditCard, Wallet } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { getAccessToken, responseMessageSetter } from "../../services/authService";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { responseMessageSetter } from "../../services/authService";
 import { checkoutPayment } from "../../services/order";
 import "./ShippingInfo.css";
 
@@ -57,6 +57,8 @@ const getUserData = () => {
 
 export default function CheckoutPage() {
   const location = useLocation();
+  const navigate = useNavigate();
+
   const {
     orderId,
     subtotal = 0,
@@ -68,7 +70,7 @@ export default function CheckoutPage() {
   const [activePayment, setActivePayment] = useState("card");
   const [focusedField, setFocusedField] = useState(null);
   const [actionMsg, setActionMsg] = useState({ success: false, message: "" });
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutDisabled, setCheckoutDisabled] = useState(false);
 
   const [form, setForm] = useState(() => {
     const user = getUserData();
@@ -90,6 +92,16 @@ export default function CheckoutPage() {
     };
   });
 
+  useEffect(() => {
+    if (!orderId) {
+      responseMessageSetter(false, "the order wasn't placed properly", setActionMsg);
+      const timer = setTimeout(() => {
+        navigate('/cart');
+      }, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [orderId]);
+  
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -125,8 +137,10 @@ export default function CheckoutPage() {
     onBlur: () => setFocusedField(null),
   });
 
-  async function checkoutPaymentHandler() {
+  async function checkoutPaymentHandler(e) {
     try {
+      e.preventDefault();
+      setCheckoutDisabled(true);
       const billingData = {
         first_name: form.first_name || "Guest",
         last_name: form.last_name || "User",
@@ -151,217 +165,219 @@ export default function CheckoutPage() {
       );
       const json = await res.json();
 
-      // if (
-      //   (activePayment === "card" || activePayment === "wallet") &&
-      //   json.redirect_url
-      // ) {
-      //   window.location.href = json.redirect_url;
-      // } 
-      if(!res.ok){
+      if (
+        activePayment === "cash" && res.ok
+      ) {
+        responseMessageSetter(true, json.message || "تم حفظ بيانات الشحن بنجاح", setActionMsg);
+        navigate("/orders");
+      } 
+      else if(!res.ok){
         responseMessageSetter(
           false,
           json.message ||  "حدث خطأ أثناء تأكيد الدفع",
           setActionMsg,
         );
-      }else {
+        setCheckoutDisabled(false);
+      }else if((activePayment === "card" || activePayment === "wallet") && res.ok) {
         responseMessageSetter(
           true,
-          json.message || "تم إرسال رابط الدفع على إيميلك ✓",
+          json.message || "تم إرسال رابط الدفع إلى بريدك الإلكتروني. يرجى فتح البريد الإلكتروني وإكمال عملية الدفع",
           setActionMsg,
         );
       }
     } catch (err) {
       console.error("checkoutPayment error:", err);
-    } finally {
-      setCheckoutLoading(false);
+      setCheckoutDisabled(false);
     }
   }
 
   return (
     <div className="page">
-      <Link to="/Cart" className="back-link">
+      {/* <Link to="/Cart" className="back-link">
         ← رجوع للسلة
-      </Link>
+      </Link> */}  {/*no need for it as it exist in the navbar actio icons */}
       {actionMsg.message && <p className= {`response-message ${actionMsg.success ? "success-message" : "error-message"}`}>{actionMsg.message}</p>}
-      <div className="layout">
-        <div className="main-col">
-          <div className="card">
-            <div className="card-title">
-              <TruckIcon />
-              معلومات الشحن والفوترة
-            </div>
-            <div className="form-grid">
-              <div className="form-group">
-                <label>الاسم الأول</label>
-                <input
-                  name="first_name"
-                  placeholder="محمد"
-                  value={form.first_name}
-                  onChange={handleChange}
-                  style={inputStyle("first_name")}
-                  {...focusProps("first_name")}
-                />
+      <form>
+        <div className="layout">
+          <div className="main-col">
+            <div className="card">
+              <div className="card-title">
+                <TruckIcon />
+                معلومات الشحن والفوترة
               </div>
-              <div className="form-group">
-                <label>اسم العائلة</label>
-                <input
-                  name="last_name"
-                  placeholder="احمد"
-                  value={form.last_name}
-                  onChange={handleChange}
-                  style={inputStyle("last_name")}
-                  {...focusProps("last_name")}
-                />
-              </div>
-              <div className="form-group">
-                <label>البريد الإلكتروني</label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="ahmed@example.com"
-                  value={form.email}
-                  onChange={handleChange}
-                  style={inputStyle("email")}
-                  {...focusProps("email")}
-                />
-              </div>
-              <div className="form-group">
-                <label>رقم الهاتف</label>
-                <input
-                  type="tel"
-                  name="phone_number"
-                  placeholder="+20 123 456 7890"
-                  value={form.phone_number}
-                  onChange={handleChange}
-                  style={inputStyle("phone_number")}
-                  {...focusProps("phone_number")}
-                />
-              </div>
-              <div className="form-group">
-                <label>الدولة</label>
-                <input
-                  name="country"
-                  placeholder="مصر"
-                  value={form.country}
-                  onChange={handleChange}
-                  style={inputStyle("country")}
-                  {...focusProps("country")}
-                />
-              </div>
-              <div className="form-group">
-                <label>المدينة</label>
-                <input
-                  name="city"
-                  placeholder="قنا"
-                  value={form.city}
-                  onChange={handleChange}
-                  style={inputStyle("city")}
-                  {...focusProps("city")}
-                />
-              </div>
-              <div className="form-group full">
-                <label>العنوان بالتفصيل</label>
-                <input
-                  name="street"
-                  placeholder="الشارع"
-                  value={form.street}
-                  onChange={handleChange}
-                  style={inputStyle("street")}
-                  {...focusProps("street")}
-                />
-              </div>
-              <div className="form-group">
-                <label>المبنى</label>
-                <input
-                  name="building"
-                  placeholder="24"
-                  value={form.building}
-                  onChange={handleChange}
-                  style={inputStyle("building")}
-                  {...focusProps("building")}
-                />
-              </div>
-              <div className="form-group">
-                <label>الطابق</label>
-                <input
-                  name="floor"
-                  placeholder="2"
-                  value={form.floor}
-                  onChange={handleChange}
-                  style={inputStyle("floor")}
-                  {...focusProps("floor")}
-                />
-              </div>
-              <div className="form-group">
-                <label>الشقة</label>
-                <input
-                  name="apartment"
-                  placeholder="4"
-                  value={form.apartment}
-                  onChange={handleChange}
-                  style={inputStyle("apartment")}
-                  {...focusProps("apartment")}
-                />
-              </div>
-              <div className="form-group full">
-                <label>ملاحظات إضافية (اختياري)</label>
-                <textarea
-                  name="notes"
-                  placeholder="أدخل أي تعليمات خاصة بالتسليم هنا..."
-                  value={form.notes}
-                  onChange={handleChange}
-                  style={textareaStyle("notes")}
-                  {...focusProps("notes")}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="card-title">طريقة الدفع</div>
-            <div className="pay-options">
-              {paymentMethods.map((method) => (
-                <div
-                  key={method.id}
-                  className={`pay-opt ${activePayment === method.id ? "active" : ""}`}
-                  onClick={() => setActivePayment(method.id)}
-                >
-                  <span className="pay-icon">{method.icon}</span>
-                  {method.label}
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>الاسم الأول</label>
+                  <input
+                    name="first_name"
+                    placeholder="محمد"
+                    value={form.first_name}
+                    onChange={handleChange}
+                    style={inputStyle("first_name")}
+                    {...focusProps("first_name")}
+                  />
                 </div>
-              ))}
+                <div className="form-group">
+                  <label>اسم العائلة</label>
+                  <input
+                    name="last_name"
+                    placeholder="احمد"
+                    value={form.last_name}
+                    onChange={handleChange}
+                    style={inputStyle("last_name")}
+                    {...focusProps("last_name")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>البريد الإلكتروني</label>
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="ahmed@example.com"
+                    value={form.email}
+                    onChange={handleChange}
+                    style={inputStyle("email")}
+                    {...focusProps("email")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>رقم الهاتف</label>
+                  <input
+                    type="tel"
+                    name="phone_number"
+                    placeholder="+20 123 456 7890"
+                    value={form.phone_number}
+                    onChange={handleChange}
+                    style={inputStyle("phone_number")}
+                    {...focusProps("phone_number")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>الدولة</label>
+                  <input
+                    name="country"
+                    placeholder="مصر"
+                    value={form.country}
+                    onChange={handleChange}
+                    style={inputStyle("country")}
+                    {...focusProps("country")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>المدينة</label>
+                  <input
+                    name="city"
+                    placeholder="قنا"
+                    value={form.city}
+                    onChange={handleChange}
+                    style={inputStyle("city")}
+                    {...focusProps("city")}
+                  />
+                </div>
+                <div className="form-group full">
+                  <label>العنوان بالتفصيل</label>
+                  <input
+                    name="street"
+                    placeholder="الشارع"
+                    value={form.street}
+                    onChange={handleChange}
+                    style={inputStyle("street")}
+                    {...focusProps("street")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>المبنى</label>
+                  <input
+                    name="building"
+                    placeholder="24"
+                    value={form.building}
+                    onChange={handleChange}
+                    style={inputStyle("building")}
+                    {...focusProps("building")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>الطابق</label>
+                  <input
+                    name="floor"
+                    placeholder="2"
+                    value={form.floor}
+                    onChange={handleChange}
+                    style={inputStyle("floor")}
+                    {...focusProps("floor")}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>الشقة</label>
+                  <input
+                    name="apartment"
+                    placeholder="4"
+                    value={form.apartment}
+                    onChange={handleChange}
+                    style={inputStyle("apartment")}
+                    {...focusProps("apartment")}
+                  />
+                </div>
+                <div className="form-group full">
+                  <label>ملاحظات إضافية (اختياري)</label>
+                  <textarea
+                    name="notes"
+                    placeholder="أدخل أي تعليمات خاصة بالتسليم هنا..."
+                    value={form.notes}
+                    onChange={handleChange}
+                    style={textareaStyle("notes")}
+                    {...focusProps("notes")}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">طريقة الدفع</div>
+              <div className="pay-options">
+                {paymentMethods.map((method) => (
+                  <div
+                    key={method.id}
+                    className={`pay-opt ${activePayment === method.id ? "active" : ""}`}
+                    onClick={() => setActivePayment(method.id)}
+                  >
+                    <span className="pay-icon">{method.icon}</span>
+                    {method.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="summary-card">
+            <div className="summary-title">ملخص الطلب</div>
+            <div className="summary-row">
+              <span className="summary-label">المجموع الفرعي</span>
+              <span>{subtotal.toLocaleString("ar-EG")} ج</span>
+            </div>
+            <div className="summary-row">
+              <span className="summary-label">الشحن</span>
+              <span>{shipping} ج</span>
+            </div>
+            <div className="summary-row">
+              <span className="Dis">الخصم</span>
+              <span className="discount-val">{discount} ج</span>
+            </div>
+            <hr className="divider" />
+            <div className="total-row">
+              <span>الإجمالي</span>
+              <span style={{ color: "#9b6ff0" }}>
+                {total.toLocaleString("ar-EG")} ج
+              </span>
+            </div>
+            <button className="confirm-btn" disabled={checkoutDisabled} onClick= {(e) => checkoutPaymentHandler(e)}>تأكيد الطلب ←</button>
+            <div className="security-note">
+              <ShieldIcon />
+              جميع معاملاتك مشفرة وآمنة بنسبة 100%. نلتزم بحماية بياناتك الشخصية
             </div>
           </div>
         </div>
-
-        <div className="summary-card">
-          <div className="summary-title">ملخص الطلب</div>
-          <div className="summary-row">
-            <span className="summary-label">المجموع الفرعي</span>
-            <span>{subtotal.toLocaleString("ar-EG")} ج</span>
-          </div>
-          <div className="summary-row">
-            <span className="summary-label">الشحن</span>
-            <span>{shipping} ج</span>
-          </div>
-          <div className="summary-row">
-            <span className="Dis">الخصم</span>
-            <span className="discount-val">{discount} ج</span>
-          </div>
-          <hr className="divider" />
-          <div className="total-row">
-            <span>الإجمالي</span>
-            <span style={{ color: "#9b6ff0" }}>
-              {total.toLocaleString("ar-EG")} ج
-            </span>
-          </div>
-          <button className="confirm-btn" onClick= {checkoutPaymentHandler}>تأكيد الطلب ←</button>
-          <div className="security-note">
-            <ShieldIcon />
-            جميع معاملاتك مشفرة وآمنة بنسبة 100%. نلتزم بحماية بياناتك الشخصية
-          </div>
-        </div>
-      </div>
+      </form>
     </div>
   );
 }

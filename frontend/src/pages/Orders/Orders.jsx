@@ -1,51 +1,50 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import "./MyOrders.css";
+import "./Orders.css";
+import { getOrdersHistory } from "../../services/order";
+import { responseMessageSetter } from "../../services/authService";
 
-export default function MyOrders() {
+export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState("all");
   const [cancellingId, setCancellingId] = useState(null);
+  const [responseMessage, setResponseMessage] = useState({success: false, message: ""});
   const navigate = useNavigate();
 
   // Backend Arabic status → frontend CSS class key
   const statusMap = {
     "قيد الانتظار": "processing",
-    "قيد التجهيز" : "processing",
-    "في الطريق":  "shipping",
-    "تم التسليم":   "delivered",
-    "ملغي":         "cancelled",
+    "قيد التجهيز": "processing",
+    "في الطريق": "shipping",
+    "تم التسليم": "delivered",
+    ملغي: "cancelled",
   };
 
   // CSS class per status key
   const statusClass = {
-    processing: "",           // default gold style from CSS
-    shipping:   "shipping",
-    delivered:  "delivered",
-    cancelled:  "order-cancelled",
+    processing: "", // default gold style from CSS
+    shipping: "shipping",
+    delivered: "delivered",
+    cancelled: "order-cancelled",
   };
 
   // Dot class per status key
   const dotClass = {
     processing: "",
-    shipping:   "shipping",
-    delivered:  "complete",
-    cancelled:  "cancelled",
+    shipping: "shipping",
+    delivered: "complete",
+    cancelled: "cancelled",
   };
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/order/history", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        });
-        setOrders(res.data.data || []);
+        const resData= await getOrdersHistory(setResponseMessage);
+        setOrders(resData.data || []);
       } catch (err) {
         console.error(err);
-        // if (err.response?.status === 401) navigate("/login");
+        responseMessageSetter(false, err.message || "خطأ فى جلب سجل الاوردرات", setResponseMessage);
       }
     };
     fetchOrders();
@@ -60,16 +59,12 @@ export default function MyOrders() {
     if (!window.confirm("هل أنتِ متأكدة من إلغاء الطلب؟")) return;
     setCancellingId(orderId);
     try {
-      await axios.delete(`http://localhost:8080/order/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
+      const resData = await cancelOrder(setResponseMessage);
       setOrders((prev) =>
-        prev.map((o) => (o._id === orderId ? { ...o, status: "ملغي" } : o))
+        prev.map((o) => (o._id === orderId ? { ...o, status: "ملغي" } : o)),
       );
     } catch (err) {
-      alert(err.response?.data?.message || "فشل إلغاء الطلب");
+      alert(err.message || "فشل إلغاء الطلب");
     } finally {
       setCancellingId(null);
     }
@@ -89,7 +84,7 @@ export default function MyOrders() {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
               },
-            }
+            },
           );
         }
       }
@@ -100,11 +95,11 @@ export default function MyOrders() {
   }
 
   const FILTERS = [
-    { label: "الكل",        value: "all" },
+    { label: "الكل", value: "all" },
     { label: "قيد التجهيز", value: "processing" },
-    { label: "في الطريق",   value: "shipping" },
-    { label: "تم التسليم",  value: "delivered" },
-    { label: "ملغى",        value: "cancelled" },
+    { label: "في الطريق", value: "shipping" },
+    { label: "تم التسليم", value: "delivered" },
+    { label: "ملغى", value: "cancelled" },
   ];
 
   return (
@@ -136,13 +131,12 @@ export default function MyOrders() {
         </div>
       ) : (
         filteredOrders.map((order) => {
-          const key       = statusMap[order.status] || "processing";
-          const isPending   = key === "processing";
+          const key = statusMap[order.status] || "processing";
+          const isPending = key === "processing";
           const isCancelled = key === "cancelled";
 
           return (
             <div className="Orders-Container" key={order._id}>
-
               {/* HEADER */}
               <div className="Order-Header">
                 <div className="order-info">
@@ -167,7 +161,15 @@ export default function MyOrders() {
                       <div className="item-image">
                         <img
                           loading="lazy"
-                          src={`http://localhost:8080/${item.prod_id?.images?.[0]}`}
+                          src={
+                            item.prod_id?.images?.[0]
+                              ? item.prod_id.images[0].startsWith("http")
+                                ? item.prod_id.images[0]
+                                : item.prod_id.images[0].startsWith("uploads")
+                                  ? `http://localhost:8080/${item.prod_id.images[0]}`
+                                  : `http://localhost:8080/uploads/${item.prod_id.images[0]}`
+                              : ""
+                          }
                           alt={item.name}
                           onError={(e) => {
                             e.target.style.display = "none";
@@ -189,7 +191,7 @@ export default function MyOrders() {
                         </div>
                       </div>
                     </div>
-                  ))
+                  )),
                 )}
               </div>
 
@@ -212,10 +214,7 @@ export default function MyOrders() {
                     </button>
                   )}
 
-                  <Link
-                    to={`/orders/${order._id}`}
-                    className="details-btn"
-                  >
+                  <Link to={`/orders/${order._id}`} className="details-btn">
                     التفاصيل
                   </Link>
 
@@ -225,12 +224,13 @@ export default function MyOrders() {
                       onClick={() => cancelOrder(order._id)}
                       disabled={cancellingId === order._id}
                     >
-                      {cancellingId === order._id ? "جاري الإلغاء..." : "إلغاء الطلب"}
+                      {cancellingId === order._id
+                        ? "جاري الإلغاء..."
+                        : "إلغاء الطلب"}
                     </button>
                   )}
                 </div>
               </div>
-
             </div>
           );
         })

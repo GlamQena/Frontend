@@ -14,8 +14,8 @@ import ProductDetails from "./pages/ProductDetails/ProductDetails";
 // Shopping
 import Cart          from "./pages/Cart/Cart";
 import ShippingInfo from "./pages/ShippingInfo/ShippingInfo";
-import MyOrders      from "./pages/MyOrders/MyOrders";
-import OrderDetails  from "./pages/MyOrders/OrderDetails";
+import Orders      from "./pages/Orders/Orders";
+import OrderDetails  from "./pages/OrderDetails/OrderDetails";
 
 // Auth
 import Login         from "./pages/Login/Login";
@@ -25,7 +25,8 @@ import VerificationCheck from "./pages/Verification/Check";
 import Profile       from "./pages/Profile/Profile";
 
 // Dashboard
-import Dashboard     from "./pages/Dashboard/Dashboard";
+import OwnerHome from "./pages/Dashboard/OwnerHome/OwnerHome";
+import AdminHome from "./pages/Dashboard/AdminHome/AdminHome";
 
 // 404
 import NotFound      from "./pages/NotFound/NotFound";
@@ -49,7 +50,7 @@ function App() {
           <Route path="/cart"          element={<Cart />} />
           <Route path="/Shipping/Info" element={<ShippingInfo/>} />
           {/* <Route path="/wishlist"      element={<Wishlist />} /> */}
-          <Route path="/orders"        element={<MyOrders />} />
+          <Route path="/orders"        element={<Orders />} />
           <Route path="/orders/:id"    element={<OrderDetails />} />
           
           {/* ── Auth ── */}
@@ -60,7 +61,8 @@ function App() {
           <Route path="/profile"        element={<Profile />} />
 
           {/* ── Dashboard ── */}
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/owner_home" element={<OwnerHome />} />
+          <Route path="/dashboard/admin_home" element={<AdminHome />} />
 
           {/* ── Fallback ── */}
           <Route path="*" element={<NotFound />} />

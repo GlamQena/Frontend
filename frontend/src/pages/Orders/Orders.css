@@ -4,10 +4,18 @@
 }
 
 body {
-  background-color: var(--خلفية-الصفحة);
+  background: var(--خلفية-الصفحة);
   color: var(--نص-رئيسي);
   margin: 0;
-  padding: 20px;
+  font-family: Tajawal, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: center;
+  vertical-align: middle;
+  direction: rtl;
+  padding: 83px 20px;
 }
 a:link,
 a:visited,
@@ -31,7 +39,7 @@ a:active {
   letter-spacing: 0px;
   text-align: right;
   vertical-align: middle;
-
+  margin: 22px;
   color: var(--نص-رئيسي);
 }
 
@@ -304,6 +312,8 @@ a:active {
 .foot-btns {
   display: flex;
   gap: 20px;
+  justify-content: center;
+  align-items: center;
 }
 .details-btn {
   width: 120px;
@@ -344,6 +354,7 @@ a:active {
   color: var(--أحمر-خطأ);
   background-color: var(--أحمر-خافت);
   background-color: var(--خلفية-الفوتر);
+  height: 20px;
 }
 .State-btn.cancel-btn:hover {
   background-color: var(--أحمر-خطأ);
@@ -362,7 +373,7 @@ a:active {
   box-shadow: var(--ظل-الزر);
 }
 /* ══════════════════════════════════════
-   MyOrders.css  — based on original CSS
+   Orders.css  — based on original CSS
    ══════════════════════════════════════ */
 
 /* ── active filter button ── */
@@ -378,7 +389,7 @@ a:active {
 .order-status.shipping {
   border-color: #0284c7;
   color: #0284c7;
-  background-color: rgba(2, 132, 199, 0.10);
+  background-color: rgba(2, 132, 199, 0.1);
 }
 .order-status.shipping .little-cycle {
   background-color: #0ea5e9;
@@ -397,7 +408,9 @@ a:active {
   gap: 12px;
   color: var(--نص-خافت);
 }
-.empty-icon { font-size: 48px; }
+.empty-icon {
+  font-size: 48px;
+}
 .empty-state p {
   font-size: 16px;
   font-weight: 600;
@@ -422,4 +435,3 @@ a:active {
   opacity: 0.6;
   cursor: not-allowed;
 }
-
