@@ -1,0 +1,193 @@
+.footer {
+    border-top: 1px solid var(--حد-خافت);
+    padding: 72px 48px 32px;
+    background-color: var(--فوتر-خلفية);
+    width: var(--عرض-صفحة);
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 80px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.footer-brand {
+    flex: 1;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.footer-logo-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--ذهبي);
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    box-shadow: 0 0 4px 2px rgba(212, 175, 55, 0.6);
+}
+
+.footer-logo-qena {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-size: 18px;
+    color: var(--نص-خافت);
+}
+
+.footer-logo-glam {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--بنفسجي);
+}
+
+.footer-qena {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    color: var(--نص-خافت);
+    margin-bottom: 12px;
+}
+
+.footer-desc {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    color: var(--نص-ثانوي);
+    line-height: 1.8;
+    max-width: 320px;
+}
+
+.footer-contact {
+    flex: 1;
+}
+
+.footer-contact h4 {
+    font-family: 'Tajawal', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--نص-رئيسي);
+    margin-bottom: 20px;
+}
+
+.footer-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    color: var(--نص-ثانوي);
+}
+
+.footer-contact-item i {
+    width: 24px;
+    color: var(--بنفسجي);
+    font-size: 16px;
+}
+
+.footer-hours {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--حد-خافت);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 40px;
+    margin-top: 40px;
+    border-top: 1px solid var(--حد-خافت);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 12px;
+    color: var(--نص-خافت);
+}
+
+/* Responsive adjustments for footer */
+@media (max-width: 992px) {
+    .footer {
+        padding: 48px 32px 32px;
+    }
+    
+    .footer-container {
+        flex-direction: column;
+        gap: 40px;
+    }
+    
+    .footer-brand {
+        text-align: center;
+    }
+    
+    .footer-logo {
+        justify-content: center;
+    }
+    
+    .footer-desc {
+        max-width: 100%;
+        text-align: center;
+    }
+    
+    .footer-contact {
+        text-align: center;
+    }
+    
+    .footer-contact-item {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: 40px 20px 24px;
+    }
+    
+    .footer-container {
+        gap: 32px;
+    }
+    
+    .footer-contact h4 {
+        font-size: 16px;
+    }
+    
+    .footer-contact-item {
+        font-size: 13px;
+        gap: 8px;
+    }
+    
+    .footer-bottom {
+        padding-top: 24px;
+        margin-top: 24px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer {
+        padding: 32px 16px 20px;
+    }
+    
+    .footer-logo-qena,
+    .footer-logo-glam {
+        font-size: 16px;
+    }
+    
+    .footer-desc {
+        font-size: 12px;
+    }
+    
+    .footer-contact-item {
+        flex-direction: column;
+        gap: 4px;
+        text-align: center;
+    }
+    
+    .footer-contact-item i {
+        margin-bottom: 4px;
+    }
+}

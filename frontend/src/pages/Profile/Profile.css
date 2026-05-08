@@ -1,0 +1,915 @@
+/* Profile Page - Figma Match */
+.profile-page-wrapper {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 24px;
+    direction: rtl;
+}
+
+/* Loading State */
+.loading {
+    text-align: center;
+    font-size: 1rem;
+    padding: 2rem;
+    color: var(--نص-خافت);
+    background: var(--خلفية-البطاقة);
+    border-radius: 24px;
+    margin: 2rem auto;
+    max-width: 400px;
+}
+
+/* Header Card */
+.profile-header-card {
+    background: var(--خلفية-البطاقة);
+    border-radius: 28px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    border: 1px solid var(--حد-واضح);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.user-main-info {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+/* Avatar Styles */
+.profile-avatar {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.profile-avatar:has(img[src*="Avatar.png"]),
+.profile-avatar:has(img[src*="Avatar Light.png"]) {
+    background: transparent;
+    padding: 0;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    background: var(--خلفية-البطاقة);
+}
+
+/* Avatar upload overlay */
+.avatar-upload-wrapper {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+}
+
+.avatar-upload-wrapper .profile-avatar {
+    width: 100%;
+    height: 100%;
+}
+
+.avatar-upload-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    padding: 6px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 0 0 40px 40px;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.avatar-upload-label:hover {
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.avatar-upload-label span {
+    font-size: 10px;
+    color: white;
+    font-family: 'Tajawal', sans-serif;
+    display: block;
+}
+
+.avatar-input-hidden {
+    display: none;
+}
+
+.user-text {
+    flex: 1;
+}
+
+.user-text h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--نص-رئيسي);
+    margin: 0 0 8px 0;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.status-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+/* Badge Styles */
+.badge-green {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
+    color: var(--أخضر-نجاح);
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Tajawal', sans-serif;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(4px);
+}
+
+.badge-green::before {
+    content: "✓";
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-red {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
+    color: var(--أحمر-خطأ);
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Tajawal', sans-serif;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(4px);
+}
+
+.badge-red::before {
+    content: "✗";
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.last-seen {
+    font-size: 12px;
+    color: var(--نص-خافت);
+    margin: 8px 0 0 0;
+    font-family: 'Tajawal', sans-serif;
+}
+
+/* Quick Stats */
+.quick-stats {
+    display: flex;
+    gap: 32px;
+    background: var(--خلفية-2);
+    padding: 12px 28px;
+    border-radius: 20px;
+    border: 1px solid var(--حد-خافت);
+    transition: all 0.3s ease;
+}
+
+.quick-stats:hover {
+    border-color: var(--بنفسجي-خافت);
+    transform: translateY(-2px);
+}
+
+.quick-stats .stat {
+    text-align: center;
+}
+
+.quick-stats .stat span {
+    display: block;
+    font-size: 12px;
+    color: var(--نص-خافت);
+    margin-bottom: 6px;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.quick-stats .stat strong {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--بنفسجي);
+    font-family: 'Epilogue', sans-serif;
+}
+
+/* Success/Error Messages */
+.success-message,
+.error-message {
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    text-align: center;
+    margin: 0 0 24px 0;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.success-message {
+    background: var(--أخضر-خافت);
+    color: var(--أخضر-نجاح);
+    border: 1px solid var(--أخضر-نجاح);
+}
+
+.error-message {
+    background: var(--أحمر-خافت);
+    color: var(--أحمر-خطأ);
+    border: 1px solid var(--أحمر-خطأ);
+}
+
+/* Grid Layout */
+.profile-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+}
+
+/* Form Cards */
+.form-card {
+    background: var(--خلفية-البطاقة);
+    border-radius: 28px;
+    padding: 28px;
+    margin-bottom: 24px;
+    border: 1px solid var(--حد-واضح);
+    transition: all 0.3s ease;
+}
+
+.form-card:hover {
+    border-color: var(--بنفسجي-خافت);
+}
+
+.form-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--نص-رئيسي);
+    margin: 0 0 24px 0;
+    font-family: 'Tajawal', sans-serif;
+    padding-right: 14px;
+    border-right: 3px solid var(--بنفسجي);
+}
+
+.inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--نص-خافت);
+    font-family: 'Tajawal', sans-serif;
+}
+
+.input-field input,
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+    padding: 12px 16px;
+    border: 1.5px solid var(--حد-خافت);
+    border-radius: 14px;
+    font-size: 14px;
+    background: var(--خلفية-2);
+    color: var(--نص-رئيسي);
+    font-family: 'Tajawal', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.input-field input:focus,
+input:not([type="checkbox"]):focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--بنفسجي);
+    box-shadow: 0 0 0 3px var(--بنفسجي-خافت);
+}
+
+input[readonly] {
+    background: var(--خلفية-3);
+    cursor: default;
+    opacity: 0.7;
+}
+
+/* Gender Toggle */
+.gender-toggle {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+    padding-top: 12px;
+    flex-wrap: wrap;
+}
+
+.gender-toggle p {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--نص-خافت);
+    margin: 0;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.gender-toggle button {
+    padding: 8px 28px;
+    border: 1.5px solid var(--حد-خافت);
+    border-radius: 999px;
+    background: var(--خلفية-2);
+    color: var(--نص-ثانوي);
+    font-size: 14px;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gender-toggle button.active {
+    background: linear-gradient(135deg, #CC97FF, #9C48EA);
+    color: white;
+    border: none;
+}
+
+.gender-toggle button:not(.active):hover {
+    border-color: var(--بنفسجي);
+    color: var(--نص-رئيسي);
+    background: var(--بنفسجي-خافت);
+}
+
+.gender-toggle button:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+/* Address Fields */
+.address-fields h3 {
+    margin: 8px 0 20px 0;
+    font-size: 16px;
+}
+
+.address-inputs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+/* Skin Care Section */
+.skin-types,
+.skin-interests {
+    margin-bottom: 24px;
+}
+
+.skin-types p,
+.skin-interests p {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--نص-رئيسي);
+    margin: 0 0 14px 0;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.chip {
+    padding: 7px 18px;
+    border: 1.5px solid var(--حد-خافت);
+    border-radius: 999px;
+    background: var(--خلفية-2);
+    color: var(--نص-ثانوي);
+    font-size: 13px;
+    font-family: 'Tajawal', sans-serif;
+    margin: 0 6px 10px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.chip.active {
+    background: linear-gradient(135deg, #CC97FF, #9C48EA);
+    color: white;
+    border: none;
+}
+
+.chip:not(.active):hover {
+    border-color: var(--بنفسجي);
+    color: var(--نص-رئيسي);
+    transform: translateY(-2px);
+}
+
+.chip:disabled {
+    cursor: default;
+    opacity: 0.6;
+    transform: none;
+}
+
+/* Store Owner Section */
+.store_address {
+    margin-top: 16px;
+}
+
+.store_address p {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--نص-رئيسي);
+    margin: 0 0 14px 0;
+    font-family: 'Tajawal', sans-serif;
+}
+
+textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1.5px solid var(--حد-خافت);
+    background: var(--خلفية-2);
+    color: var(--نص-رئيسي);
+    font-family: 'Tajawal', sans-serif;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--بنفسجي);
+    box-shadow: 0 0 0 3px var(--بنفسجي-خافت);
+}
+
+hr {
+    margin: 24px 0;
+    border: none;
+    height: 1px;
+    background: var(--حد-خافت);
+}
+
+/* Buttons Container */
+.controllers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+    margin-bottom: 32px;
+}
+
+.controllers::after {
+    content: '';
+    display: block;
+    height: 1px;
+    background: var(--حد-خافت);
+    margin-top: 16px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+    width: 100%;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #CC97FF, #9C48EA);
+    border: none;
+    color: white;
+    box-shadow: 0 2px 8px rgba(156, 72, 234, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(156, 72, 234, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1.5px solid var(--حد-واضح);
+    color: var(--نص-ثانوي);
+}
+
+.btn-secondary:hover {
+    border-color: var(--بنفسجي);
+    color: var(--نص-رئيسي);
+    background: var(--بنفسجي-خافت);
+}
+
+.btn-danger {
+    background: transparent;
+    border: 1.5px solid var(--أحمر-خطأ);
+    color: var(--أحمر-خطأ);
+}
+
+.btn-danger:hover {
+    background: var(--أحمر-خافت);
+    transform: translateY(-2px);
+}
+
+/* Sidebar Styles */
+.sidebar-form-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.sidebar-form-content .form-card {
+    margin-bottom: 0;
+    transition: all 0.3s ease;
+}
+
+/* Checkbox Items */
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+    cursor: pointer;
+    padding: 12px 16px;
+    background: var(--خلفية-2);
+    border-radius: 16px;
+    transition: all 0.2s ease;
+    border: 1px solid var(--حد-خافت);
+}
+
+.checkbox-item:hover {
+    background: var(--خلفية-3);
+    border-color: var(--بنفسجي);
+    transform: translateX(5px);
+}
+
+.checkbox-item input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--بنفسجي);
+    cursor: pointer;
+}
+
+.checkbox-item span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--نص-ثانوي);
+    font-family: 'Tajawal', sans-serif;
+}
+
+.checkbox-item:has(input:disabled) {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.checkbox-item:has(input:disabled):hover {
+    transform: none;
+}
+
+/* Password Section */
+.password-section {
+    margin-top: 0;
+    background: var(--خلفية-البطاقة);
+    border-radius: 28px;
+    padding: 28px;
+    border: 1px solid var(--حد-واضح);
+    transition: all 0.3s ease;
+}
+
+.password-section:hover {
+    border-color: var(--بنفسجي-خافت);
+}
+
+.password-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    cursor: pointer;
+    color: var(--بنفسجي);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--حد-خافت);
+    transition: all 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: var(--وردي);
+    padding-right: 8px;
+    border-bottom-color: var(--بنفسجي);
+}
+
+.password-toggle span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.password-toggle span::before {
+    content: "🔒";
+    font-size: 14px;
+}
+
+.password-toggle i {
+    transition: transform 0.3s ease;
+    font-size: 12px;
+}
+
+.password-change-form {
+    margin-top: 20px;
+    animation: slideDown 0.3s ease;
+}
+
+.password-change-form input {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    border: 1.5px solid var(--حد-خافت);
+    border-radius: 14px;
+    background: var(--خلفية-2);
+    color: var(--نص-رئيسي);
+    font-family: 'Tajawal', sans-serif;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.password-change-form input:focus {
+    outline: none;
+    border-color: var(--بنفسجي);
+    box-shadow: 0 0 0 3px var(--بنفسجي-خافت);
+    background: var(--خلفية-3);
+}
+
+.password-change-form input::placeholder {
+    color: var(--نص-خافت);
+    font-size: 12px;
+}
+
+.password-change-form button,
+.password-submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #CC97FF, #9C48EA);
+    border: none;
+    border-radius: 999px;
+    color: white;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+}
+
+.password-change-form button:hover,
+.password-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(156, 72, 234, 0.3);
+}
+
+.password-disabled-message {
+    color: var(--نص-خافت);
+    font-size: 12px;
+    padding: 14px;
+    background: var(--خلفية-2);
+    border-radius: 16px;
+    text-align: center;
+    font-family: 'Tajawal', sans-serif;
+    margin-top: 12px;
+    border: 1px solid var(--حد-خافت);
+}
+
+/* Not Auth Message */
+.notAuth-message {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+/* Animations */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.sidebar-form-content .form-card {
+    animation: slideIn 0.4s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .profile-content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .inputs-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .address-inputs {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar-form-content {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-page-wrapper {
+        margin: 20px auto;
+        padding: 0 16px;
+    }
+    
+    .profile-header-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .user-main-info {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .status-badges {
+        justify-content: center;
+    }
+    
+    .quick-stats {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .form-card {
+        padding: 20px;
+    }
+    
+    .controllers {
+        margin-top: 20px;
+        margin-bottom: 28px;
+        gap: 10px;
+    }
+    
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
+        padding: 10px 20px;
+    }
+    
+    .sidebar-form-content {
+        gap: 16px;
+    }
+    
+    .sidebar-form-content .form-card {
+        padding: 20px;
+    }
+    
+    .checkbox-item {
+        padding: 10px 14px;
+    }
+    
+    .password-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-page-wrapper {
+        margin: 12px auto;
+        padding: 0 12px;
+    }
+    
+    .profile-header-card {
+        padding: 16px;
+    }
+    
+    .profile-avatar {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .user-text h2 {
+        font-size: 18px;
+    }
+    
+    .quick-stats {
+        gap: 20px;
+        padding: 10px 20px;
+    }
+    
+    .quick-stats .stat strong {
+        font-size: 18px;
+    }
+    
+    .form-card {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .form-card h3 {
+        font-size: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .gender-toggle button {
+        padding: 6px 20px;
+        font-size: 13px;
+    }
+    
+    .chip {
+        padding: 5px 14px;
+        font-size: 12px;
+    }
+    
+    .controllers {
+        margin-top: 16px;
+        margin-bottom: 24px;
+        gap: 8px;
+    }
+    
+    .sidebar-form-content {
+        gap: 12px;
+    }
+    
+    .sidebar-form-content .form-card {
+        padding: 16px;
+    }
+    
+    .checkbox-item {
+        padding: 8px 12px;
+        margin-bottom: 8px;
+    }
+    
+    .checkbox-item span {
+        font-size: 12px;
+    }
+    
+    .password-section {
+        padding: 16px;
+    }
+    
+    .password-section h3 {
+        font-size: 15px;
+        margin-bottom: 14px;
+        padding-right: 10px;
+    }
+    
+    .password-toggle {
+        padding: 8px 0;
+        font-size: 12px;
+    }
+    
+    .password-change-form {
+        margin-top: 16px;
+    }
+    
+    .password-change-form input {
+        padding: 8px 12px;
+        margin-bottom: 10px;
+        font-size: 12px;
+    }
+    
+    .password-change-form button,
+    .password-submit-btn {
+        padding: 8px;
+        font-size: 12px;
+    }
+    
+    .password-disabled-message {
+        padding: 10px;
+        font-size: 11px;
+    }
+}
