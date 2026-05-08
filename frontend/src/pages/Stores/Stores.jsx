@@ -71,14 +71,14 @@ const Stores = () => {
   //   alert(" خصم يصل إلى 40%! استمتعي بأجدد العروض على منتجات التجميل في قنا.");
   // };
 
-  const handleOrdersClick = (e) => {
-    e.preventDefault();
-    alert(" طلباتي: يمكنك متابعة طلباتك السابقة وتتبع الشحنات.");
+  // const handleOrdersClick = (e) => {
+  //   e.preventDefault();
+  //   alert(" طلباتي: يمكنك متابعة طلباتك السابقة وتتبع الشحنات.");
 
-    setTimeout(()=>{
-      navigate("/orders");
-    }, 3000);
-  };
+  //   setTimeout(()=>{
+  //     navigate("/orders");
+  //   }, 3000);
+  // };
 
   const handleCardClick = (storeId) => {
     // alert(` مرحباً بك في متجر ${storeName}\nاكتشفي منتجات العناية والتجميل الأصيلة في قنا.`);
@@ -108,7 +108,7 @@ const Stores = () => {
       <div className="nav">
         <div className="center-nav">
           <a href="#" className="active">المتاجر</a>
-          <a href="#" onClick={handleOrdersClick}>طلباتي</a>
+          <a href="#" onClick={() => {navigate("/orders")}}>طلباتي</a>
         </div>
       </div>
 

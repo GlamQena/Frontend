@@ -8,6 +8,7 @@ import {
   loginSchema,
   responseMessageSetter,
   login,
+  getSessionId
 } from "../../services/authService";
 
 const Login = () => {
@@ -27,7 +28,7 @@ const Login = () => {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(loginSchema),
-    defaultValues: { usernameOrEmail: "", password: "" },
+    defaultValues: { usernameOrEmail: "", password: "", rememberMe: false},
     mode: "onChange",
   });
 
@@ -37,8 +38,11 @@ const Login = () => {
     const bodyData = {
       usernameOrEmail: formData.usernameOrEmail,
       password: formData.password,
+      rememberMe: formData.rememberMe
     };
-    console.log("data to be sent-> ", bodyData);
+    const session_id= getSessionId();
+    bodyData["session_id"] = session_id;
+    console.log("data to be sent to login-> ", bodyData);
 
     try {
       const response = await login(bodyData);
@@ -47,14 +51,15 @@ const Login = () => {
       if (response.ok) {
         console.log(data);
         const user = data.user;
-        // sessionStorage.removeItem("session_id");
+        localStorage.removeItem("session_id");
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
         responseMessageSetter(true, data.message, setSubmitMessage);
 
-        if (user.role === "client") navigate("/");
-        else navigate("/dashboard");
+        if (user.role === "admin") navigate("/dashboard/admin_home");
+        else if(user.role === "store_owner") navigate("/dashboard/owner_home");
+        else navigate("/"); //client usual home
       } else {
         responseMessageSetter(false, data.message, setSubmitMessage);
       }
