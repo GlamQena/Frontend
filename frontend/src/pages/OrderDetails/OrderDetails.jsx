@@ -64,8 +64,6 @@ const XWhiteIcon = () => (
   </svg>
 );
 
-
-
 const StarIcon = () => (
   <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
     <path
@@ -225,18 +223,27 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const submit = async () => {
     if (!rating) return;
+
     setLoading(true);
     setError(null);
+
     try {
+      const productId =
+        typeof product?.prod_id === "object" && product?.prod_id !== null
+          ? product.prod_id._id
+          : product?.prod_id || product?._id;
+
+      if (!productId) {
+        throw new Error("Product ID is missing");
+      }
+
       await axios.post(
-        `${BASE_URL}/order/${orderId}/review`,
+        `${BASE_URL}/product/${productId}/rating`,
         {
-          product_id: product.prod_id?._id || product.prod_id,
-          store_owner_id: storeOwnerId,   // ✅ required by ReviewSchema
-          rate: rating,                    // ✅ backend uses "rate" not "rating"
+          store_owner_id: storeOwnerId,
+          rate: rating,
           comment,
         },
         {
@@ -245,19 +252,24 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
           },
         },
       );
+
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || "فشل إرسال التقييم");
+      setError(
+        err.response?.data?.message || err.message || "فشل إرسال التقييم",
+      );
+    } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         {/* ✕ close */}
-        <button className="modal-close-btn" onClick={onClose}>✕</button>
+        <button className="modal-close-btn" onClick={onClose}>
+          ✕
+        </button>
 
         {/* Header */}
         <div className="modal-header">
@@ -325,7 +337,9 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
         </button>
 
         {/* Cancel */}
-        <button className="modal-cancel" onClick={onClose}>إلغاء</button>
+        <button className="modal-cancel" onClick={onClose}>
+          إلغاء
+        </button>
       </div>
     </div>
   );
@@ -360,8 +374,7 @@ export default function MyOrderDetails() {
         setError("لم يتم العثور على الطلب");
       }
     } catch (err) {
-    
-     setError("تعذّر تحميل تفاصيل الطلب");
+      setError("تعذّر تحميل تفاصيل الطلب");
     } finally {
       setLoading(false);
     }
@@ -390,7 +403,7 @@ export default function MyOrderDetails() {
   return (
     <div className="od-root" dir="rtl">
       {/* ── BACK ── */}
-      <div className="back-orders" onClick={() => navigate("/my-orders")}>
+      <div className="back-orders" onClick={() => navigate("/orders")}>
         <ArrowIcon />
         <span className="text">رجوع للطلبات</span>
       </div>
@@ -405,7 +418,9 @@ export default function MyOrderDetails() {
             <span className={`od-badge ${badge.cls}`}>
               {normalizedStatus === "delivered" && <CheckCircleIcon />}
               {normalizedStatus === "cancelled" && (
-                <span className="badge-x"><XIcon /></span>
+                <span className="badge-x">
+                  <XIcon />
+                </span>
               )}
               {badge.label}
             </span>
@@ -435,9 +450,13 @@ export default function MyOrderDetails() {
             {TRACKING_STEPS.filter((step) => {
               if (!isCancelled) return true;
               const ORDER = ["pending", "preparing", "shipping", "delivered"];
-              return ORDER.indexOf(step.key) <= getCompletedStepsBeforeCancel(order);
+              return (
+                ORDER.indexOf(step.key) <= getCompletedStepsBeforeCancel(order)
+              );
             }).map((step, i, arr) => {
-              const state = isCancelled ? "done" : getStepState(step.key, order.status);
+              const state = isCancelled
+                ? "done"
+                : getStepState(step.key, order.status);
               const isLastFiltered = isCancelled && i === arr.length - 1;
               const isLast = !isCancelled && i === TRACKING_STEPS.length - 1;
               const isPend = state === "pending";
@@ -449,7 +468,9 @@ export default function MyOrderDetails() {
                   className={`od-step ${isDone ? "od-step--done" : ""} ${isPend ? "od-step--pending" : ""} ${(isLast && !isCancelled) || isLastFiltered ? "od-step--last" : ""}`}
                 >
                   <div className="od-step-indicator">
-                    <div className={`od-step-circle ${isDone ? "circle--done" : ""} ${isPend ? "circle--pending" : ""}`}>
+                    <div
+                      className={`od-step-circle ${isDone ? "circle--done" : ""} ${isPend ? "circle--pending" : ""}`}
+                    >
                       {isDone && <CheckIcon />}
                     </div>
                   </div>
@@ -508,7 +529,8 @@ export default function MyOrderDetails() {
               <span className="od-info-label">طريقة الدفع</span>
               <span className="od-info-val od-method-val">
                 <CardIcon />
-                {PAYMENT_METHOD_MAP[order.payment?.method] || order.payment?.method}
+                {PAYMENT_METHOD_MAP[order.payment?.method] ||
+                  order.payment?.method}
               </span>
             </div>
             <div className="od-info-row">
@@ -549,7 +571,9 @@ export default function MyOrderDetails() {
             </div>
             <div className="od-info-row">
               <span className="od-info-label">الهاتف</span>
-              <span className="od-info-val od-mono">{shipping.phone || "—"}</span>
+              <span className="od-info-val od-mono">
+                {shipping.phone || "—"}
+              </span>
             </div>
             <div className="od-info-row od-address-row">
               <span className="od-info-label">العنوان</span>
@@ -640,7 +664,7 @@ export default function MyOrderDetails() {
         <ReviewModal
           product={review.prod}
           orderId={order._id}
-          storeOwnerId={review.storeOwnerId}  // ✅ passed to modal
+          storeOwnerId={review.storeOwnerId} // ✅ passed to modal
           onClose={() => setReview(null)}
           onSuccess={fetchOrder}
         />
