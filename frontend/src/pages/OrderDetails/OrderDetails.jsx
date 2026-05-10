@@ -224,45 +224,47 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const submit = async () => {
-    if (!rating) return;
+  if (!rating) return;
 
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    try {
-      const productId =
-        typeof product?.prod_id === "object" && product?.prod_id !== null
-          ? product.prod_id._id
-          : product?.prod_id || product?._id;
+  try {
+    const productId = product?.prod_id?._id 
+      || product?.prod_id 
+      || product?._id;
 
-      if (!productId) {
-        throw new Error("Product ID is missing");
-      }
+    console.log("product object:", product);
+    console.log("Sending productId:", productId);
 
-      await axios.post(
-        `${BASE_URL}/product/${productId}/rating`,
-        {
-          store_owner_id: storeOwnerId,
-          rate: rating,
-          comment,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        },
-      );
-
-      onSuccess();
-      onClose();
-    } catch (err) {
-      setError(
-        err.response?.data?.message || err.message || "فشل إرسال التقييم",
-      );
-    } finally {
-      setLoading(false);
+    if (!productId) {
+      throw new Error("Product ID is missing");
     }
-  };
+
+    await axios.post(
+      `${BASE_URL}/products/${productId}/rating`,
+      {
+        store_owner_id: storeOwnerId,
+        rate: rating,
+        comment,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      },
+    );
+
+    onSuccess();
+    onClose();
+  } catch (err) {
+    setError(
+      err.response?.data?.message || err.message || "فشل إرسال التقييم",
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>

@@ -15,8 +15,17 @@ body {
 button {
   all: unset;
   cursor: pointer;
+  align-self: flex-start;
 }
-
+.modal-header
+{
+  display: flex;
+  gap:5px
+}
+.modal-stars-row
+{    display: flex;
+    gap: 8px;
+}
 .second-text {
   color: var(--نص-ثانوي);
   font-family: Tajawal, sans-serif;
@@ -587,17 +596,19 @@ opacity: .3;
 }
 
 .modal-card {
-  background: var(--خلفية-البطاقة, #fff);
-  border-radius: 32px;
-  padding: 32px;
-  width: 100%;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 40px 80px rgba(75,0,130,0.3);
-  text-align: right;
-  direction: rtl;
+    background: var(--خلفية-البطاقة, #fff);
+    border-radius: 32px;
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 40px 80px rgba(75, 0, 130, 0.3);
+    text-align: right;
+    direction: rtl;
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-title {
