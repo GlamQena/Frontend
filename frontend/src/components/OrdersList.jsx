@@ -286,16 +286,19 @@ export default function OrdersList({
 
     return statusMatch && searchMatch;
   });
-
   async function cancelOrder(orderId) {
     if (!window.confirm("هل أنتِ متأكدة من إلغاء الطلب؟")) return;
     setCancellingId(orderId);
     try {
-      await axios.delete(`${BASE_URL}/order/${orderId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      await axios.patch(
+        `${BASE_URL}/order/${orderId}/cancel`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
         },
-      });
+      );
       onCancelSuccess?.(orderId);
     } catch (err) {
       alert(err.response?.data?.message || "فشل إلغاء الطلب");
@@ -303,31 +306,27 @@ export default function OrdersList({
       setCancellingId(null);
     }
   }
-
   async function reorder(order) {
     try {
-      for (const store of order.products || []) {
-        for (const item of store.products || []) {
-          await axios.post(
-            `${BASE_URL}/cart/product`,
-            {
-              product_id: item.prod_id?._id || item.prod_id,
-              quantity: item.quantity,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-              },
-            },
-          );
-        }
+      await axios.post(
+        `${BASE_URL}/order/${order._id}/reorder`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
+      alert("✅ تمت إعادة الطلب بنجاح!");
+    } catch (error) {
+      const message = error.response?.data?.message;
+      if (error.response?.status === 404 && message) {
+        alert(`❌ ${message}`); // shows the backend message in Arabic or English
+      } else {
+        alert("فشل إعادة الطلب");
       }
-      alert("✅ تمت إضافة المنتجات إلى السلة!");
-    } catch {
-      alert("فشل إعادة الطلب");
     }
   }
-
   if (!orders.length) {
     return (
       <div className="ol-empty">
