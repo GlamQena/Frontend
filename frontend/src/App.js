@@ -27,6 +27,7 @@ import Profile       from "./pages/Profile/Profile";
 // Dashboard
 import OwnerHome from "./pages/Dashboard/OwnerHome/OwnerHome";
 import AdminHome from "./pages/Dashboard/AdminHome/AdminHome";
+import StoreOwnerOrders from "./pages/StoreOwnerOrders/StoreOwnerOrders";
 
 // 404
 import NotFound      from "./pages/NotFound/NotFound";
@@ -63,6 +64,7 @@ function App() {
           {/* ── Dashboard ── */}
           <Route path="/dashboard/owner_home" element={<OwnerHome />} />
           <Route path="/dashboard/admin_home" element={<AdminHome />} />
+          <Route path="/dashboard/orders" element={<StoreOwnerOrders />} />
 
           {/* ── Fallback ── */}
           <Route path="*" element={<NotFound />} />
