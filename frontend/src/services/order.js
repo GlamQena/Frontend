@@ -59,16 +59,16 @@ export const getOrdersHistory = async (setResponseMessage) => {
     }
 }
 
-export const cancelOrder = async (orderId, setResponseMessage) => {
+export const cancelOrder = async (orderId, body, setResponseMessage) => {
     try{
         const accessToken = await getAccessToken(setResponseMessage);
-        const response = await axios.delete(`http://localhost:8080/order/${orderId}`, {
+        const response = await axios.patch(`http://localhost:8080/order/${orderId}/cancel`, {
             headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${accessToken}`,
             },
             withCredentials : true,
-        });
+        }, body);
 
         return response.data;
     }catch(error){
