@@ -255,8 +255,8 @@ export default function OrdersList({
   }, [ordersProp]);
 
   const FILTERS = type === "store" ? STORE_FILTERS : CLIENT_FILTERS;
-
-  const filtered = orders.filter((o) => {
+const filtered = orders
+  .filter((o) => {
     const statusMatch =
       filter === "all" ||
       normalizeStatus(o.status || o.order_status) === filter;
@@ -264,19 +264,15 @@ export default function OrdersList({
 
     const searchMatch =
       search === "" ||
-      // order id
       String(o.order_id || o._id || "")
         .toLowerCase()
         .includes(searchValue) ||
-      // STORE OWNER → customer name
       (type === "store" &&
         o.customer?.name?.toLowerCase().includes(searchValue)) ||
-      // STORE OWNER → product name
       (type === "store" &&
         o.store_products?.some((item) =>
           item.product_name?.toLowerCase().includes(searchValue),
         )) ||
-      // CLIENT → product name
       (type === "client" &&
         o.products?.some((store) =>
           store.products?.some((item) =>
@@ -285,6 +281,13 @@ export default function OrdersList({
         ));
 
     return statusMatch && searchMatch;
+  })
+
+  
+  .sort((a, b) => {
+    const dateA = new Date(a.createdAt || a.order_date || a.order_created_at || 0);
+    const dateB = new Date(b.createdAt || b.order_date || b.order_created_at || 0);
+    return dateB - dateA;
   });
   async function cancelOrder(orderId) {
     if (!window.confirm("هل أنتِ متأكدة من إلغاء الطلب؟")) return;
@@ -306,27 +309,29 @@ export default function OrdersList({
       setCancellingId(null);
     }
   }
-  async function reorder(order) {
-    try {
-      await axios.post(
-        `${BASE_URL}/order/${order._id}/reorder`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
+ async function reorder(order) {
+  if (!window.confirm("هل أنتِ متأكدة من إعادة الطلب؟")) return;
+  try {
+    await axios.post(
+      `${BASE_URL}/order/${order._id}/reorder`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
-      );
-      alert("✅ تمت إعادة الطلب بنجاح!");
-    } catch (error) {
-      const message = error.response?.data?.message;
-      if (error.response?.status === 404 && message) {
-        alert(`❌ ${message}`); // shows the backend message in Arabic or English
-      } else {
-        alert("فشل إعادة الطلب");
-      }
+      },
+    );
+    onCancelSuccess?.(); // ✅ re-fetch orders like cancel does
+  } catch (error) {
+    const message = error.response?.data?.message;
+    if (error.response?.status === 404 && message) {
+      alert(`❌ ${message}`);
+    } else {
+      alert("فشل إعادة الطلب");
     }
   }
+}
+ 
   if (!orders.length) {
     return (
       <div className="ol-empty">

@@ -224,9 +224,10 @@
 }
 
 .ol-item-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 18px;
 }
 
 .ol-img-fb {
@@ -578,30 +579,15 @@
   color: var(--نص-خافت);
 }
 
-.so-search-wrap input.so-search {
-  width: 100%;
-  height: 46px;
-  padding: 0 40px 0 12px;
-  border: 1px solid var(--حد-واضح);
-  border-radius: var(--راديوس-الزر);
-  background: var(--خلفية-حالات-الاوردرات);
-  color: var(--نص-رئيسي);
-  font-family: Tajawal;
-  font-size: 14px;
-  direction: rtl;
-  outline: none;
-  box-sizing: border-box;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
-}
-
 /* ── Responsive ──────────────────────────── */
 @media (max-width: 768px) {
   .ol-filters {
     justify-content: flex-start;
   }
 
+  .so-search-wrap input.so-search {
+    max-width: 300px;
+  }
   .ol-card {
     border-radius: 28px;
   }
