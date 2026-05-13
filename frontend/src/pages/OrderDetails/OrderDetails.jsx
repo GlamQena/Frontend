@@ -223,6 +223,7 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  
   const submit = async () => {
   if (!rating) return;
 
@@ -230,41 +231,45 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
   setError(null);
 
   try {
-    const productId = product?.prod_id?._id 
-      || product?.prod_id 
-      || product?._id;
-
-    console.log("product object:", product);
-    console.log("Sending productId:", productId);
+    const productId = product?.prod_id?._id || product?.prod_id;
 
     if (!productId) {
-      throw new Error("Product ID is missing");
+      throw new Error("Product ID missing");
     }
 
+    console.log("SENDING PRODUCT ID =>", productId);
+    console.log("ORDER ID =>", orderId);
+
     await axios.post(
-      `${BASE_URL}/products/${productId}/rating`,
+      `${BASE_URL}/order/${orderId}/rating`,
       {
-        store_owner_id: storeOwnerId,
-        rate: rating,
-        comment,
+        productId,
+        rate: Number(rating),
+        comment: comment?.trim(),
       },
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
-      },
+      }
     );
 
     onSuccess();
     onClose();
+
   } catch (err) {
+    console.log("400 error response =>", err.response?.data);
+
     setError(
-      err.response?.data?.message || err.message || "فشل إرسال التقييم",
+      err.response?.data?.message ||
+      err.message ||
+      "فشل إرسال التقييم"
     );
   } finally {
     setLoading(false);
   }
 };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -355,6 +360,7 @@ export default function MyOrderDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [review, setReview] = useState(null); // { prod, storeOwnerId }
+  const [ratedProducts, setRatedProducts] = useState([]);
 
   useEffect(() => {
     if (!orderId) return;
@@ -362,25 +368,27 @@ export default function MyOrderDetails() {
   }, [orderId]);
 
   const fetchOrder = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${BASE_URL}/order/history`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
-      const found = (res.data.data || []).find((o) => o._id === orderId);
-      if (found) {
-        setOrder(found);
-      } else {
-        setError("لم يتم العثور على الطلب");
-      }
-    } catch (err) {
-      setError("تعذّر تحميل تفاصيل الطلب");
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const res = await axios.get(`${BASE_URL}/order/history`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+    const found = (res.data.data || []).find((o) => o._id === orderId);
+    if (found) {
+      // ✅ add this
+      console.log("ORDER PRODUCTS =>", JSON.stringify(found.products, null, 2));
+      setOrder(found);
+    } else {
+      setError("لم يتم العثور على الطلب");
     }
-  };
+  } catch (err) {
+    setError("تعذّر تحميل تفاصيل الطلب");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading)
     return (
@@ -600,8 +608,26 @@ export default function MyOrderDetails() {
               store.products.map((prod) => {
                 const imgSrc = buildImgSrc(prod.prod_id?.images?.[0]);
                 const isDelivered = normalizedStatus === "delivered";
-                const hasReviewed = prod.hasReviewed;
+            const realProdId =
+  prod.prod_id && typeof prod.prod_id === "object"
+    ? prod.prod_id._id
+    : prod.prod_id;
 
+// ✅ skip if no product id
+if (!realProdId) return null;
+
+const hasReviewed =
+  prod?.hasReviewed === true ||
+  ratedProducts.includes(realProdId.toString());
+
+console.log(
+  "REAL PRODUCT ID =>",
+  realProdId.toString(),
+  "ratedProducts =>",
+  ratedProducts,
+  "hasReviewed =>",
+  hasReviewed
+);
                 return (
                   <div key={prod._id} className="od-product-item">
                     <div className="od-product-left">
@@ -662,15 +688,31 @@ export default function MyOrderDetails() {
       </div>
 
       {/* ── MODAL ── */}
-      {review && (
-        <ReviewModal
-          product={review.prod}
-          orderId={order._id}
-          storeOwnerId={review.storeOwnerId} // ✅ passed to modal
-          onClose={() => setReview(null)}
-          onSuccess={fetchOrder}
-        />
-      )}
+     {review && (
+  <ReviewModal
+    product={review.prod}
+    orderId={order._id}
+    storeOwnerId={review.storeOwnerId}
+    onClose={() => setReview(null)}
+onSuccess={() => {
+  const realProdId =
+    review.prod?.prod_id && typeof review.prod.prod_id === "object"
+      ? review.prod.prod_id._id
+      : review.prod?.prod_id;
+
+  if (!realProdId) return;
+
+  setRatedProducts((prev) => {
+    if (prev.includes(realProdId.toString())) return prev;
+    return [...prev, realProdId.toString()];
+  });
+
+  setReview(null);
+}}
+
+
+  />
+)}
     </div>
   );
 }

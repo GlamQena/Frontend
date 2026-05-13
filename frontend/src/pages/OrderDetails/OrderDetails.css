@@ -148,7 +148,7 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--خلفية-الزر);
+  background: var( --تدرج-الأزرار);
   color: #490080;
   padding: 10px 20px;
   border-radius: 9999px;
@@ -161,8 +161,8 @@ button {
 
 .od-print-btn:hover {
   color: #7b06d4;
-  background: #ddb7ff;
   box-shadow: var(--ظل-الزر);
+  transform: scale(1.1);
 }
 
 /* ── Grid ────────────────────────────────────────────── */
@@ -810,4 +810,9 @@ opacity: .3;
 
 .back-orders:hover svg {
   transform: translateX(4px); /* حركة خفيفة */
+}
+.od-review-btn--done svg,
+.od-review-btn--done .star-icon,
+.od-review-btn--done .review-stars {
+  display: none;
 }
