@@ -15,7 +15,7 @@ function Navbar() {
 
   // ============= تحديد الـ links حسب الـ role =============
   const getNavLinks = () => {
-    if (!loggedIn) return []; // Guest: مفيش حاجة في النص
+    if (!loggedIn) return []; 
 
     // Customer Links
     if (isCustomer()) {
@@ -38,8 +38,8 @@ function Navbar() {
     return [];
   };
 
-  // ============= هل تظهر السلة؟ =============
-  // السلة تظهر للـ Guest والـ Customer بس
+
+ 
   const showCart = !loggedIn || isCustomer();
 
   const navLinks = getNavLinks();
@@ -48,7 +48,7 @@ function Navbar() {
     <div className="navbar-container" dir="rtl">
       <nav className="nav-bar">
 
-        {/* ===== Logo (يمين) ===== */}
+        {/* ===== Logo ===== */}
         <a href="/" className="nav-logo">
           <span className="logo-glam">Glam</span>
           <span className="logo-qena">Qena</span>
@@ -56,7 +56,7 @@ function Navbar() {
           <span className="logo-ar">قنا</span>
         </a>
 
-        {/* ===== Navigation Links (وسط) ===== */}
+        {/* ===== Navigation Links  ===== */}
         <div className="nav-links">
           {navLinks.map((link) => (
             <NavLink
@@ -71,10 +71,10 @@ function Navbar() {
           ))}
         </div>
 
-        {/* ===== Actions (شمال) ===== */}
+        {/* ===== Actions ===== */}
         <div className="nav-actions">
 
-          {/* زر دخول - للغير مسجلين فقط */}
+          {/* زر دخول -   for guest */}
           {!loggedIn && location.pathname !== "/login" && (
             <NavLink to="/login" className="nav-btn-login">
               <LogIn size={18} />
@@ -82,35 +82,35 @@ function Navbar() {
             </NavLink>
           )}
 
-          {/* زر إنشاء حساب - للغير مسجلين فقط */}
+          {/* زر إنشاء حساب - for guest */}
           {!loggedIn && location.pathname !== "/register" && (
             <NavLink to="/register" className="nav-btn-signup">
               إنشاء حساب
             </NavLink>
           )}
 
-          {/* السلة - للجست والكلاينت بس */}
+        
           {showCart && (
             <NavLink to="/cart" title="السلة" className="nav-icon">
               <ShoppingCart size={20} />
             </NavLink>
           )}
 
-          {/* البروفايل - للمسجلين فقط */}
+         
           {loggedIn && (
             <NavLink to="/profile" title="الملف الشخصي" className="nav-icon">
               <User size={20} />
             </NavLink>
           )}
 
-          {/* تسجيل خروج - للمسجلين فقط */}
+          
           {loggedIn && (
             <button className="nav-icon" title="تسجيل الخروج" onClick={async () => await logout()}>
               <LogOut size={20} />
             </button>
           )}
 
-          {/* تبديل المظهر - للكل */}
+          {/* تبديل المظهر  */}
           <button
             className="mode-toggler"
             title="تبديل المظهر"
