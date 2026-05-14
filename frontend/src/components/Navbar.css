@@ -293,12 +293,56 @@
 }
 
 /* ───────────────────────────── */
+/* Navigation Links  */
+/* ───────────────────────────── */
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  padding: 8px 18px;
+  border-radius: 40px;
+  text-decoration: none;
+  font-family: "Tajawal", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--نص-ثانوي);
+  transition: all 0.22s ease;
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+  transform: translateY(-1px);
+}
+
+.nav-link.active {
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+  font-weight: 700;
+}
+
+/* ───────────────────────────── */
 /* Responsive */
 /* ───────────────────────────── */
 
 @media (max-width: 992px) {
   .nav-bar {
     padding: 0 24px;
+  }
+  
+  .nav-link {
+    padding: 6px 14px;
+    font-size: 14px;
   }
 }
 
@@ -341,6 +385,33 @@
     width: 36px;
     height: 36px;
   }
+  
+  .nav-links {
+    gap: 6px;
+  }
+  
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 650px) {
+  /* في الموبايل الصغير، نخفي النص ونظهر نقطة */
+  .nav-link {
+    font-size: 0;
+    padding: 8px 10px;
+  }
+  
+  .nav-link:before {
+    content: "●";
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .nav-link.active:before {
+    color: var(--بنفسجي);
+  }
 }
 
 @media (max-width: 480px) {
@@ -350,5 +421,17 @@
 
   .nav-bar {
     padding: 0 14px;
+  }
+  
+  .nav-links {
+    gap: 4px;
+  }
+  
+  .nav-link {
+    padding: 6px 8px;
+  }
+  
+  .nav-link:before {
+    font-size: 12px;
   }
 }
