@@ -117,3 +117,144 @@
   --خلفية-الاوردرات: #ffffff;
   --خلفية-حالات-الاوردرات: #ffffff;
 }
+
+.Page-Header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.Page-Header h1 {
+  font-family: Tajawal;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--نص-رئيسي);
+  margin: 0;
+}
+
+/* =========================
+   SEARCH BAR  ← fixed dark mode
+========================= */
+
+
+/* =========================
+   FILTER OVERRIDE
+========================= */
+
+.so-filters {
+  max-width: 900px;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+.so-loading {
+  text-align: center;
+  padding: 60px;
+  color: var(--نص-خافت);
+  font-family: Tajawal;
+}
+
+/* =========================
+   CLIENT INFO (STORE VIEW)
+========================= */
+
+.so-client-info {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--حد-خافت);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.so-client-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.so-client-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--نص-ثانوي);
+}
+
+.so-client-val {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--نص-رئيسي);
+}
+
+.so-client-icon { font-size: 14px; }
+.so-mono { font-family: monospace; }
+
+/* =========================
+   TOTAL COLOR
+========================= */
+
+.so-total-accent { color: var(--بنفسجي); }
+
+/* =========================
+   ACTION BUTTONS (STORE)
+========================= */
+
+.State-btn.so-prepare-btn {
+  padding: 0 16px;
+  border: none;
+  color: var(--ذهبي);
+  background-color: var(--ذهبي-خافت);
+  font-weight: 700;
+}
+
+.State-btn.so-prepare-btn:hover {
+  background-color: var(--ذهبي);
+  color: #fff;
+}
+
+.State-btn.so-ready-btn {
+  padding: 0 16px;
+  border: none;
+  color: #0284c7;
+  background-color: rgba(2, 132, 199, 0.1);
+  font-weight: 700;
+}
+
+.State-btn.so-ready-btn:hover {
+  background-color: #0284c7;
+  color: #fff;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px;
+  color: var(--نص-خافت);
+}
+
+.empty-icon { font-size: 42px; }
+
+.empty-state p {
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  .Page-Header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+ 
+}
