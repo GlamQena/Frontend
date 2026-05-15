@@ -49,17 +49,15 @@ const Stores = () => {
     navigate(`/stores/${storeId}/products`);
   };
 
+  const formattedImage = (imgPath) => {
+    if(!imgPath) return null;
+    return imgPath.replace(/\\/g, "//").replace("uploads", "http://127.0.0.1:8080");
+  }
+
   const firstFourStores= stores?.slice(0, 4);
   const hiddenStores= stores?.slice(4);
   return (
     <div className="page-container">
-      <div className="nav">
-        <div className="center-nav">
-          <a href="#" className="active">المتاجر</a>
-          <a href="#" onClick={() => {navigate("/orders")}}>طلباتي</a>
-        </div>
-      </div>
-
       <div className="header-main">
         <h1>جميع المتاجر المتوفرة</h1>
         <p> أكتشف أفضل محلات التجميل في مدينتك </p>
@@ -68,7 +66,7 @@ const Stores = () => {
       <div className="grid">
         {firstFourStores?.map((store, index) => (
           <div key={index} className="card" onClick={() => handleCardClick(store._id)}>
-            <img src={store.img} alt={store.name} />
+            <img src={formattedImage(store.img)} alt={store.name} />
             <div className="card-body">
               <div className="card-title">{store.name}</div>
               <div className="card-row">

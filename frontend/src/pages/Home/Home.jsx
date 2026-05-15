@@ -174,7 +174,7 @@ function Home() {
                         </div>
                     </div>
 
-                    <button className="btn-start" onClick={() => window.location.href = '/'}>ابدأ رحلة الجمال الآن</button>
+                    <button className="btn-start" onClick={() => window.location.href = '/stores'}>ابدأ رحلة الجمال الآن</button>
                 </div>
             </section>
 
