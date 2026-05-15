@@ -1,7 +1,7 @@
-import axios from "axios";
 import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import "./OrdersList.css";
+import api, { getUserRole } from "../services/roles";
 
 const BASE_URL = "http://localhost:8080";
 
@@ -21,39 +21,43 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
 
   useEffect(() => {
     function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
     }
+
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+    };
   }, []);
 
   const current =
     STORE_STATUS_OPTIONS.find((o) => o.value === currentKey) ||
     STORE_STATUS_OPTIONS[0];
+
   const lockedStatuses = ["shipping", "delivered", "cancelled"];
   const isLocked = lockedStatuses.includes(currentKey);
+
   async function changeStatus(newStatus) {
     setOpen(false);
-    if (newStatus === currentKey) return;
-    setUpdating(true);
-    try {
-      await axios.patch(
-        `${BASE_URL}/order/${orderId}/status`,
-        {},
-        {
-          params: {
-            status: {
-              pending: "قيد الانتظار",
-              preparing: "جاري التجهيز",
-              ready: "جاهز للتوصيل",
-            }[newStatus],
-          },
 
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
+    if (newStatus === currentKey) return;
+
+    setUpdating(true);
+
+    try {
+      await api.patch(`/order/${orderId}/status`, {}, {
+        params: {
+          status: {
+            pending: "قيد الانتظار",
+            preparing: "جاري التجهيز",
+            ready: "جاهز للتوصيل",
+          }[newStatus],
         },
-      );
+      });
+
       onStatusChange?.(orderId, newStatus);
     } catch (err) {
       alert(err.response?.data?.message || "فشل تغيير الحالة");
@@ -79,6 +83,7 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
           onClick={() => !updating && setOpen((o) => !o)}
         >
           <span className="sd-dot" style={{ background: current.color }} />
+
           {updating ? "جاري..." : current.label}
 
           <svg
@@ -107,7 +112,7 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
             (opt) =>
               opt.value !== "shipping" &&
               opt.value !== "delivered" &&
-              opt.value !== "cancelled",
+              opt.value !== "cancelled"
           ).map((opt) => (
             <button
               key={opt.value}
@@ -116,7 +121,10 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
               }`}
               onClick={() => changeStatus(opt.value)}
             >
-              <span className="sd-dot" style={{ background: opt.color }} />
+              <span
+                className="sd-dot"
+                style={{ background: opt.color }}
+              />
 
               <span style={{ color: opt.color }}>{opt.label}</span>
             </button>
@@ -126,6 +134,7 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
     </div>
   );
 }
+
 const normalizeStatus = (raw) => {
   if (!raw) return "pending";
 
@@ -152,7 +161,6 @@ const normalizeStatus = (raw) => {
     case "ملغي":
       return "cancelled";
 
-    // english fallback
     case "pending":
     case "preparing":
     case "shipping":
@@ -166,29 +174,42 @@ const normalizeStatus = (raw) => {
       return "pending";
   }
 };
+
 const STATUS_CONFIG = {
   pending: {
     client: "قيد الانتظار",
     store: "قيد الانتظار",
     cls: "ol-status--pending",
   },
+
   preparing: {
     client: "قيد التجهيز",
     store: "قيد التجهيز",
     cls: "ol-status--preparing",
   },
-  ready: { store: "جاهز للتوصيل", cls: "ol-status--ready" },
+
+  ready: {
+    store: "جاهز للتوصيل",
+    cls: "ol-status--ready",
+  },
+
   shipping: {
     client: "قيد التوصيل",
     store: "قيد التوصيل",
     cls: "ol-status--shipping",
   },
+
   delivered: {
     client: "تم التسليم",
     store: "تم التسليم",
     cls: "ol-status--delivered",
   },
-  cancelled: { client: "ملغي", store: "ملغي", cls: "ol-status--cancelled" },
+
+  cancelled: {
+    client: "ملغي",
+    store: "ملغي",
+    cls: "ol-status--cancelled",
+  },
 };
 
 const CLIENT_FILTERS = [
@@ -212,8 +233,11 @@ const STORE_FILTERS = [
 
 function formatDate(str) {
   if (!str) return "—";
+
   const d = new Date(str);
+
   if (isNaN(d)) return "—";
+
   return d.toLocaleDateString("ar-EG", {
     day: "numeric",
     month: "long",
@@ -222,15 +246,13 @@ function formatDate(str) {
 }
 
 function countProducts(order) {
-  // CLIENT RESPONSE
   if (order.products) {
     return order.products.reduce(
       (acc, s) => acc + (s.products?.length || 0),
-      0,
+      0
     );
   }
 
-  // STORE OWNER RESPONSE
   if (order.store_products) {
     return order.store_products.length;
   }
@@ -240,7 +262,6 @@ function countProducts(order) {
 
 export default function OrdersList({
   orders: ordersProp = [],
-  type = "client",
   onCancelSuccess,
   headerTitle = "الطلبات",
 }) {
@@ -248,60 +269,65 @@ export default function OrdersList({
   const [cancellingId, setCancellingId] = useState(null);
   const [orders, setOrders] = useState(ordersProp);
   const [search, setSearch] = useState("");
+const role = getUserRole();
 
-  // Sync if parent passes new orders
+const storeMode = role === "store_owner";
+const clientMode = role === "client";
+
   useEffect(() => {
     setOrders(ordersProp);
   }, [ordersProp]);
 
-  const FILTERS = type === "store" ? STORE_FILTERS : CLIENT_FILTERS;
-const filtered = orders
-  .filter((o) => {
-    const statusMatch =
-      filter === "all" ||
-      normalizeStatus(o.status || o.order_status) === filter;
-    const searchValue = search.toLowerCase();
+  const FILTERS = storeMode ? STORE_FILTERS : CLIENT_FILTERS;
 
-    const searchMatch =
-      search === "" ||
-      String(o.order_id || o._id || "")
-        .toLowerCase()
-        .includes(searchValue) ||
-      (type === "store" &&
-        o.customer?.name?.toLowerCase().includes(searchValue)) ||
-      (type === "store" &&
-        o.store_products?.some((item) =>
-          item.product_name?.toLowerCase().includes(searchValue),
-        )) ||
-      (type === "client" &&
-        o.products?.some((store) =>
-          store.products?.some((item) =>
-            item.name?.toLowerCase().includes(searchValue),
-          ),
-        ));
+  const filtered = orders
+    .filter((o) => {
+      const statusMatch =
+        filter === "all" ||
+        normalizeStatus(o.status || o.order_status) === filter;
 
-    return statusMatch && searchMatch;
-  })
+      const searchValue = search.toLowerCase();
 
-  
-  .sort((a, b) => {
-    const dateA = new Date(a.createdAt || a.order_date || a.order_created_at || 0);
-    const dateB = new Date(b.createdAt || b.order_date || b.order_created_at || 0);
-    return dateB - dateA;
-  });
+      const searchMatch =
+        search === "" ||
+        String(o.order_id || o._id || "")
+          .toLowerCase()
+          .includes(searchValue) ||
+        (storeMode &&
+          o.customer?.name?.toLowerCase().includes(searchValue)) ||
+        (storeMode &&
+          o.store_products?.some((item) =>
+            item.product_name?.toLowerCase().includes(searchValue)
+          )) ||
+        (clientMode &&
+          o.products?.some((store) =>
+            store.products?.some((item) =>
+              item.name?.toLowerCase().includes(searchValue)
+            )
+          ));
+
+      return statusMatch && searchMatch;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(
+        a.createdAt || a.order_date || a.order_created_at || 0
+      );
+
+      const dateB = new Date(
+        b.createdAt || b.order_date || b.order_created_at || 0
+      );
+
+      return dateB - dateA;
+    });
+
   async function cancelOrder(orderId) {
     if (!window.confirm("هل أنتِ متأكدة من إلغاء الطلب؟")) return;
+
     setCancellingId(orderId);
+
     try {
-      await axios.patch(
-        `${BASE_URL}/order/${orderId}/cancel`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        },
-      );
+      await api.patch(`/order/${orderId}/cancel`);
+
       onCancelSuccess?.(orderId);
     } catch (err) {
       alert(err.response?.data?.message || "فشل إلغاء الطلب");
@@ -309,28 +335,24 @@ const filtered = orders
       setCancellingId(null);
     }
   }
- async function reorder(order) {
-  if (!window.confirm("هل أنتِ متأكدة من إعادة الطلب؟")) return;
-  try {
-    await axios.post(
-      `${BASE_URL}/order/${order._id}/reorder`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      },
-    );
-    onCancelSuccess?.(); // ✅ re-fetch orders like cancel does
-  } catch (error) {
-    const message = error.response?.data?.message;
-    if (error.response?.status === 404 && message) {
-      alert(`❌ ${message}`);
-    } else {
-      alert("فشل إعادة الطلب");
+
+  async function reorder(order) {
+    if (!window.confirm("هل أنتِ متأكدة من إعادة الطلب؟")) return;
+
+    try {
+      await api.post(`/order/${order._id}/reorder`);
+
+      onCancelSuccess?.();
+    } catch (error) {
+      const message = error.response?.data?.message;
+
+      if (error.response?.status === 404 && message) {
+        alert(`❌ ${message}`);
+      } else {
+        alert("فشل إعادة الطلب");
+      }
     }
   }
-}
  
   if (!orders.length) {
     return (
@@ -392,7 +414,7 @@ const filtered = orders
                 {/* Card Header */}
                 <div className="ol-card-header">
                   {/* Status — store gets dropdown, client gets static badge */}
-                  {type === "store" ? (
+                  {storeMode? (
                     <StatusDropdown
                       currentKey={key}
                       orderId={id}
@@ -413,12 +435,12 @@ const filtered = orders
                   ) : (
                     <span className={`ol-status ${cfg.cls}`}>
                       <span className="ol-dot" />
-                      {cfg[type] || rawStatus}
+                      {cfg[storeMode ? "store" : "client"] || rawStatus}
                     </span>
                   )}
                   <div className="ol-order-meta">
                     <span className="ol-order-id">
-                      #{type === "store" ? "GE" : "GQ"}-
+                      #{storeMode? "GE" : "GQ"}-
                       {id?.slice(-4).toUpperCase()}
                     </span>
                     <span className="ol-order-date">
@@ -434,7 +456,7 @@ const filtered = orders
                 {/* Card Body */}
                 <div className="ol-card-body">
                   {/* CLIENT: products */}
-                  {type === "client" && (
+                  {clientMode && (
                     <div className="ol-items">
                       {order.products?.map((store, i) =>
                         store.products?.slice(0, 3).map((item, j) => {
@@ -481,7 +503,7 @@ const filtered = orders
                   )}
 
                   {/* STORE: customer info */}
-                  {type === "store" && (
+                  {storeMode&& (
                     <div className="ol-customer">
                       {order.customer?.name?.trim() && (
                         <div className="ol-customer-row">
@@ -534,7 +556,7 @@ const filtered = orders
                 {/* Card Footer */}
                 <div className="ol-card-footer">
                   <div className="ol-foot-btns">
-                    {type === "client" && (
+                    {clientMode && (
                       <>
                         {isCancelled && (
                           <button
@@ -563,7 +585,7 @@ const filtered = orders
                         )}
                       </>
                     )}
-                    {type === "store" && (
+                    {storeMode&& (
                       <Link
                         to={`/dashboard/orders/${id}`}
                         className="ol-btn ol-btn--details"
