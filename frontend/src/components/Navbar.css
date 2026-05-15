@@ -1,61 +1,412 @@
-.navbar-container {
-  width:100%;
-  background-color: var(--ناف-بار-خلفية);
-  border: 1px solid var(--ناف-بار-حد);
-  height: var(--ناف-بار-ارتفاع);
-  color: var(--نص-رئيسى);
-  font-family: "Cairo", sans-serif;
-  position: absolute;
-  top:0;
-  left:0;
-  overflow: hidden;
-} 
+/* ─────────────────────────────────────────
+   Navbar Container
+───────────────────────────────────────── */
 
-/* Navbar */
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-  padding: 20px 60px;
-  align-items: center;
+.navbar-container {
   width: 100%;
+  height: var(--ناف-بار-ارتفاع, 68px);
+
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  background: var(--ناف-بار-خلفية);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border-bottom: 1px solid var(--ناف-بار-حد);
+
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease;
+
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04);
 }
+
+/* ─────────────────────────────────────────
+   Nav Bar
+───────────────────────────────────────── */
+
+.nav-bar {
+  width: 100%;
+  max-width: 1450px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ─────────────────────────────────────────
+   Logo
+───────────────────────────────────────── */
 
 .nav-logo {
-  font-weight: bold;
-  font-size: 24px;
-  color: #a74fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
 }
 
-.nav-logo span {
-  font-weight: bold;
+.nav-logo:hover {
+  transform: translateY(-1px);
+}
+
+.logo-glam {
+  font-family: "Playfair Display", serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--بنفسجي);
+}
+
+.logo-qena {
+  font-family: "Playfair Display", serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--نص-ثانوي);
 }
 
 .logo-dot {
   width: 8px;
   height: 8px;
-  background: #ff7eb3;
   border-radius: 50%;
-  display: inline-block;
-  margin: 0 5px;
+  background: var(--ذهبي);
+  box-shadow:
+    0 0 8px rgba(212, 175, 55, 0.55),
+    0 0 18px rgba(212, 175, 55, 0.18);
+  flex-shrink: 0;
 }
 
-.nav-right{
+.logo-ar {
+  font-family: "Tajawal", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  margin-inline-start: 2px;
+  color: var(--نص-خافت);
+}
+
+/* ─────────────────────────────────────────
+   Nav Links (وسط)
+───────────────────────────────────────── */
+
+.nav-links {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  width: 60%;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+
+  /* منع اللينكات من تزاحم اللوجو والأكشنز */
+  min-width: 0;
+  overflow: hidden;
 }
 
-a, .mode-toggler{
-  color: var(--نص-رئيسي);
-}
-
-a{
+.nav-link {
+  padding: 8px 16px;
+  border-radius: 40px;
   text-decoration: none;
+  font-family: "Tajawal", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--نص-ثانوي);
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    transform 0.22s ease;
 }
 
-.nav-left {
+.nav-link:hover {
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+  transform: translateY(-1px);
+}
+
+.nav-link.active {
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+  font-weight: 700;
+}
+
+/* ─────────────────────────────────────────
+   Actions
+───────────────────────────────────────── */
+
+.nav-actions {
   display: flex;
-  gap: 20px;
   align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────
+   Icon Buttons
+───────────────────────────────────────── */
+
+.nav-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--نص-ثانوي);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.nav-icon:hover {
+  background: var(--بنفسجي-خافت);
+  border-color: var(--حد-واضح);
+  color: var(--بنفسجي);
+  transform: translateY(-2px);
+  box-shadow: var(--ظل-الأيقونة);
+}
+
+.nav-icon:active {
+  transform: scale(0.96);
+}
+
+.nav-icon.active {
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+  border-color: var(--حد-واضح);
+}
+
+/* ─────────────────────────────────────────
+   Login Button
+───────────────────────────────────────── */
+
+.nav-btn-login {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px;
+  border-radius: var(--راديوس-الزر);
+  border: 1px solid var(--حد-واضح);
+  background: transparent;
+  color: var(--نص-رئيسي);
+  text-decoration: none;
+  font-family: "Tajawal", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease;
+}
+
+.nav-btn-login:hover {
+  background: var(--بنفسجي-خافت);
+  border-color: var(--بنفسجي);
+  color: var(--بنفسجي);
+  transform: translateY(-1px);
+}
+
+/* ─────────────────────────────────────────
+   Signup Button
+───────────────────────────────────────── */
+
+.nav-btn-signup {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border: none;
+  border-radius: var(--راديوس-الزر);
+  background: var(--تدرج-الأزرار);
+  color: white;
+  text-decoration: none;
+  font-family: "Tajawal", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: var(--ظل-الزر);
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.nav-btn-signup:hover {
+  opacity: 0.92;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.28);
+}
+
+.nav-btn-signup:active {
+  transform: scale(0.97);
+}
+
+/* ─────────────────────────────────────────
+   Theme Toggle
+───────────────────────────────────────── */
+
+.mode-toggler {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--حد-خافت);
+  border-radius: 50%;
+  background: var(--خلفية-2);
+  color: var(--بنفسجي);
+  cursor: pointer;
+  transition:
+    background 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.3s ease,
+    box-shadow 0.22s ease;
+}
+
+.mode-toggler:hover {
+  background: var(--بنفسجي-خافت);
+  border-color: var(--حد-واضح);
+  transform: rotate(18deg) scale(1.04);
+  box-shadow: var(--ظل-الأيقونة);
+}
+
+/* ─────────────────────────────────────────
+   Responsive — Tablet (≤ 992px)
+───────────────────────────────────────── */
+
+@media (max-width: 992px) {
+  .nav-bar {
+    padding: 0 24px;
+  }
+
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Responsive — Mobile (≤ 768px)
+───────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .navbar-container {
+    height: 60px;
+  }
+
+  .nav-bar {
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .logo-glam,
+  .logo-qena {
+    font-size: 18px;
+  }
+
+  /* إخفاء نص "إنشاء حساب" وتحويله لأيقونة صغيرة */
+  .nav-btn-signup {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-size: 0; /* إخفاء النص */
+    border-radius: 50%;
+  }
+
+  /* إخفاء نص "دخول" وإظهار الأيقونة فقط */
+  .nav-btn-login {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    gap: 0;
+  }
+
+  .nav-btn-login span {
+    display: none;
+  }
+
+  .nav-actions {
+    gap: 4px;
+  }
+
+  .nav-icon,
+  .mode-toggler {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-link {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Responsive — Small Mobile (≤ 600px)
+   اللينكات بتتحول لنقط عشان توفر مساحة
+───────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .nav-links {
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding: 6px 8px;
+    font-size: 0; /* إخفاء النص */
+  }
+
+  /* نقطة بدل النص */
+  .nav-link::before {
+    content: "●";
+    font-size: 10px;
+    color: var(--نص-خافت);
+    display: block;
+  }
+
+  .nav-link.active::before {
+    color: var(--بنفسجي);
+  }
+
+  .nav-link:hover::before {
+    color: var(--بنفسجي);
+  }
+}
+
+/* ─────────────────────────────────────────
+   Responsive — Very Small (≤ 480px)
+───────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .logo-ar {
+    display: none;
+  }
+
+  .logo-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .nav-bar {
+    padding: 0 12px;
+    gap: 4px;
+  }
 }
