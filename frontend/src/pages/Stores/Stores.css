@@ -8,65 +8,6 @@
   min-height: 100vh;
 }
 
-/* Navigation */
-.nav {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0 40px;
-  width: 100%;
-  height: var(--ناف-بار-ارتفاع);
-  background: var(--ناف-بار-خلفية);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--حد-خافت);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  margin-bottom: 0;
-}
-
-.center-nav {
-  display: flex;
-  gap: 40px;
-  align-items: center;
-}
-
-.center-nav a {
-  color: var(--نص-ثانوي);
-  text-decoration: none;
-  font-family: 'Tajawal', sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  padding-bottom: 4px;
-  position: relative;
-}
-
-.center-nav a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 50%;
-  transform: translateX(50%);
-  width: 0;
-  height: 2px;
-  background: var(--بنفسجي);
-  transition: width 0.3s ease;
-}
-
-.center-nav a:hover::after,
-.center-nav a.active::after {
-  width: 100%;
-}
-
-.center-nav a.active {
-  color: var(--بنفسجي);
-}
-
-.center-nav a:hover {
-  color: var(--بنفسجي);
-}
-
 /* Header Section */
 .header-main {
   margin: 60px 0 40px 0;

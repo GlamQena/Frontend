@@ -2,7 +2,8 @@ import { Moon, Sun, LogIn, LogOut, User, ShoppingCart } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { useLocation, NavLink } from "react-router-dom";
 import "./Navbar.css";
-import { isUserLogged, logout, getUserRole, isCustomer, isStoreOwner } from "../services/authService";
+import { isUserLogged, logout } from "../services/authService";
+import { getUserRole, isClient, isStoreOwner } from "../services/users";
 
 function Navbar() {
   const { theme, setTheme } = useTheme();
@@ -18,7 +19,7 @@ function Navbar() {
     if (!loggedIn) return []; 
 
     // Customer Links
-    if (isCustomer()) {
+    if (isClient()) {
       return [
         { name: "المتاجر", path: "/stores" },
         { name: "طلباتي", path: "/orders" }
@@ -28,10 +29,10 @@ function Navbar() {
     // Store Owner Links
     if (isStoreOwner()) {
       return [
-        { name: "الرئيسية", path: "/store/dashboard" },
-        { name: "الطلبات", path: "/store/orders" },
-        { name: "المنتجات", path: "/store/products" },
-        { name: "العملاء المتفاعلين", path: "/store/active-clients" }
+        { name: "الرئيسية", path: "/dashboard/store_owner/" },
+        { name: "الطلبات", path: "/dashboard/store_owner/orders" },
+        { name: "المنتجات", path: "/dashboard/store_owner/products" },
+        { name: "العملاء المتفاعلين", path: "/dashboard/store_owner/active_clients" }
       ];
     }
 
@@ -40,7 +41,7 @@ function Navbar() {
 
 
  
-  const showCart = !loggedIn || isCustomer();
+  const showCart = !loggedIn || isClient();
 
   const navLinks = getNavLinks();
 

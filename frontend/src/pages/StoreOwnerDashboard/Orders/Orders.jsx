@@ -1,4 +1,4 @@
-import "./StoreOwnerOrders.css";
+import "./Orders.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import OrdersList from "../../../components/OrdersList";
