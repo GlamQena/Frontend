@@ -1,10 +1,43 @@
 import { useState } from "react";
 import { Banknote, CreditCard, Wallet } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import * as yup from "yup";
 import { responseMessageSetter } from "../../services/authService";
+
 import "./ShippingInfo.css";
 
 const BASE_URL = "http://127.0.0.1:8080";
+
+const egyptianPhone = /^(010|011|012|015)\d{8}$/;
+
+const shippingSchema = yup.object().shape({
+  first_name: yup.string().trim().required("الاسم الأول مطلوب"),
+
+  last_name: yup.string().trim().required("اسم العائلة مطلوب"),
+
+  email: yup
+    .string()
+    .trim()
+    .required("البريد الإلكتروني مطلوب")
+    .email("البريد الإلكتروني غير صحيح"),
+
+  phone_number: yup
+    .string()
+    .trim()
+    .required("رقم الهاتف مطلوب")
+    .matches(egyptianPhone, "رقم مصري غير صحيح (010, 011, 012, 015 + 8 أرقام)"),
+
+  country: yup.string().trim().required("الدولة مطلوبة"),
+
+  city: yup.string().trim().required("المدينة مطلوبة"),
+
+  street: yup.string().trim().required("العنوان مطلوب"),
+
+  building: yup.string().trim(),
+  floor: yup.string().trim(),
+  apartment: yup.string().trim(),
+  notes: yup.string().trim(),
+});
 
 const TruckIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9b6ff0" strokeWidth="2">
@@ -43,8 +76,9 @@ export default function CheckoutPage() {
 
   const [activePayment, setActivePayment] = useState("card");
   const [focusedField, setFocusedField] = useState(null);
-  const [actionMsg, setActionMsg] = useState({success: false, message: ""});
+  const [actionMsg, setActionMsg] = useState({ success: false, message: "" });
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState(() => {
     const user = getUserData();
@@ -54,7 +88,7 @@ export default function CheckoutPage() {
     const lastName = nameParts.slice(1).join(" ") || "";
     const address = user?.address || {};
     const billing = user?.additionalBillingData || {};
-    
+
     return {
       first_name: firstName || "",
       last_name: lastName || "",
@@ -70,13 +104,41 @@ export default function CheckoutPage() {
     };
   });
 
+  const validate = async () => {
+    try {
+      await shippingSchema.validate(form, { abortEarly: false });
+      setErrors({});
+      return true;
+    } catch (err) {
+      const formErrors = {};
+      err.inner.forEach((e) => {
+        formErrors[e.path] = e.message;
+      });
+      setErrors(formErrors);
+      return false;
+    }
+  };
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
   };
 
   const inputStyle = (name) => ({
-    background: focusedField === name ? "#fff" : "#f7f5fe",
-    border: focusedField === name ? "1.5px solid #9b6ff0" : "1.5px solid transparent",
+    background: errors[name]
+    ? "#fff0f0"
+    : focusedField === name
+    ? "#fff"
+    : "#f7f5fe",
+    border:
+      errors[name]
+        ? "1.5px solid #e74c3c"
+        : focusedField === name
+        ? "1.5px solid #9b6ff0"
+        : "1.5px solid transparent",
     borderRadius: "50px",
     padding: "12px 14px",
     fontSize: "14px",
@@ -87,7 +149,12 @@ export default function CheckoutPage() {
     textAlign: "right",
     width: "100%",
     boxSizing: "border-box",
-    boxShadow: focusedField === name ? "0 0 0 3px rgba(155,108,239,0.12)" : "none",
+    boxShadow:
+      errors[name]
+        ? "0 0 0 3px rgba(231,76,60,0.12)"
+        : focusedField === name
+        ? "0 0 0 3px rgba(155,108,239,0.12)"
+        : "none",
     transition: "border-color 0.2s, background 0.2s, box-shadow 0.2s",
   });
 
@@ -100,7 +167,7 @@ export default function CheckoutPage() {
 
   const focusProps = (name) => ({
     onFocus: () => setFocusedField(name),
-    onBlur: () => setFocusedField(name),
+    onBlur: () => setFocusedField(null),
   });
 
   async function checkoutPayment(orderId) {
@@ -140,68 +207,190 @@ export default function CheckoutPage() {
     }
   }
 
+  const handleConfirm = async () => {
+    const isValid = await validate();
+    if (!isValid) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    // باقي منطق الـ checkout هنا
+    // مثال: checkoutPayment(orderId)
+  };
+
   return (
     <div className="page">
       <Link to="/Cart" className="back-link">← رجوع للسلة</Link>
+
+      {actionMsg.message && (
+        <div className={actionMsg.success ? "success-message" : "error-message"}>
+          {actionMsg.message}
+        </div>
+      )}
+
       <div className="layout">
         <div className="main-col">
           <div className="card">
             <div className="card-title">
               <TruckIcon />
-              معلومات الشحن والفوترة
+              معلومات الشحن والفاتورة
             </div>
             <div className="form-grid">
               <div className="form-group">
-                <label>الاسم الأول</label>
-                <input name="first_name" placeholder="محمد" value={form.first_name} onChange={handleChange} style={inputStyle("first_name")} {...focusProps("first_name")} />
+                <label>الاسم الأول <span className="required-star">*</span></label>
+                <input
+                  name="first_name"
+                  placeholder="محمد"
+                  value={form.first_name}
+                  onChange={handleChange}
+                  style={inputStyle("first_name")}
+                  {...focusProps("first_name")}
+                />
+                {errors.first_name && (
+                  <span className="field-error">{errors.first_name}</span>
+                )}
               </div>
+
               <div className="form-group">
                 <label>اسم العائلة</label>
-                <input name="last_name" placeholder="احمد" value={form.last_name} onChange={handleChange} style={inputStyle("last_name")} {...focusProps("last_name")} />
+                <input
+                  name="last_name"
+                  placeholder="احمد"
+                  value={form.last_name}
+                  onChange={handleChange}
+                  style={inputStyle("last_name")}
+                  {...focusProps("last_name")}
+                />
               </div>
+
               <div className="form-group">
-                <label>البريد الإلكتروني</label>
-                <input type="email" name="email" placeholder="ahmed@example.com" value={form.email} onChange={handleChange} style={inputStyle("email")} {...focusProps("email")} />
+                <label>البريد الإلكتروني <span className="required-star">*</span></label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="ahmed@example.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  style={inputStyle("email")}
+                  {...focusProps("email")}
+                />
+                {errors.email && (
+                  <span className="field-error">{errors.email}</span>
+                )}
               </div>
+
               <div className="form-group">
-                <label>رقم الهاتف</label>
-                <input type="tel" name="phone_number" placeholder="+20 123 456 7890" value={form.phone_number} onChange={handleChange} style={inputStyle("phone_number")} {...focusProps("phone_number")} />
+                <label>رقم الهاتف <span className="required-star">*</span></label>
+                <input
+                  type="tel"
+                  name="phone_number"
+                  placeholder="01234567890"
+                  value={form.phone_number}
+                  onChange={handleChange}
+                  style={inputStyle("phone_number")}
+                  {...focusProps("phone_number")}
+                />
+                {errors.phone_number && (
+                  <span className="field-error">{errors.phone_number}</span>
+                )}
               </div>
+
               <div className="form-group">
-                <label>الدولة</label>
-                <input name="country" placeholder="مصر" value={form.country} onChange={handleChange} style={inputStyle("country")} {...focusProps("country")} />
+                <label>الدولة <span className="required-star">*</span></label>
+                <input
+                  name="country"
+                  placeholder="مصر"
+                  value={form.country}
+                  onChange={handleChange}
+                  style={inputStyle("country")}
+                  {...focusProps("country")}
+                />
+                {errors.country && (
+                  <span className="field-error">{errors.country}</span>
+                )}
               </div>
+
               <div className="form-group">
-                <label>المدينة</label>
-                <input name="city" placeholder="قنا" value={form.city} onChange={handleChange} style={inputStyle("city")} {...focusProps("city")} />
+                <label>المدينة <span className="required-star">*</span></label>
+                <input
+                  name="city"
+                  placeholder="قنا"
+                  value={form.city}
+                  onChange={handleChange}
+                  style={inputStyle("city")}
+                  {...focusProps("city")}
+                />
+                {errors.city && (
+                  <span className="field-error">{errors.city}</span>
+                )}
               </div>
+
               <div className="form-group full">
-                <label>العنوان بالتفصيل</label>
-                <input name="street" placeholder="الشارع" value={form.street} onChange={handleChange} style={inputStyle("street")} {...focusProps("street")} />
+                <label>العنوان بالتفصيل <span className="required-star">*</span></label>
+                <input
+                  name="street"
+                  placeholder="الشارع"
+                  value={form.street}
+                  onChange={handleChange}
+                  style={inputStyle("street")}
+                  {...focusProps("street")}
+                />
+                {errors.street && (
+                  <span className="field-error">{errors.street}</span>
+                )}
               </div>
+
               <div className="form-group">
                 <label>المبنى</label>
-                <input name="building" placeholder="24" value={form.building} onChange={handleChange} style={inputStyle("building")} {...focusProps("building")} />
+                <input
+                  name="building"
+                  placeholder="24"
+                  value={form.building}
+                  onChange={handleChange}
+                  style={inputStyle("building")}
+                  {...focusProps("building")}
+                />
               </div>
+
               <div className="form-group">
                 <label>الطابق</label>
-                <input name="floor" placeholder="2" value={form.floor} onChange={handleChange} style={inputStyle("floor")} {...focusProps("floor")} />
+                <input
+                  name="floor"
+                  placeholder="2"
+                  value={form.floor}
+                  onChange={handleChange}
+                  style={inputStyle("floor")}
+                  {...focusProps("floor")}
+                />
               </div>
+
               <div className="form-group">
                 <label>الشقة</label>
-                <input name="apartment" placeholder="4" value={form.apartment} onChange={handleChange} style={inputStyle("apartment")} {...focusProps("apartment")} />
+                <input
+                  name="apartment"
+                  placeholder="4"
+                  value={form.apartment}
+                  onChange={handleChange}
+                  style={inputStyle("apartment")}
+                  {...focusProps("apartment")}
+                />
               </div>
+
               <div className="form-group full">
                 <label>ملاحظات إضافية (اختياري)</label>
-                <textarea name="notes" placeholder="أدخل أي تعليمات خاصة بالتسليم هنا..." value={form.notes} onChange={handleChange} style={textareaStyle("notes")} {...focusProps("notes")} />
+                <textarea
+                  name="notes"
+                  placeholder="أدخل أي تعليمات خاصة بالتسليم هنا..."
+                  value={form.notes}
+                  onChange={handleChange}
+                  style={textareaStyle("notes")}
+                  {...focusProps("notes")}
+                />
               </div>
             </div>
           </div>
 
           <div className="card">
-            <div className="card-title">
-              طريقة الدفع
-            </div>
+            <div className="card-title">طريقة الدفع</div>
             <div className="pay-options">
               {paymentMethods.map((method) => (
                 <div
@@ -236,8 +425,12 @@ export default function CheckoutPage() {
             <span>الإجمالي</span>
             <span style={{ color: "#9b6ff0" }}>{total.toLocaleString("ar-EG")} ج</span>
           </div>
-          <button className="confirm-btn">
-            تأكيد الطلب ←
+          <button
+            className="confirm-btn"
+            onClick={handleConfirm}
+            disabled={checkoutLoading}
+          >
+            {checkoutLoading ? "جاري التأكيد..." : "تأكيد الطلب ←"}
           </button>
           <div className="security-note">
             <ShieldIcon />
