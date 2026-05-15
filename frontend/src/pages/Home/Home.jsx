@@ -67,7 +67,7 @@ function Home() {
                     </div>
                     <h1>
                         <span className="white">الجمال يبدأ</span>
-                        <span className="gradient">من قنا</span>
+                        <span className="gradient">من هنا</span>
                     </h1>
                     <p className="hero-desc">
                         اكتشفي أرقى منتجات التجميل المختارة بعناية من أفضل المتاجر المحلية في قلب صعيد مصر.
@@ -95,12 +95,12 @@ function Home() {
                         <div className="product-title">مجموعة أحمر شفاه</div>
                         <div className="product-price">١٢٠ ج.م</div>
                     </div>
-                    <div className="product-card card-3">
+                    {/* <div className="product-card card-3">
                         <div className="product-img-3"></div>
                         <div className="product-category">زيوت طبيعية</div>
                         <div className="product-title">زيت الأركان النقي</div>
                         <div className="badge-best">الأكثر مبيعاً</div>
-                    </div>
+                    </div> */}
                     <div className="product-card card-4">
                         <div className="product-img-4"></div>
                         <div className="product-category">سيروم</div>

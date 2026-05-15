@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./OrderDetails.css";
+import { getAccessToken } from "../../services/authService";
+import { getOrderDetails } from "../../services/order";
 
 const BASE_URL = "http://localhost:8080";
 
@@ -19,6 +21,29 @@ const CheckIcon = () => (
 );
 
 const XIcon = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14">
+    <line
+      x1="5"
+      y1="5"
+      x2="19"
+      y2="19"
+      stroke="red"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <line
+      x1="19"
+      y1="5"
+      x2="5"
+      y2="19"
+      stroke="red"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const XWhiteIcon = () => (
   <svg viewBox="0 0 24 24" width="14" height="14">
     <line
       x1="5"
@@ -108,11 +133,6 @@ const STATUS_MAP = {
   shipping: { label: "قيد التوصيل", cls: "badge--shipping" },
   delivered: { label: "تم التوصيل", cls: "badge--delivered" },
   cancelled: { label: "ملغي", cls: "badge--cancelled" },
-  "قيد الانتظار": { label: "قيد الانتظار", cls: "badge--pending" },
-  "جاري التجهيز": { label: "جاري التجهيز", cls: "badge--preparing" },
-  "قيد التوصيل": { label: "قيد التوصيل", cls: "badge--shipping" },
-  "تم التوصيل": { label: "تم التوصيل", cls: "badge--delivered" },
-  ملغي: { label: "ملغي", cls: "badge--cancelled" },
 };
 
 const PAYMENT_STATUS_MAP = {
@@ -121,11 +141,6 @@ const PAYMENT_STATUS_MAP = {
   failed: { label: "فشل", cls: "pay--fail" },
   refunded: { label: "تم الاسترداد", cls: "pay--refunded" },
   processing: { label: "قيد المعالجة", cls: "pay--processing" },
-  "قيد الانتظار": { label: "قيد الانتظار", cls: "pay--pending" },
-  مكتمل: { label: "مكتمل", cls: "pay--done" },
-  فشل: { label: "فشل", cls: "pay--fail" },
-  "تم الاسترداد": { label: "تم الاسترداد", cls: "pay--refunded" },
-  "قيد المعالجة": { label: "قيد المعالجة", cls: "pay--processing" },
 };
 
 const TRACKING_STEPS = [
@@ -177,13 +192,6 @@ function formatDate(dateStr) {
   });
 }
 
-function buildImgSrc(img) {
-  if (!img) return null;
-  if (img.startsWith("http")) return img;
-  if (img.startsWith("uploads")) return `${BASE_URL}/${img}`;
-  return `${BASE_URL}/uploads/${img}`;
-}
-
 // ─── Rating Star ──────────────────────────────────────────────────────────────
 const RatingStar = ({ filled, onClick }) => (
   <button className="modal-star-btn" onClick={onClick}>
@@ -203,37 +211,59 @@ const RatingStar = ({ filled, onClick }) => (
     </svg>
   </button>
 );
-
 // ─── Review Modal ─────────────────────────────────────────────────────────────
-function ReviewModal({ product, orderId, onClose, onSuccess }) {
+function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [error, setError] = useState(null);
+  
   const submit = async () => {
-    if (!rating) return;
-    setLoading(true);
-    try {
-      await axios.post(
-        `${BASE_URL}/order/${orderId}/review`,
-        {
-          product_id: product.prod_id?._id || product.prod_id,
-          rating,
-          comment,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        },
-      );
-      onSuccess();
-      onClose();
-    } catch {
-      setLoading(false);
+  if (!rating) return;
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const productId = product?.prod_id?._id || product?.prod_id;
+
+    if (!productId) {
+      throw new Error("Product ID missing");
     }
-  };
+
+    console.log("SENDING PRODUCT ID =>", productId);
+    console.log("ORDER ID =>", orderId);
+
+    await axios.post(
+      `${BASE_URL}/order/${orderId}/rating`,
+      {
+        productId,
+        rate: Number(rating),
+        comment: comment?.trim(),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }
+    );
+
+    onSuccess();
+    onClose();
+
+  } catch (err) {
+    console.log("400 error response =>", err.response?.data);
+
+    setError(
+      err.response?.data?.message ||
+      err.message ||
+      "فشل إرسال التقييم"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -254,6 +284,9 @@ function ReviewModal({ product, orderId, onClose, onSuccess }) {
           <h3 className="modal-title">تقييم المنتج</h3>
         </div>
 
+        {/* Product name */}
+        <p className="modal-product-name">{product.name}</p>
+
         {/* Stars */}
         <p className="modal-stars-label">كيف تقيمين هذا المنتج؟</p>
         <div className="modal-stars-row" onMouseLeave={() => setHovered(0)}>
@@ -267,6 +300,13 @@ function ReviewModal({ product, orderId, onClose, onSuccess }) {
           ))}
         </div>
 
+        {/* Rating label */}
+        {rating > 0 && (
+          <p className="modal-rating-label">
+            {["", "سيئ", "مقبول", "جيد", "جيد جداً", "ممتاز"][rating]}
+          </p>
+        )}
+
         {/* Comment */}
         <p className="modal-comment-label">رأيك الشخصي</p>
         <textarea
@@ -276,6 +316,9 @@ function ReviewModal({ product, orderId, onClose, onSuccess }) {
           onChange={(e) => setComment(e.target.value)}
           rows={4}
         />
+
+        {/* Error */}
+        {error && <p className="modal-error">{error}</p>}
 
         {/* Submit */}
         <button
@@ -305,13 +348,14 @@ function ReviewModal({ product, orderId, onClose, onSuccess }) {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function OrderDetails() {
+export default function MyOrderDetails() {
   const navigate = useNavigate();
   const { id: orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [review, setReview] = useState(null);
+  const [error, setError] = useState("");
+  const [review, setReview] = useState(null); // { prod, storeOwnerId }
+  const [ratedProducts, setRatedProducts] = useState([]);
 
   useEffect(() => {
     if (!orderId) return;
@@ -321,24 +365,20 @@ export default function OrderDetails() {
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${BASE_URL}/order/history`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
-      const found = (res.data.data || []).find((o) => o._id === orderId);
-      if (found) {
-        setOrder(found);
-      } else {
-        setError("لم يتم العثور على الطلب");
-      }
+      const resData = await getOrderDetails(orderId, setError);
+      console.log("fetched order details => ", resData.data);
+      setOrder(resData.data);
     } catch (err) {
-      // if (err.response?.status === 401) navigate("/login");
       setError("تعذّر تحميل تفاصيل الطلب");
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  const buildImgSrc = (imgPath) => {
+    if(!imgPath) return null;
+    return imgPath.replace(/\\/g, "//").replace("uploads", "http://127.0.0.1:8080");
+  }
 
   if (loading)
     return (
@@ -354,7 +394,7 @@ export default function OrderDetails() {
   const isCancelled = normalizedStatus === "cancelled";
   const badge = STATUS_MAP[normalizedStatus] || STATUS_MAP["pending"];
   const payBadge = PAYMENT_STATUS_MAP[order.payment?.status] || {};
-  const shipping = order.shipping_address || {};
+  const customerInfo = order.user_id;
   const totalProducts = order.products.reduce(
     (acc, s) => acc + s.products.length,
     0,
@@ -363,7 +403,7 @@ export default function OrderDetails() {
   return (
     <div className="od-root" dir="rtl">
       {/* ── BACK ── */}
-      <div className="back-orders" onClick={() => navigate("/my-orders")}>
+      <div className="back-orders" onClick={() => navigate("/orders")}>
         <ArrowIcon />
         <span className="text">رجوع للطلبات</span>
       </div>
@@ -448,7 +488,7 @@ export default function OrderDetails() {
               <div className="od-step od-step--cancelled od-step--last">
                 <div className="od-step-indicator">
                   <div className="od-step-circle circle--cancelled">
-                    <XIcon />
+                    <XWhiteIcon />
                   </div>
                 </div>
                 <div className="od-step-text">
@@ -526,20 +566,20 @@ export default function OrderDetails() {
             <div className="od-info-row">
               <span className="od-info-label">الاسم</span>
               <span className="od-info-val">
-                {shipping.name || order.user_id?.name || "—"}
+                {(customerInfo?.firstName + " " + customerInfo?.lastName) || "—"}
               </span>
             </div>
             <div className="od-info-row">
               <span className="od-info-label">الهاتف</span>
               <span className="od-info-val od-mono">
-                {shipping.phone || "—"}
+                {customerInfo?.phoneNumber || "—"}
               </span>
             </div>
             <div className="od-info-row od-address-row">
               <span className="od-info-label">العنوان</span>
               <span className="od-info-val od-address-val">
-                {shipping.street
-                  ? `${shipping.street}، ${shipping.city || ""}، مصر.`
+                {customerInfo.address
+                  ? `${customerInfo.address.street || ""}، ${customerInfo.address.city || ""}، مصر.`
                   : "—"}
               </span>
             </div>
@@ -558,8 +598,26 @@ export default function OrderDetails() {
               store.products.map((prod) => {
                 const imgSrc = buildImgSrc(prod.prod_id?.images?.[0]);
                 const isDelivered = normalizedStatus === "delivered";
-                const hasReviewed = prod.hasReviewed;
+            const realProdId =
+  prod.prod_id && typeof prod.prod_id === "object"
+    ? prod.prod_id._id
+    : prod.prod_id;
 
+// ✅ skip if no product id
+if (!realProdId) return null;
+
+const hasReviewed =
+  prod?.hasReviewed === true ||
+  ratedProducts.includes(realProdId.toString());
+
+console.log(
+  "REAL PRODUCT ID =>",
+  realProdId.toString(),
+  "ratedProducts =>",
+  ratedProducts,
+  "hasReviewed =>",
+  hasReviewed
+);
                 return (
                   <div key={prod._id} className="od-product-item">
                     <div className="od-product-left">
@@ -594,11 +652,20 @@ export default function OrderDetails() {
                       {isDelivered && (
                         <button
                           className={`od-review-btn ${hasReviewed ? "od-review-btn--done" : ""}`}
-                          onClick={() => !hasReviewed && setReview(prod)}
+                          onClick={() =>
+                            !hasReviewed &&
+                            setReview({
+                              prod,
+                              // ✅ pass storeOwnerId for ReviewSchema
+                              storeOwnerId:
+                                store.owner_store_id?._id ||
+                                store.owner_store_id,
+                            })
+                          }
                           disabled={hasReviewed}
                         >
                           <StarIcon />
-                          {hasReviewed ? "تم التقييم" : "تقييم المنتج"}
+                          {hasReviewed ? "تم التقييم ✓" : "تقييم المنتج"}
                         </button>
                       )}
                     </div>
@@ -611,14 +678,31 @@ export default function OrderDetails() {
       </div>
 
       {/* ── MODAL ── */}
-      {review && (
-        <ReviewModal
-          product={review}
-          orderId={order._id}
-          onClose={() => setReview(null)}
-          onSuccess={fetchOrder}
-        />
-      )}
+     {review && (
+  <ReviewModal
+    product={review.prod}
+    orderId={order._id}
+    storeOwnerId={review.storeOwnerId}
+    onClose={() => setReview(null)}
+onSuccess={() => {
+  const realProdId =
+    review.prod?.prod_id && typeof review.prod.prod_id === "object"
+      ? review.prod.prod_id._id
+      : review.prod?.prod_id;
+
+  if (!realProdId) return;
+
+  setRatedProducts((prev) => {
+    if (prev.includes(realProdId.toString())) return prev;
+    return [...prev, realProdId.toString()];
+  });
+
+  setReview(null);
+}}
+
+
+  />
+)}
     </div>
   );
 }
