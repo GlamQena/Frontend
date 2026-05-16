@@ -94,7 +94,6 @@ export default function CartPage() {
   /* ════ 3. REMOVE / DECREASE ════ */
   async function removeItem(productId, storeId, removeAll = false) {
     try {
-      const sid = getSessionId();
       const res = await removeFromCart(productId, storeId, removeAll , setActionMsg);
       const json = await res.json();
 
@@ -346,7 +345,7 @@ function WishlistCard({ item, onAdd, onRemove }) {
   return (
     <div className="cart-wishlist-card">
       <div className="cart-wishlist-image-wrapper">
-        <img src={formattedImage(item.image)} className="cart-wishlist-image"/>
+        <img src={formattedImage(item.image)} className="cart-wishlist-image" alt={item.productName}/>
         <button className="cart-wishlist-heart-btn" onClick={onRemove}>
           ♥
         </button>
