@@ -1,4 +1,4 @@
-const OwnerHome= () => {
+const StoreOwnerHome= () => {
 
     return (
         <div>
@@ -7,4 +7,4 @@ const OwnerHome= () => {
     )
 }
 
-export default OwnerHome;
+export default StoreOwnerHome;

@@ -179,11 +179,16 @@ export default function CheckoutPage() {
         );
         setCheckoutDisabled(false);
       }else if((activePayment === "card" || activePayment === "wallet") && res.ok) {
-        responseMessageSetter(
-          true,
-          json.message || "تم إرسال رابط الدفع إلى بريدك الإلكتروني. يرجى فتح البريد الإلكتروني وإكمال عملية الدفع",
-          setActionMsg,
-        );
+        if(json.redirect_url)
+          window.open(json.redirect_url, "_self");
+        else{
+        //   responseMessageSetter(
+        //   true,
+        //   json.message || "تم إرسال رابط الدفع إلى بريدك الإلكتروني. يرجى فتح البريد الإلكتروني وإكمال عملية الدفع",
+        //   setActionMsg,
+        // );
+         window.alert("تم إرسال رابط الدفع إلى بريدك الإلكتروني. يرجى فتح البريد الإلكتروني وإكمال عملية الدفع");
+        }
       }
     } catch (err) {
       console.error("checkoutPayment error:", err);

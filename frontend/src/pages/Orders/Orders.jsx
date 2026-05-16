@@ -3,21 +3,21 @@ import axios from "axios";
 import OrdersList from "../../components/OrdersList";
 import "./Orders.css";
 import "../../components/OrdersList.css";
+import { getOrdersHistory } from "../../services/order";
+import { responseMessageSetter } from "../../services/authService";
 
 export default function MyOrders() {
   const [orders, setOrders] = useState([]);
+  const [responseMessage, setResponseMessage] = useState({success: false, message: ""});
 
-  // ✅ extract fetchOrders so it can be called from anywhere
   const fetchOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/order/history", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
-      setOrders(res.data.data || []);
+      const resData = await getOrdersHistory();
+      console.log("fetchecd orders history => ",resData.data);
+      setOrders(resData.data || []);
     } catch (err) {
       console.error(err);
+      responseMessageSetter(false, err.message || "خطأ في جلب سجل الطلبات", setResponseMessage);
     }
   };
 
@@ -29,7 +29,6 @@ export default function MyOrders() {
     <>
       <OrdersList
         orders={orders}
-        type="client"
         headerTitle="📦 طلباتي"
         onCancelSuccess={(orderId) => {
           if (orderId) {

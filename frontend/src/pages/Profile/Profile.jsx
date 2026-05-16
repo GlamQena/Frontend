@@ -5,6 +5,7 @@ import {
   responseMessageSetter,
   isUserLogged,
   logout,
+  getEmailToken,
 } from "../../services/authService";
 import {
   changePassword,
@@ -16,6 +17,7 @@ import {
 
 import Footer from "../../components/Footer";
 import { useTheme } from "../../components/ThemeProvider";
+import { getCurrentUser } from "../../services/users";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -38,8 +40,8 @@ const Profile = () => {
   const profileFormRef = useRef(null);
 
   useEffect(() => {
-    loadUserData();
-  }, []);
+    getUserProfile();
+  }, [editMode]);
 
   // Prevent accidental form submissions globally
   useEffect(() => {
@@ -62,7 +64,7 @@ const Profile = () => {
 
   const loadUserData = async () => {
     setLoading(true);
-    const user = localStorage.getItem("user");
+    const user = await getCurrentUser();
     if (user && user !== "undefined" && user !== "null" && user !== "") {
       setProfileForm({ ...JSON.parse(user) });
       setLoading(false);
@@ -74,6 +76,7 @@ const Profile = () => {
 
   const getUserProfile = async () => {
     try {
+      setLoading(true);
       const response = await getProfile(setFormMessage);
       const data = await response.json();
 
@@ -84,6 +87,7 @@ const Profile = () => {
       }
 
       setProfileForm({ ...data.user });
+      setLoading(false);
       localStorage.setItem("user", JSON.stringify(data.user));
       setLoading(false);
     } catch (error) {
@@ -221,6 +225,7 @@ const Profile = () => {
         const avatarResData = await response.json();
         
         if (!response.ok) {
+          console.log("Avatar upload failed:", avatarResData);
           return responseMessageSetter(false, avatarResData.message, setFormMessage);
         }
         
@@ -237,7 +242,8 @@ const Profile = () => {
     }
 
     const { imagePreview, ...updateData } = profileForm;
-    
+    console.log("edit profile updated data to be sent:", updateData);
+
     try {
       const res = await editProfile(updateData, setFormMessage);
       const data = await res.json();
@@ -249,6 +255,7 @@ const Profile = () => {
         setEditMode(false);
         setAvatarImg(null);
       } else {
+        console.log("edit profile failed:", data);
         responseMessageSetter(false, data.message || "فشل التعديل", setFormMessage);
       }
     } catch (err) {
@@ -296,6 +303,35 @@ const Profile = () => {
     return date.toISOString().split('T')[0];
   };
 
+  const getAvatarSrc = () => {
+    if (profileForm.imagePreview) {
+      return profileForm.imagePreview;
+    }
+    if (profileForm.image) {
+      return encodeURI(
+        profileForm.image
+          .replace(/\\/g, "//")
+          .replace("uploads", "http://127.0.0.1:8080")
+      );
+    }
+    return theme === "light" ? "/images/profile/Avatar Light.png" : "/images/profile/Avatar.png";
+  };
+
+  const getEmailVerificationToken = async () => {
+    try{
+      let res = await getEmailToken(profileForm.email);
+      let data = await res.json();
+
+      if(!res.ok){
+        return responseMessageSetter(false, data.message || "فشل الحصول على رابط التحقق", setFormMessage);
+      }
+
+      responseMessageSetter(true, data.message || "تم إرسال رابط التحقق إلى بريدك الإلكتروني", setFormMessage);
+    }catch(err){
+      responseMessageSetter(false, err.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
+    }
+  }
+
   if (!isUserLogged()) {
     return (
       <div className="profile-page-wrapper" dir="rtl">
@@ -325,20 +361,6 @@ const Profile = () => {
       </div>
     );
   }
-
-  const getAvatarSrc = () => {
-    if (profileForm.imagePreview) {
-      return profileForm.imagePreview;
-    }
-    if (profileForm.image) {
-      return encodeURI(
-        profileForm.image
-          .replace(/\\/g, "//")
-          .replace("uploads", "http://127.0.0.1:8080")
-      );
-    }
-    return theme === "light" ? "/images/profile/Avatar Light.png" : "/images/profile/Avatar.png";
-  };
 
   return (
     <>
@@ -378,7 +400,7 @@ const Profile = () => {
                 {profileForm.isEmailVerified ? (
                   <span className="badge-green">الإيميل مفعل</span>
                 ) : (
-                  <span className="badge-red">الإيميل غير مفعل</span>
+                  <button className="badge-red" onClick= {getEmailVerificationToken} disabled={editMode}>الإيميل غير مفعل</button>
                 )}
                 {profileForm.isPhoneVerified ? (
                   <span className="badge-green">رقم الهاتف مفعل</span>

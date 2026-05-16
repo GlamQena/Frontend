@@ -3,6 +3,33 @@ import * as yup from "yup";
 
 const BASE_URL = "http://localhost:8080/auth";
 
+// ─────────────────────────────────────────────
+// AXIOS INSTANCE
+// ─────────────────────────────────────────────
+export const api = axios.create({
+  baseURL: "http://localhost:8080",
+});
+
+// ─────────────────────────────────────────────
+// INTERCEPTOR (AUTO BEARER TOKEN ATTACH)
+// ─────────────────────────────────────────────
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await getAccessToken(() => {});
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      return config;
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  },
+  (error) => Promise.reject(error)
+);
+
 export const isUserLogged = () => {
   const userStr = localStorage.getItem("user");
   if (!userStr || userStr === "undefined" || userStr === "null") return false;
@@ -90,18 +117,20 @@ export const sid_AuthHeader = async (setResponseMessage) => {
   let headers=  { 
       "Content-Type": "application/json",
   };
-
-  if(!sid){
-      let accessToken = await getAccessToken(setResponseMessage);
-      if(accessToken)
-          headers["Authorization"] = `Bearer ${accessToken}`;
-  }
+  
+  let accessToken = await getAccessToken(setResponseMessage);
+  if(accessToken)
+      headers["Authorization"] = `Bearer ${accessToken}`;
 
   return {sid, headers}
 }
 
 export function responseMessageSetter(success, message, setResponseMessage) {
-  setResponseMessage({ success, message });
+  if(typeof setResponseMessage === "string")
+    setResponseMessage(message);
+  else
+    setResponseMessage({ success, message });
+  
   setTimeout(() => {
     setResponseMessage({ success: false, message: "" });
   }, 6000);
@@ -182,6 +211,37 @@ export const resetPassword = async (data) => {
     throw error;
   }
 };
+
+export const getEmailToken = async (email) =>{
+  try{
+    const res= await fetch(`${BASE_URL}/email/send-token`,{
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({email}),
+    });
+
+    return res;
+  }catch(err){
+    throw err;
+  }
+}
+
+export const verifyEmail = async (email, token) =>{
+  try{
+    const res= await fetch(`${BASE_URL}/verify/${email}/${token}`,{
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+
+    return res;
+  }catch(err){
+    throw err;
+  }
+}
 
 export const logout = async () => {
   try {

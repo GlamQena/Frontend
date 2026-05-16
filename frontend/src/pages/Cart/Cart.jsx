@@ -4,15 +4,15 @@ import { useNavigate } from "react-router-dom";
 import "./Cart.css";
 import { addToCart, getCart, removeFromCart } from "../../services/cart";
 import { getSessionId, isUserLogged, responseMessageSetter } from "../../services/authService";
-import { addToWishlist, removeFromWishlist } from "../../services/users";
+import { addToWishlist, getCurrentUser, isClient, removeFromWishlist } from "../../services/users";
 import { placeOrder } from "../../services/order";
 
 const BASE_URL = "http://127.0.0.1:8080";
 
 const initialWishlist = () => {
   if (isUserLogged()){
-    const user= JSON.parse(localStorage.getItem("user"));
-    if(user.role !== "client")
+    const user= getCurrentUser();
+    if(!isClient())
       return null;
     return user.wishlist;
   }
@@ -43,14 +43,17 @@ export default function CartPage() {
       setLoading(true);
       const res = await getCart(setActionMsg);
       const json = await res.json();
+      console.log("getCart response => ", json);
 
       if(!res.ok)
         return responseMessageSetter(false, json.message || "خطأ فى جلب منتجات الكارت", setActionMsg);
 
       if (json.data.products) {
-        setGroups(json.data.products);
-        if(groups.length > 0)
-          console.log("the products groups => ", groups);
+        if(json.data.products.length > 0){
+          console.log("the products groups => ", json.data.products);
+          setGroups(json.data.products);
+        }
+
         setSummary(json.data.summary || {});
         // responseMessageSetter(true, json.message, setActionMsg);
       }
@@ -114,7 +117,7 @@ export default function CartPage() {
         console.log("placeOrder response => ", json);
         responseMessageSetter(true, json.message, setActionMsg);
         setTimeout(()=>{
-          navigate("/Shipping/Info", {state: {orderId: json.order._id, subtotal: summary.total_price, shipping: SHIPPING, total: total}});
+          navigate("/shipping/info", {state: {orderId: json.order._id, subtotal: summary.total_price, shipping: SHIPPING, total: total}});
         }, 3000);
       } else {
         responseMessageSetter(false, json.message || "حدث خطأ أثناء تأكيد الطلب", setActionMsg);
