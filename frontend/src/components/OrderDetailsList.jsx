@@ -4,7 +4,7 @@ import "./OrderDetailsList.css";
 import axios from "axios";
 import { getUserRole } from "../services/users";
 import { getOrderDetails } from "../services/order";
-
+import { api } from "../services/authService";
 
 const BASE_URL = "http://localhost:8080";
 
@@ -167,18 +167,15 @@ function normalizeStatus(status) {
   return map[status] || status;
 }
 
-function getStepState(stepKey, orderStatus, includeReady = false) {
-  const ORDER = includeReady
-    ? ["pending", "preparing", "ready", "shipping", "delivered"]
-    : ["pending", "preparing", "shipping", "delivered"];
+function getStepState(stepKey, orderStatus) {
+  const ORDER = ["pending", "preparing", "shipping", "delivered"];
   const currentIdx = ORDER.indexOf(normalizeStatus(orderStatus));
   const stepIdx = ORDER.indexOf(stepKey);
   return stepIdx <= currentIdx ? "done" : "pending";
 }
-function getCompletedStepsBeforeCancel(order, includeReady = false) {
-  const ORDER = includeReady
-    ? ["pending", "preparing", "ready", "shipping", "delivered"]
-    : ["pending", "preparing", "shipping", "delivered"];
+
+function getCompletedStepsBeforeCancel(order) {
+  const ORDER = ["pending", "preparing", "shipping", "delivered"];
   const idx = ORDER.indexOf(
     normalizeStatus(order.lastStatusBeforeCancel || order.status),
   );
@@ -197,7 +194,13 @@ function formatDate(dateStr) {
 // ─── Rating Star ──────────────────────────────────────────────────────────────
 const RatingStar = ({ filled, onClick }) => (
   <button className="modal-star-btn" onClick={onClick}>
-    <svg width="32" height="30" viewBox="0 0 20 19" fill="none">
+    <svg
+      width="32"
+      height="30"
+      viewBox="0 0 20 19"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z"
         fill={filled ? "#E9C349" : "none"}
@@ -214,49 +217,46 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  
   const submit = async () => {
-    if (!rating) return;
+  if (!rating) return;
 
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    try {
-      const productId = product?.prod_id?._id || product?.prod_id;
+  try {
+    const productId = product?.prod_id?._id || product?.prod_id;
 
-      if (!productId) {
-        throw new Error("Product ID missing");
-      }
-
-      console.log("SENDING PRODUCT ID =>", productId);
-      console.log("ORDER ID =>", orderId);
-
-      await axios.post(
-        `${BASE_URL}/order/${orderId}/rating`,
-        {
-          productId,
-          rate: Number(rating),
-          comment: comment?.trim(),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        },
-      );
-
-      onSuccess();
-      onClose();
-    } catch (err) {
-      console.log("400 error response =>", err.response?.data);
-
-      setError(
-        err.response?.data?.message || err.message || "فشل إرسال التقييم",
-      );
-    } finally {
-      setLoading(false);
+    if (!productId) {
+      throw new Error("Product ID missing");
     }
-  };
+
+    console.log("SENDING PRODUCT ID =>", productId);
+    console.log("ORDER ID =>", orderId);
+
+    await api.post(
+      `${BASE_URL}/order/${orderId}/rating`,
+      {
+        productId,
+        rate: Number(rating),
+        comment: comment?.trim(),
+      },
+    );
+
+    onSuccess();
+    onClose();
+
+  } catch (err) {
+    console.log("400 error response =>", err.response?.data);
+
+    setError(
+      err.response?.data?.message ||
+      "فشل إرسال التقييم"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -326,80 +326,108 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
 
 
 function ProductsList({ order, normalizedStatus, ratedProducts, setReview, showReviewBtn }) {
-  const totalProducts = order.products.reduce((acc, s) => acc + s.products.length, 0);
+
   const isDelivered = normalizedStatus === "delivered";
     const buildImgSrc = (imgPath) => {
     if(!imgPath) return null;
     return imgPath.replace(/\\/g, "//").replace("uploads", "http://127.0.0.1:8080");
   }
+   const totalProducts = order.products.reduce(
+    (acc, s) => acc + s.products.length,
+    0,
+  );
 
 
   return (
     <div className="od-products-card">
-      <div className="od-products-header">
-        <span className="od-products-id">المنتجات المشتراة ({totalProducts})</span>
-      </div>
-      <div className="od-products-list">
-        {order.products?.flatMap((store) =>
-          store.products.map((prod) => {
-            const imgSrc = buildImgSrc(prod.prod_id?.images?.[0]);
+          <div className="od-products-header">
+            <span className="od-products-id">
+              المنتجات المشتراة ({totalProducts})
+            </span>
+          </div>
+          <div className="od-products-list">
+            {order.products?.flatMap((store) =>
+              store.products.map((prod) => {
+                const imgSrc = buildImgSrc(prod.prod_id?.images?.[0]);
+                const isDelivered = normalizedStatus === "delivered";
             const realProdId =
-              prod.prod_id && typeof prod.prod_id === "object"
-                ? prod.prod_id._id
-                : prod.prod_id;
-            if (!realProdId) return null;
-            const hasReviewed =
-              prod?.hasReviewed === true || ratedProducts.includes(realProdId.toString());
+  prod.prod_id && typeof prod.prod_id === "object"
+    ? prod.prod_id._id
+    : prod.prod_id;
 
-            return (
-              <div key={prod._id} className="od-product-item">
-                <div className="od-product-left">
-                  <div className="od-product-img">
-                    {imgSrc ? (
-                      <img
-                        src={imgSrc}
-                        alt={prod.name}
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                          e.target.parentElement.innerHTML = "<span class='od-img-placeholder'>🧴</span>";
-                        }}
-                      />
-                    ) : (
-                      <div className="od-img-placeholder">🛍️</div>
-                    )}
+// ✅ skip if no product id
+if (!realProdId) return null;
+
+const hasReviewed =
+  prod?.hasReviewed === true ||
+  ratedProducts.includes(realProdId.toString());
+
+console.log(
+  "REAL PRODUCT ID =>",
+  realProdId.toString(),
+  "ratedProducts =>",
+  ratedProducts,
+  "hasReviewed =>",
+  hasReviewed
+);
+                return (
+                  <div key={prod._id} className="od-product-item">
+                    <div className="od-product-left">
+                      <div className="od-product-img">
+                        {imgSrc ? (
+                          <img
+                            src={imgSrc}
+                            alt={prod.name}
+                            loading="lazy"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.parentElement.innerHTML =
+                                "<span class='od-img-placeholder'>🧴</span>";
+                            }}
+                          />
+                        ) : (
+                          <div className="od-img-placeholder">🛍️</div>
+                        )}
+                      </div>
+                      <div className="od-product-info">
+                        <p className="od-prod-name">{prod.name}</p>
+                        <p className="od-prod-store">
+                          {store.owner_store_id?.store_name || "—"}
+                        </p>
+                        <p className="od-prod-qty">الكمية: {prod.quantity}</p>
+                      </div>
+                    </div>
+                    <div className="od-product-right">
+                      <span className="od-prod-price">
+                        {prod.subtotal_price} ج.م
+                      </span>
+                      {isDelivered && (
+                        <button
+                          className={`od-review-btn ${hasReviewed ? "od-review-btn--done" : ""}`}
+                          onClick={() =>
+                            !hasReviewed &&
+                            setReview({
+                              prod,
+                              // ✅ pass storeOwnerId for ReviewSchema
+                              storeOwnerId:
+                                store.owner_store_id?._id ||
+                                store.owner_store_id,
+                            })
+                          }
+                          disabled={hasReviewed}
+                        >
+                          <StarIcon />
+                          {hasReviewed ? "تم التقييم ✓" : "تقييم المنتج"}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="od-product-info">
-                    <p className="od-prod-name">{prod.name}</p>
-                    <p className="od-prod-store">{store.owner_store_id?.store_name || "—"}</p>
-                    <p className="od-prod-qty">الكمية: {prod.quantity}</p>
-                  </div>
-                </div>
-                <div className="od-product-right">
-                  <span className="od-prod-price">{prod.subtotal_price} ج.م</span>
-                  {showReviewBtn && isDelivered && (
-                    <button
-                      className={`od-review-btn ${hasReviewed ? "od-review-btn--done" : ""}`}
-                      onClick={() =>
-                        !hasReviewed &&
-                        setReview({
-                          prod,
-                          storeOwnerId: store.owner_store_id?._id || store.owner_store_id,
-                        })
-                      }
-                      disabled={hasReviewed}
-                    >
-                      <StarIcon />
-                      {hasReviewed ? "تم التقييم ✓" : "تقييم المنتج"}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
+                );
+              }),
+            )}
+          </div>
+        </div>
+     
   );
 }
 
@@ -414,8 +442,7 @@ function ClientOrderView({
 }) {
   
   const payBadge = PAYMENT_STATUS_MAP[order.payment?.status] || {}; 
-  const shipping = order.shipping_address || {};
-
+ const customerInfo = order.user_id;
   return (
     <div className="od-grid">
       <aside className="od-tracking-card">
@@ -438,7 +465,7 @@ function ClientOrderView({
               const isDone = state === "done";
              
               return (
-                <div
+              <div
                   key={step.key}
                   className={`od-step ${isDone ? "od-step--done" : ""} ${isPend ? "od-step--pending" : ""} ${(isLast && !isCancelled) || isLastFiltered ? "od-step--last" : ""}`}
                 >
@@ -492,70 +519,73 @@ function ClientOrderView({
             </div>
           </div>
         </aside>
-
-      <div className="od-card od-payment-card">
-        <div className="od-card-header">
-          <MoneyIcon />
-          <h2 className="od-section-title">تفاصيل الدفع</h2>
-        </div>
-        <div className="od-info-list">
-          <div className="od-info-row">
-            <span className="od-info-label">طريقة الدفع</span>
-            <span className="od-info-val od-method-val">
-              <CardIcon />
-              {PAYMENT_METHOD_MAP[order.payment?.method] ||
-                order.payment?.method}
-            </span>
+ {/* ── PAYMENT ── */}
+        <div className="od-card od-payment-card">
+          <div className="od-card-header">
+            <MoneyIcon />
+            <h2 className="od-section-title">تفاصيل الدفع</h2>
           </div>
-          <div className="od-info-row">
-  <span className="od-info-label">حالة الدفع</span>
-  <span className={payBadge.cls || ""}>
-    {payBadge.label || order.payment?.status}
-  </span>
-</div>
-          <div className="od-info-row">
-            <span className="od-info-label">تاريخ العملية</span>
-            <span className="od-info-val">
-              {formatDate(order.payment?.completedAt || order.createdAt)}
-            </span>
-          </div>
-          {order.payment?.paymob_order_id && (
+          <div className="od-info-list">
             <div className="od-info-row">
-              <span className="od-info-label">رقم العملية</span>
-              <span className="od-info-val od-mono">
-                {order.payment.paymob_order_id}
+              <span className="od-info-label">طريقة الدفع</span>
+              <span className="od-info-val od-method-val">
+                <CardIcon />
+                {PAYMENT_METHOD_MAP[order.payment?.method] ||
+                  order.payment?.method}
               </span>
             </div>
-          )}
+            <div className="od-info-row">
+              <span className="od-info-label">حالة الدفع</span>
+              <span className={`od-pay-badge ${payBadge.cls || ""}`}>
+                {payBadge.label || order.payment?.status}
+              </span>
+            </div>
+            <div className="od-info-row">
+              <span className="od-info-label">تاريخ العملية</span>
+              <span className="od-info-val">
+                {formatDate(order.payment?.completedAt || order.createdAt)}
+              </span>
+            </div>
+            {order.payment?.paymob_order_id && (
+              <div className="od-info-row">
+                <span className="od-info-label">رقم العملية</span>
+                <span className="od-info-val od-mono">
+                  {order.payment.paymob_order_id}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="od-card od-shipping-card">
-        <div className="od-card-header">
-          <TruckIcon />
-          <h2 className="od-section-title">معلومات الشحن</h2>
+        {/* ── SHIPPING ── */}
+        <div className="od-card od-shipping-card">
+          <div className="od-card-header">
+            <TruckIcon />
+            <h2 className="od-section-title">معلومات الشحن</h2>
+          </div>
+          <div className="od-info-list">
+            <div className="od-info-row">
+              <span className="od-info-label">الاسم</span>
+              <span className="od-info-val">
+                {(customerInfo?.firstName + " " + customerInfo?.lastName) || "—"}
+              </span>
+            </div>
+            <div className="od-info-row">
+              <span className="od-info-label">الهاتف</span>
+              <span className="od-info-val od-mono">
+                {customerInfo?.phoneNumber || "—"}
+              </span>
+            </div>
+            <div className="od-info-row od-address-row">
+              <span className="od-info-label">العنوان</span>
+              <span className="od-info-val od-address-val">
+                {customerInfo.address
+                  ? `${customerInfo.address.street || ""}، ${customerInfo.address.city || ""}، مصر.`
+                  : "—"}
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="od-info-list">
-          <div className="od-info-row">
-            <span className="od-info-label">الاسم</span>
-            <span className="od-info-val">
-              {shipping.name || order.user_id?.name || "—"}
-            </span>
-          </div>
-          <div className="od-info-row">
-            <span className="od-info-label">الهاتف</span>
-            <span className="od-info-val od-mono">{shipping.phone || "—"}</span>
-          </div>
-          <div className="od-info-row od-address-row">
-            <span className="od-info-label">العنوان</span>
-            <span className="od-info-val od-address-val">
-              {shipping.street
-                ? `${shipping.street}، ${shipping.city || ""}، مصر.`
-                : "—"}
-            </span>
-          </div>
-        </div>
-      </div>
 
   <ProductsList
         order={order}
@@ -568,74 +598,50 @@ function ClientOrderView({
     </div>
   );
 }
-
-// ─── Store Owner View ─────────────────────────────────────────────────────────
 function StoreOrderView({ order, normalizedStatus, isCancelled }) {
+  const customer = order.customer || {};
   
-
-  const shipping = order.shipping_address || {};
- const totalProducts = order.products.reduce(
-  (acc, s) => acc + s.products.length,
-  0,
-);
+  // ✅ store owner data structure مختلف
+  const products = order.store_products || [];
+  const totalProducts = products.length;
 
   return (
     <div className="od-grid">
       <div className="od-card od-client-info-card">
-        <div className="od-card-header">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
-              fill="#A855F7"
-            />
-          </svg>
-          <h2 className="od-section-title">معلومات العميل</h2>
-        </div>
-        <div className="od-client-name">
-          {order.user_id?.name || shipping.name || "—"}
-        </div>
+        {/* ... */}
+        <div className="od-client-name">{customer.name || "—"}</div>
         <div className="od-info-list">
           <div className="od-info-row od-icon-row">
             <span className="od-icon-label">📞</span>
-            <span className="od-info-val">
-              {shipping.phone || order.user_id?.phone || "—"}
-            </span>
+            <span className="od-info-val">{customer.phone || "—"}</span>
           </div>
           <div className="od-info-row od-icon-row">
             <span className="od-icon-label">📍</span>
             <span className="od-info-val">
-              {shipping.street
-                ? `${shipping.street}، ${shipping.city || ""}`
+              {customer.address?.street
+                ? `${customer.address.street}، ${customer.address.city || ""}`
                 : "—"}
             </span>
           </div>
           <div className="od-info-row od-icon-row">
             <span className="od-icon-label">✉️</span>
-            <span className="od-info-val">{order.user_id?.email || "—"}</span>
+            <span className="od-info-val">{customer.email || "—"}</span>
           </div>
         </div>
       </div>
 
       <div className="od-card od-order-info-card">
-        <div className="od-card-header">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"
-              fill="#A855F7"
-            />
-          </svg>
-          <h2 className="od-section-title">معلومات الطلب</h2>
-        </div>
+        {/* ... */}
         <div className="od-info-list">
           <div className="od-info-row">
             <span className="od-info-label">رقم الطلب:</span>
             <span className="od-info-val od-mono">
-              #{order._id?.slice(-6).toUpperCase()}
+              #{order.order_id?.slice(-6).toUpperCase()}
             </span>
           </div>
           <div className="od-info-row">
             <span className="od-info-label">التاريخ:</span>
-            <span className="od-info-val">{formatDate(order.createdAt)}</span>
+            <span className="od-info-val">{formatDate(order.order_created_at)}</span>
           </div>
           <div className="od-info-row">
             <span className="od-info-label">المنتجات:</span>
@@ -644,24 +650,48 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
           <div className="od-info-row">
             <span className="od-info-label">الإجمالي:</span>
             <span className="od-info-val od-grand-highlight">
-              {order.total_price} ج
+              {order.store_subtotal} ج
             </span>
           </div>
         </div>
       </div>
 
-        <ProductsList
-        order={order}
-        normalizedStatus={normalizedStatus}
-        ratedProducts={[]}
-        setReview={() => {}}
-        showReviewBtn={false}
-      />
-
+      {/* ✅ Products list مختلف للـ store owner */}
+      <div className="od-products-card">
+        <div className="od-products-header">
+          <span className="od-products-id">المنتجات المشتراة ({totalProducts})</span>
+        </div>
+        <div className="od-products-list">
+          {products.map((prod) => {
+            const imgSrc = prod.images?.[0]
+              ?.replace(/\\/g, "//")
+              ?.replace("uploads", "http://127.0.0.1:8080");
+            return (
+              <div key={prod.product_id} className="od-product-item">
+                <div className="od-product-left">
+                  <div className="od-product-img">
+                    {imgSrc ? (
+                      <img src={imgSrc} alt={prod.product_name} loading="lazy" />
+                    ) : (
+                      <div className="od-img-placeholder">🛍️</div>
+                    )}
+                  </div>
+                  <div className="od-product-info">
+                    <p className="od-prod-name">{prod.product_name}</p>
+                    <p className="od-prod-qty">الكمية: {prod.quantity}</p>
+                  </div>
+                </div>
+                <div className="od-product-right">
+                  <span className="od-prod-price">{prod.subtotal} ج.م</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function MyOrderDetails() {
   const navigate = useNavigate();
@@ -707,16 +737,15 @@ export default function MyOrderDetails() {
     );
   if (error) return <div className="od-error">{error}</div>;
   if (!order) return <div className="od-error">لم يتم العثور على الطلب</div>;
+
 console.log("details payment status =>", order.payment?.status);
+
   const normalizedStatus = normalizeStatus(order.status);
   const isCancelled = normalizedStatus === "cancelled";
   const badge = STATUS_MAP[normalizedStatus] || STATUS_MAP["pending"];
 
-  const customerInfo = order.user_id;
-  const totalProducts = order.products.reduce(
-    (acc, s) => acc + s.products.length,
-    0,
-  );
+ 
+ 
 
   return (
     <div className="od-root" dir="rtl">
@@ -779,30 +808,31 @@ console.log("details payment status =>", order.payment?.status);
       
 
 
-      {clientMode && review && (
-        <ReviewModal
-          product={review.prod}
-          orderId={order._id}
-          storeOwnerId={review.storeOwnerId}
-          onClose={() => setReview(null)}
-          onSuccess={() => {
-            const realProdId =
-              review.prod?.prod_id && typeof review.prod.prod_id === "object"
-                ? review.prod.prod_id._id
-                : review.prod?.prod_id;
-            if (!realProdId) return;
-            setRatedProducts((prev) =>
-              prev.includes(realProdId.toString())
-                ? prev
-                : [...prev, realProdId.toString()],
-            );
-            setReview(null);
-          }}
-        />
-      )}
+       {review && clientMode && (
+  <ReviewModal
+    product={review.prod}
+    orderId={order._id}
+    storeOwnerId={review.storeOwnerId}
+    onClose={() => setReview(null)}
+onSuccess={() => {
+  const realProdId =
+    review.prod?.prod_id && typeof review.prod.prod_id === "object"
+      ? review.prod.prod_id._id
+      : review.prod?.prod_id;
+
+  if (!realProdId) return;
+
+  setRatedProducts((prev) => {
+    if (prev.includes(realProdId.toString())) return prev;
+    return [...prev, realProdId.toString()];
+  });
+
+  setReview(null);
+}}
 
 
-      
+  />
+)}
     </div>
   );
 }

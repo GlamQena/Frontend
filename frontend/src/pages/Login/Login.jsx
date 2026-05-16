@@ -57,8 +57,7 @@ const Login = () => {
         localStorage.setItem("refreshToken", data.refreshToken);
         responseMessageSetter(true, data.message, setSubmitMessage);
 
-        if (user.role === "admin") navigate("/dashboard/admin_home");
-        else if(user.role === "store_owner") navigate("/dashboard/owner_home");
+        if(user.role === "store_owner") navigate("/dashboard/store_owner");
         else navigate("/"); //client usual home
       } else {
         responseMessageSetter(false, data.message, setSubmitMessage);

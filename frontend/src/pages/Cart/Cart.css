@@ -1,6 +1,4 @@
 /* Cart.css - Compact Version with Global CSS Variables */
-
-/* ===== PAGE ===== */
 .cart-page {
   min-height: 100vh;
   background: var(--خلفية-الصفحة);
