@@ -2,6 +2,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import {useNavigate} from "react-router-dom";
 import './Check.css';
 import Verified from './Success';
+import { verifyEmail } from '../../services/authService';
 
 const VerificationCheck = () => {
     const navigate= useNavigate();
@@ -20,7 +21,7 @@ const VerificationCheck = () => {
         if(!email || !token)
             return setCheckMessage({success: false, message: "email and token must be provided"});
 
-        verifyEmail();
+        verifyEmailHandler();
         return ()=>{
             if(timerRef.current)
                 clearTimeout(timerRef.current);
@@ -28,23 +29,27 @@ const VerificationCheck = () => {
     }
     , [email, token]);
 
-    const verifyEmail= async()=>{
+    const verifyEmailHandler= async()=>{
         try{
-            const response= await fetch(`http://127.0.0.1:8080/auth/verify/${email}/${token}`);
+            const response= await verifyEmail(email, token);
             const data= await response.json();
             if(!response.ok)
                 return setCheckMessage({success: false, message: data.message});
 
             setCheckMessage({success: true, message: data.message});
             setIsVerified(true);
-            const user= data.user;
-            localStorage.setItem("user", JSON.stringify(user));
+
+            let user;
+            if(data.user){
+              user= data.user;
+              localStorage.setItem("user", JSON.stringify(user));
+            }
 
             timerRef.current = setTimeout(()=>{
               if(user.role === "client")
                 navigate("/");
-              else
-                navigate("/dashboard");
+              else if(user.role === "store_owner")
+                navigate("/dashboard/store_owner");
             }, 4000);
 
         }catch(error){
@@ -100,7 +105,7 @@ const VerificationCheck = () => {
 
         <div className="verification-action">
           <span className="action-text">لم يتم التحويل؟</span>
-          <a href="#" className="retry-link" onClick={verifyEmail}>إعادة المحاولة</a>
+          <a href="#" className="retry-link" onClick={verifyEmailHandler}>إعادة المحاولة</a>
         </div>
         
         <div className="resend-section">

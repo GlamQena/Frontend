@@ -182,7 +182,7 @@ const Store = () => {
       <div className="store-banner">
         <div className="banner-overlay">
           <h2>{store?.store_name || "المتجر"}</h2>
-          <p>⭐ {store?.average_rating || 0} • {store?.total_products || 0} منتج</p>
+          <p>⭐ {store?.average_rating || 0} • {products.length || 0} منتج</p>
         </div>
       </div>
 

@@ -4,18 +4,19 @@
   margin:0;
   padding:0;
   box-sizing: border-box;
+  direction: rtl;
 }
 
 body {
-  font-family: "Tajawal", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--خلفية-الصفحة);
-  width:100%;
-  min-height: 100vh;
-  padding: 20px;
-  direction: rtl;
-  transition: all 0.3s ease;
+  background: var(--خلفية-الصفحة);
+  color: var(--نص-رئيسي);
+  margin: 0;
+  font-family: Tajawal, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: center;
 }
 
 /* ===== Scrollbar Styling ===== */

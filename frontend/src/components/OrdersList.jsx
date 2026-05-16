@@ -1,9 +1,10 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import "./OrdersList.css";
-import api, { getUserRole } from "../services/roles";
+import { getUserRole } from "../services/users";
+import { api, isUserLogged } from "../services/authService";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "http://127.0.0.1:8080";
 
 const STORE_STATUS_OPTIONS = [
   { value: "pending", label: "قيد الانتظار", color: "#D4AF37" },
@@ -48,15 +49,19 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
     setUpdating(true);
 
     try {
-      await api.patch(`/order/${orderId}/status`, {}, {
-        params: {
-          status: {
-            pending: "قيد الانتظار",
-            preparing: "جاري التجهيز",
-            ready: "جاهز للتوصيل",
-          }[newStatus],
+      await api.patch(
+        `/order/${orderId}/status`,
+        {},
+        {
+          params: {
+            status: {
+              pending: "قيد الانتظار",
+              preparing: "جاري التجهيز",
+              ready: "جاهز للتوصيل",
+            }[newStatus],
+          },
         },
-      });
+      );
 
       onStatusChange?.(orderId, newStatus);
     } catch (err) {
@@ -112,19 +117,14 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
             (opt) =>
               opt.value !== "shipping" &&
               opt.value !== "delivered" &&
-              opt.value !== "cancelled"
+              opt.value !== "cancelled",
           ).map((opt) => (
             <button
               key={opt.value}
-              className={`sd-option${
-                opt.value === currentKey ? " sd-option--active" : ""
-              }`}
+              className={`sd-option${opt.value === currentKey ? " sd-option--active" : ""}`}
               onClick={() => changeStatus(opt.value)}
             >
-              <span
-                className="sd-dot"
-                style={{ background: opt.color }}
-              />
+              <span className="sd-dot" style={{ background: opt.color }} />
 
               <span style={{ color: opt.color }}>{opt.label}</span>
             </button>
@@ -212,7 +212,6 @@ const STATUS_CONFIG = {
   },
 };
 
-
 const PAYMENT_STATUS_CONFIG = {
   pending: {
     label: "مؤجل",
@@ -270,10 +269,7 @@ const normalizePaymentStatus = (payment, orderStatus) => {
   // CASH LOGIC
   if (method === "cash") {
     // cancelled after payment
-    if (
-      orderStatus === "cancelled" &&
-      ["completed", "paid"].includes(value)
-    ) {
+    if (orderStatus === "cancelled" && ["completed", "paid"].includes(value)) {
       return "refunded";
     }
 
@@ -288,21 +284,14 @@ const normalizePaymentStatus = (payment, orderStatus) => {
 
   // CARD / WALLET
   switch (value) {
-  
     case "قيد المعالجة":
       return "processing";
-
-  
     case "مكتمل":
       return "completed";
-
     case "فشل":
       return "failed";
-
-
     case "مسترجع":
       return "refunded";
-
     case "مؤجل":
     default:
       return "pending";
@@ -327,7 +316,7 @@ function countProducts(order) {
   if (order.products) {
     return order.products.reduce(
       (acc, s) => acc + (s.products?.length || 0),
-      0
+      0,
     );
   }
 
@@ -347,10 +336,13 @@ export default function OrdersList({
   const [cancellingId, setCancellingId] = useState(null);
   const [orders, setOrders] = useState(ordersProp);
   const [search, setSearch] = useState("");
-const role = getUserRole();
+  const navigate = useNavigate();
 
-const storeMode = role === "store_owner";
-const clientMode = role === "client";
+  const role = getUserRole();
+
+  const storeMode = role === "store_owner";
+  const clientMode = role === "client";
+
 
   useEffect(() => {
     setOrders(ordersProp);
@@ -363,38 +355,34 @@ const clientMode = role === "client";
       const statusMatch =
         filter === "all" ||
         normalizeStatus(o.status || o.order_status) === filter;
-
       const searchValue = search.toLowerCase();
 
       const searchMatch =
         search === "" ||
-        String(o.order_id || o._id || "")
+        String(o._id || o.order_id || "")
           .toLowerCase()
           .includes(searchValue) ||
-        (storeMode &&
-          o.customer?.name?.toLowerCase().includes(searchValue)) ||
+        (storeMode && o.customer?.name?.toLowerCase().includes(searchValue)) ||
         (storeMode &&
           o.store_products?.some((item) =>
-            item.product_name?.toLowerCase().includes(searchValue)
+            item.product_name?.toLowerCase().includes(searchValue),
           )) ||
         (clientMode &&
           o.products?.some((store) =>
             store.products?.some((item) =>
-              item.name?.toLowerCase().includes(searchValue)
-            )
+              item.name?.toLowerCase().includes(searchValue),
+            ),
           ));
 
       return statusMatch && searchMatch;
     })
     .sort((a, b) => {
       const dateA = new Date(
-        a.createdAt || a.order_date || a.order_created_at || 0
+        a.createdAt || a.order_date || a.order_created_at || 0,
       );
-
       const dateB = new Date(
-        b.createdAt || b.order_date || b.order_created_at || 0
+        b.createdAt || b.order_date || b.order_created_at || 0,
       );
-
       return dateB - dateA;
     });
 
@@ -405,7 +393,6 @@ const clientMode = role === "client";
 
     try {
       await api.patch(`/order/${orderId}/cancel`);
-
       onCancelSuccess?.(orderId);
     } catch (err) {
       alert(err.response?.data?.message || "فشل إلغاء الطلب");
@@ -419,11 +406,16 @@ const clientMode = role === "client";
 
     try {
       await api.post(`/order/${order._id}/reorder`);
-
-      onCancelSuccess?.();
+      navigate("/shipping/info", {
+        state: {
+          orderId: order._id,
+          subtotal: order.subtotal_price,
+          shipping: 50,
+          total: order.total_price,
+        },
+      });
     } catch (error) {
       const message = error.response?.data?.message;
-
       if (error.response?.status === 404 && message) {
         alert(`❌ ${message}`);
       } else {
@@ -431,7 +423,19 @@ const clientMode = role === "client";
       }
     }
   }
- 
+
+  const formattedImage = (imgPath) => {
+    if (!imgPath) return null;
+    return imgPath.replace(/\\/g, "//").replace("uploads", BASE_URL);
+  };
+
+  if (!isUserLogged())
+    return (
+      <div className="response-message error-message">
+        your session ended, please login
+      </div>
+    );
+
   if (!orders.length) {
     return (
       <div className="ol-empty">
@@ -440,6 +444,7 @@ const clientMode = role === "client";
       </div>
     );
   }
+
   return (
     <div className="ol-root" dir="rtl">
       <div className="Page-Header">
@@ -459,9 +464,7 @@ const clientMode = role === "client";
         {FILTERS.map((f) => (
           <button
             key={f.value}
-            className={`ol-filter-btn${
-              filter === f.value ? " ol-filter-btn--active" : ""
-            }`}
+            className={`ol-filter-btn${filter === f.value ? " ol-filter-btn--active" : ""}`}
             onClick={() => setFilter(f.value)}
           >
             {f.label}
@@ -487,88 +490,75 @@ const clientMode = role === "client";
             const prodCount = countProducts(order);
             const total = order.total_price || order.store_subtotal || 0;
 
-const paymentMethod = order.payment?.method;
+            const paymentMethod = order.payment?.method;
 
-const paymentStatusKey = normalizePaymentStatus(
-  order.payment,
-  key
-);
+            
+            const paymentStatusKey = normalizePaymentStatus(order.payment, key);
 
-const paymentCfg =
-  PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
-  PAYMENT_STATUS_CONFIG.pending;
+            const paymentCfg =
+              PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
+              PAYMENT_STATUS_CONFIG.pending;
 
-const canCompletePayment =
-  clientMode &&
-  ["wallet", "card"].includes(paymentMethod) &&
-  ["pending", "processing", "failed"].includes(
-    paymentStatusKey
-  ) &&
-  key !== "cancelled";
-
+            const canCompletePayment =
+              clientMode &&
+              ["wallet", "card"].includes(paymentMethod) &&
+              ["pending", "processing", "failed"].includes(paymentStatusKey) &&
+              key !== "cancelled";
+ console.log("payment status =>", order.payment?.status);
             return (
+             
               <div className="ol-card" key={id}>
                 {/* Card Header */}
                 <div className="ol-card-header">
                   {/* Status — store gets dropdown, client gets static badge */}
-                
-  {storeMode ? (
-    <StatusDropdown
-      currentKey={key}
-      orderId={id}
-      onStatusChange={(oid, newStatus) => {
-        setOrders((prev) =>
-          prev.map((o) =>
-            (o._id || o.order_id) === oid
-              ? {
-                  ...o,
-                  status: newStatus,
-                  order_status: newStatus,
-                }
-              : o
-          )
-        );
-      }}
-    />
-  ) : (
-    <div className="ol-badges-wrap">
-      {/* ORDER STATUS */}
-      <span className={`ol-status ${cfg.cls}`}>
-        <span className="ol-dot" />
-        {cfg.client || rawStatus}
-      </span>
-
-    </div>
-  )}
-  <div>
-
-   {/* PAYMENT STATUS */}
-      <span
-        className={`ol-payment-badge ${paymentCfg.cls}`}
-      >
-        <span className="ol-dot" />
-        {paymentCfg.label}
-      </span>
-      </div>
-
-  <div className="ol-order-meta">
-    <span className="ol-order-id">
-      #{storeMode ? "GE" : "GQ"}-
-      {id?.slice(-4).toUpperCase()}
-    </span>
-
-    <span className="ol-order-date">
-      {formatDate(
-        order.createdAt ||
-          order.order_date ||
-          order.order_created_at
-      )}
-    </span>
-  </div>
-           
-               
+                  {storeMode ? (
+                    <StatusDropdown
+                      currentKey={key}
+                      orderId={id}
+                      onStatusChange={(oid, newStatus) => {
+                        setOrders((prev) =>
+                          prev.map((o) =>
+                            (o._id || o.order_id) === oid
+                              ? {
+                                  ...o,
+                                  status: newStatus,
+                                  order_status: newStatus,
+                                }
+                              : o,
+                          ),
+                        );
+                      }}
+                    />
+                  ) : (
+                    <span className={`ol-status ${cfg.cls}`}>
+                      <span className="ol-dot" />
+                      {cfg[storeMode ? "store" : "client"] || rawStatus}
+                    </span>
+                  )}
+                    <div>
+                  {/* PAYMENT STATUS */}
+                  <span className={`ol-payment-badge ${paymentCfg.cls}`}>
+                    <span className="ol-dot" />
+                    {paymentCfg.label}
+                  </span>
                 </div>
- 
+
+                  <div className="ol-order-meta">
+                    <span className="ol-order-id">
+                      #{storeMode ? "GE" : "GQ"}-{id?.slice(-4).toUpperCase()}
+                    </span>
+                    <span className="ol-order-date">
+                      {formatDate(
+                        order.createdAt ||
+                          order.order_date ||
+                          order.order_created_at,
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+              
+
                 {/* Card Body */}
                 <div className="ol-card-body">
                   {/* CLIENT: products */}
@@ -577,11 +567,7 @@ const canCompletePayment =
                       {order.products?.map((store, i) =>
                         store.products?.slice(0, 3).map((item, j) => {
                           const img = item.prod_id?.images?.[0];
-                          const src = img
-                            ? img.startsWith("http")
-                              ? img
-                              : `${BASE_URL}/${img}`
-                            : null;
+                          const src = formattedImage(img);
                           return (
                             <div className="ol-item" key={`${i}-${j}`}>
                               <div className="ol-item-img">
@@ -619,7 +605,7 @@ const canCompletePayment =
                   )}
 
                   {/* STORE: customer info */}
-                  {storeMode&& (
+                  {storeMode && (
                     <div className="ol-customer">
                       {order.customer?.name?.trim() && (
                         <div className="ol-customer-row">
@@ -672,51 +658,57 @@ const canCompletePayment =
                 {/* Card Footer */}
                 <div className="ol-card-footer">
                   <div className="ol-foot-btns">
-                  {clientMode && (
-  <>
-    {isCancelled && (
-      <button
-        className="ol-btn ol-btn--reorder"
-        onClick={() => reorder(order)}
-      >
-        إعادة طلب
-      </button>
-    )}
+                    {clientMode && (
+                      <>
+                        {isCancelled && (
+                          <button
+                            className="ol-btn ol-btn--reorder"
+                            onClick={() => reorder(order)}
+                          >
+                            إعادة طلب
+                          </button>
+                        )}
 
-  
+                        <Link
+                          to={`/orders/${id}`}
+                          className="ol-btn ol-btn--details"
+                        >
+                          التفاصيل
+                        </Link>
 
-    <Link
-      to={`/orders/${id}`}
-      className="ol-btn ol-btn--details"
-    >
-      التفاصيل
-    </Link>
-
-{canCompletePayment && (
+                      {canCompletePayment && (
   <button
     className="ol-btn ol-btn--reorder"
     onClick={() => {
-      console.log("complete payment");
-    }}
+      navigate("/shipping/info", {
+        state: {
+          orderId: order._id,
+          subtotal: order.subtotal_price,
+          shipping: 50,
+          total: order.total_price,
+        },
+      });
+    }}  
   >
     إكمال الدفع
   </button>
 )}
 
-    {isPending && (
-      <button
-        className="ol-btn ol-btn--cancel"
-        onClick={() => cancelOrder(id)}
-        disabled={cancellingId === id}
-      >
-        {cancellingId === id
-          ? "جاري الإلغاء..."
-          : "إلغاء الطلب"}
-      </button>
-    )}
-  </>
-)}
-                    {storeMode&& (
+                        {isPending && (
+                          <button
+                            className="ol-btn ol-btn--cancel"
+                            onClick={() => cancelOrder(id)}
+                            disabled={cancellingId === id}
+                          >
+                            {cancellingId === id
+                              ? "جاري الإلغاء..."
+                              : "إلغاء الطلب"}
+                          </button>
+                        )}
+                      </>
+                    )}
+
+                    {storeMode && (
                       <Link
                         to={`/dashboard/orders/${id}`}
                         className="ol-btn ol-btn--details"
