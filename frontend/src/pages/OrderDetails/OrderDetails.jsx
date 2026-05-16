@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { api } from "../../services/authService";
 import "./OrderDetails.css";
 import { getAccessToken } from "../../services/authService";
 import { getOrderDetails } from "../../services/order";
@@ -235,18 +236,13 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
     console.log("SENDING PRODUCT ID =>", productId);
     console.log("ORDER ID =>", orderId);
 
-    await axios.post(
+    await api.post(
       `${BASE_URL}/order/${orderId}/rating`,
       {
         productId,
         rate: Number(rating),
         comment: comment?.trim(),
       },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      }
     );
 
     onSuccess();
@@ -257,7 +253,6 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
 
     setError(
       err.response?.data?.message ||
-      err.message ||
       "فشل إرسال التقييم"
     );
   } finally {
@@ -348,7 +343,7 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function MyOrderDetails() {
+export default function OrderDetails() {
   const navigate = useNavigate();
   const { id: orderId } = useParams();
   const [order, setOrder] = useState(null);
@@ -390,15 +385,13 @@ export default function MyOrderDetails() {
   if (error) return <div className="od-error">{error}</div>;
   if (!order) return <div className="od-error">لم يتم العثور على الطلب</div>;
 
-  const normalizedStatus = normalizeStatus(order.status);
+  const normalizedStatus = normalizeStatus(order.status || order.order_status);
   const isCancelled = normalizedStatus === "cancelled";
   const badge = STATUS_MAP[normalizedStatus] || STATUS_MAP["pending"];
-  const payBadge = PAYMENT_STATUS_MAP[order.payment?.status] || {};
-  const customerInfo = order.user_id;
-  const totalProducts = order.products.reduce(
-    (acc, s) => acc + s.products.length,
-    0,
-  );
+  const payBadge = PAYMENT_STATUS_MAP[order.payment?.status || order.payment_status] || {};
+  const customerInfo = order.customer || order.user_id;
+  const totalProducts = order.store_products?.length || 
+  order.products?.reduce((acc, s) => acc + s.products.length, 0);
 
   return (
     <div className="od-root" dir="rtl">
@@ -413,7 +406,7 @@ export default function MyOrderDetails() {
         <div className="od-header-info">
           <div className="od-title-row">
             <h1 className="od-order-number">
-              رقم الطلب #{order._id?.slice(-6).toUpperCase()}
+              رقم الطلب #{order.order_id?.slice(-6).toUpperCase() || order._id?.slice(-6).toUpperCase()}
             </h1>
             <span className={`od-badge ${badge.cls}`}>
               {normalizedStatus === "delivered" && <CheckCircleIcon />}
@@ -425,7 +418,7 @@ export default function MyOrderDetails() {
               {badge.label}
             </span>
           </div>
-          <p className="od-date">تاريخ الطلب: {formatDate(order.createdAt)}</p>
+          <p className="od-date">تاريخ الطلب: {formatDate(order.order_created_at || order.createdAt)}</p>
         </div>
         <button className="od-print-btn" onClick={() => window.print()}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -598,28 +591,24 @@ export default function MyOrderDetails() {
               store.products.map((prod) => {
                 const imgSrc = buildImgSrc(prod.prod_id?.images?.[0]);
                 const isDelivered = normalizedStatus === "delivered";
-            const realProdId =
-  prod.prod_id && typeof prod.prod_id === "object"
-    ? prod.prod_id._id
-    : prod.prod_id;
+                const realProdId = prod.prod_id._id;
 
-// ✅ skip if no product id
-if (!realProdId) return null;
+                // ✅ skip if no product id
+                if (!realProdId) return null;
 
-const hasReviewed =
-  prod?.hasReviewed === true ||
-  ratedProducts.includes(realProdId.toString());
+                const hasReviewed =
+                  prod?.prod_id?.hasReviewed === true || ratedProducts.includes(realProdId.toString());
 
-console.log(
-  "REAL PRODUCT ID =>",
-  realProdId.toString(),
-  "ratedProducts =>",
-  ratedProducts,
-  "hasReviewed =>",
-  hasReviewed
-);
+                // console.log(
+                //   "REAL PRODUCT ID =>",
+                //   realProdId.toString(),
+                //   "ratedProducts =>",
+                //   ratedProducts,
+                //   "hasReviewed =>",
+                //   hasReviewed
+                // );
                 return (
-                  <div key={prod._id} className="od-product-item">
+                  <div key={prod.prod_id._id} className="od-product-item">
                     <div className="od-product-left">
                       <div className="od-product-img">
                         {imgSrc ? (
@@ -658,8 +647,7 @@ console.log(
                               prod,
                               // ✅ pass storeOwnerId for ReviewSchema
                               storeOwnerId:
-                                store.owner_store_id?._id ||
-                                store.owner_store_id,
+                                store.owner_store_id?._id,
                             })
                           }
                           disabled={hasReviewed}
@@ -681,7 +669,7 @@ console.log(
      {review && (
   <ReviewModal
     product={review.prod}
-    orderId={order._id}
+    orderId={order._id || order.order_id}
     storeOwnerId={review.storeOwnerId}
     onClose={() => setReview(null)}
 onSuccess={() => {

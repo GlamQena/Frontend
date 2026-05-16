@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import OrdersList from "../../../components/OrdersList";
 import "../../../components/OrdersList.css";
+import { api } from "../../../services/authService";
 
 const BASE_URL = "http://localhost:8080";
 
@@ -12,11 +13,8 @@ export default function StoreOwnerOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/order/`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        });
+        const res = await api.get(`${BASE_URL}/order/`);
+        console.log("Orders fetched:", res.data.orders);
         setOrders(res.data.orders || []);
       } catch (err) {
         console.error(err);
@@ -25,5 +23,5 @@ export default function StoreOwnerOrders() {
     fetchOrders();
   }, []);
 
-  return <OrdersList orders={orders} type="store" headerTitle="الطلبات" />;
+  return <OrdersList orders={orders} headerTitle="الطلبات" />;
 }
