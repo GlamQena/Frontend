@@ -212,6 +212,34 @@ const STATUS_CONFIG = {
   },
 };
 
+
+const PAYMENT_STATUS_CONFIG = {
+  pending: {
+    label: "مؤجل",
+    cls: "ol-payment--pending",
+  },
+
+  processing: {
+    label: "قيد المعالجة",
+    cls: "ol-payment--processing",
+  },
+
+  completed: {
+    label: "مكتمل",
+    cls: "ol-payment--completed",
+  },
+
+  failed: {
+    label: "فشل",
+    cls: "ol-payment--failed",
+  },
+
+  refunded: {
+    label: "مسترجع",
+    cls: "ol-payment--refunded",
+  },
+};
+
 const CLIENT_FILTERS = [
   { label: "الكل", value: "all" },
   { label: "قيد الانتظار", value: "pending" },
@@ -230,6 +258,56 @@ const STORE_FILTERS = [
   { label: "تم التسليم", value: "delivered" },
   { label: "ملغى", value: "cancelled" },
 ];
+
+const normalizePaymentStatus = (payment, orderStatus) => {
+  const method = payment?.method;
+  const rawStatus = payment?.status;
+
+  const value = String(rawStatus || "")
+    .trim()
+    .toLowerCase();
+
+  // CASH LOGIC
+  if (method === "cash") {
+    // cancelled after payment
+    if (
+      orderStatus === "cancelled" &&
+      ["completed", "paid"].includes(value)
+    ) {
+      return "refunded";
+    }
+
+    // delivered cash order = completed
+    if (orderStatus === "delivered") {
+      return "completed";
+    }
+
+    // any other cash order = pending
+    return "pending";
+  }
+
+  // CARD / WALLET
+  switch (value) {
+  
+    case "قيد المعالجة":
+      return "processing";
+
+  
+    case "مكتمل":
+      return "completed";
+
+    case "فشل":
+      return "failed";
+
+
+    case "مسترجع":
+      return "refunded";
+
+    case "مؤجل":
+    default:
+      return "pending";
+  }
+};
 
 function formatDate(str) {
   if (!str) return "—";
@@ -409,50 +487,88 @@ const clientMode = role === "client";
             const prodCount = countProducts(order);
             const total = order.total_price || order.store_subtotal || 0;
 
+const paymentMethod = order.payment?.method;
+
+const paymentStatusKey = normalizePaymentStatus(
+  order.payment,
+  key
+);
+
+const paymentCfg =
+  PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
+  PAYMENT_STATUS_CONFIG.pending;
+
+const canCompletePayment =
+  clientMode &&
+  ["wallet", "card"].includes(paymentMethod) &&
+  ["pending", "processing", "failed"].includes(
+    paymentStatusKey
+  ) &&
+  key !== "cancelled";
+
             return (
               <div className="ol-card" key={id}>
                 {/* Card Header */}
                 <div className="ol-card-header">
                   {/* Status — store gets dropdown, client gets static badge */}
-                  {storeMode? (
-                    <StatusDropdown
-                      currentKey={key}
-                      orderId={id}
-                      onStatusChange={(oid, newStatus) => {
-                        setOrders((prev) =>
-                          prev.map((o) =>
-                            (o._id || o.order_id) === oid
-                              ? {
-                                  ...o,
-                                  status: newStatus,
-                                  order_status: newStatus,
-                                }
-                              : o,
-                          ),
-                        );
-                      }}
-                    />
-                  ) : (
-                    <span className={`ol-status ${cfg.cls}`}>
-                      <span className="ol-dot" />
-                      {cfg[storeMode ? "store" : "client"] || rawStatus}
-                    </span>
-                  )}
-                  <div className="ol-order-meta">
-                    <span className="ol-order-id">
-                      #{storeMode? "GE" : "GQ"}-
-                      {id?.slice(-4).toUpperCase()}
-                    </span>
-                    <span className="ol-order-date">
-                      {formatDate(
-                        order.createdAt ||
-                          order.order_date ||
-                          order.order_created_at,
-                      )}
-                    </span>
-                  </div>
-                </div>
+                
+  {storeMode ? (
+    <StatusDropdown
+      currentKey={key}
+      orderId={id}
+      onStatusChange={(oid, newStatus) => {
+        setOrders((prev) =>
+          prev.map((o) =>
+            (o._id || o.order_id) === oid
+              ? {
+                  ...o,
+                  status: newStatus,
+                  order_status: newStatus,
+                }
+              : o
+          )
+        );
+      }}
+    />
+  ) : (
+    <div className="ol-badges-wrap">
+      {/* ORDER STATUS */}
+      <span className={`ol-status ${cfg.cls}`}>
+        <span className="ol-dot" />
+        {cfg.client || rawStatus}
+      </span>
 
+    </div>
+  )}
+  <div>
+
+   {/* PAYMENT STATUS */}
+      <span
+        className={`ol-payment-badge ${paymentCfg.cls}`}
+      >
+        <span className="ol-dot" />
+        {paymentCfg.label}
+      </span>
+      </div>
+
+  <div className="ol-order-meta">
+    <span className="ol-order-id">
+      #{storeMode ? "GE" : "GQ"}-
+      {id?.slice(-4).toUpperCase()}
+    </span>
+
+    <span className="ol-order-date">
+      {formatDate(
+        order.createdAt ||
+          order.order_date ||
+          order.order_created_at
+      )}
+    </span>
+  </div>
+           
+               
+                </div>
+ 
                 {/* Card Body */}
                 <div className="ol-card-body">
                   {/* CLIENT: products */}
@@ -556,35 +672,50 @@ const clientMode = role === "client";
                 {/* Card Footer */}
                 <div className="ol-card-footer">
                   <div className="ol-foot-btns">
-                    {clientMode && (
-                      <>
-                        {isCancelled && (
-                          <button
-                            className="ol-btn ol-btn--reorder"
-                            onClick={() => reorder(order)}
-                          >
-                            إعادة طلب
-                          </button>
-                        )}
-                        <Link
-                          to={`/orders/${id}`}
-                          className="ol-btn ol-btn--details"
-                        >
-                          التفاصيل
-                        </Link>
-                        {isPending && (
-                          <button
-                            className="ol-btn ol-btn--cancel"
-                            onClick={() => cancelOrder(id)}
-                            disabled={cancellingId === id}
-                          >
-                            {cancellingId === id
-                              ? "جاري الإلغاء..."
-                              : "إلغاء الطلب"}
-                          </button>
-                        )}
-                      </>
-                    )}
+                  {clientMode && (
+  <>
+    {isCancelled && (
+      <button
+        className="ol-btn ol-btn--reorder"
+        onClick={() => reorder(order)}
+      >
+        إعادة طلب
+      </button>
+    )}
+
+  
+
+    <Link
+      to={`/orders/${id}`}
+      className="ol-btn ol-btn--details"
+    >
+      التفاصيل
+    </Link>
+
+{canCompletePayment && (
+  <button
+    className="ol-btn ol-btn--reorder"
+    onClick={() => {
+      console.log("complete payment");
+    }}
+  >
+    إكمال الدفع
+  </button>
+)}
+
+    {isPending && (
+      <button
+        className="ol-btn ol-btn--cancel"
+        onClick={() => cancelOrder(id)}
+        disabled={cancellingId === id}
+      >
+        {cancellingId === id
+          ? "جاري الإلغاء..."
+          : "إلغاء الطلب"}
+      </button>
+    )}
+  </>
+)}
                     {storeMode&& (
                       <Link
                         to={`/dashboard/orders/${id}`}
