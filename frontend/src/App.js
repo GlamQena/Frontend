@@ -64,6 +64,7 @@ function App() {
         <Route path="/dashboard/store_owner/" element={<StoreOwnerHome />} />
         <Route path="/dashboard/store_owner/products" element={<StoreOwnerProducts/>} />
         <Route path="/dashboard/store_owner/orders" element={<StoreOwnerOrders />} />
+        <Route path="/dashboard/store_owner/orders/:id" element={<OrderDetails />} />
 
         {/* ── Fallback ── */}
         <Route path="*" element={<NotFound />} />

@@ -569,7 +569,7 @@ const formattedImage = (imgPath) => {
                     )}
                     {storeMode && (
                       <Link
-                        to={`/dashboard/orders/${id}`}
+                        to={`/dashboard/store_owner/orders/${id}`}
                         className="ol-btn ol-btn--details"
                       >
                         تفاصيل الطلب

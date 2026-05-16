@@ -167,8 +167,7 @@ const Register = () => {
       localStorage.setItem("refreshToken", responseData.refreshToken);
 
       const role = responseData.user.role;
-      if (role === "admin") navigate("/dashboard/admin_home");
-      else if(role === "store_owner") navigate("/dashboard/owner_home");
+      if(role === "store_owner") navigate("/dashboard/store_owner");
       else navigate("/"); //client usual home
     } catch (err) {
       window.scrollTo({ top: 0, behavior: "smooth" });
