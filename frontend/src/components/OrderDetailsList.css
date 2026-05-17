@@ -691,6 +691,22 @@ opacity: .3;
 .modal-submit:disabled { opacity: 0.5; cursor: default; }
 .modal-submit:not(:disabled):hover { opacity: 0.88; }
 
+
+
+.od-grid--store {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "od-header od-header"
+    "od-products od-products";
+    margin-top: 20px;
+}
+
+.od-grid--store .od-products-card {
+  grid-column: 1 / -1; /* ✅ المنتجات تاخد العرض الكامل */
+}
+
+
 /* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 768px) {
   .od-root { padding: 80px 16px 40px; width: 95%; }
@@ -733,12 +749,6 @@ opacity: .3;
     display: none !important;
   }
 
-  html, body {
-    width: 100%;
-    height: auto;
-    margin: 0;
-    padding: 0;
-  }
 
   .container {
     height: auto !important;
@@ -847,3 +857,8 @@ opacity: .3;
   border-radius: 29px;
   padding: 5px;
 }
+
+
+
+
+
