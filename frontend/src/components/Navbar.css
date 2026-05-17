@@ -1,0 +1,437 @@
+.navbar-container {
+  width: 100%;
+  height: var(--ناف-بار-ارتفاع);
+
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  background: var(--ناف-بار-خلفية);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  border-bottom: 1px solid var(--ناف-بار-حد);
+
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.04);
+}
+
+/* ───────────────────────────── */
+
+.nav-bar {
+  width: 100%;
+  max-width: 1450px;
+
+  height: 100%;
+
+  margin: 0 auto;
+  padding: 0 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ───────────────────────────── */
+/* Logo */
+/* ───────────────────────────── */
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  text-decoration: none;
+
+  transition: transform 0.25s ease;
+}
+
+.nav-logo:hover {
+  transform: translateY(-1px);
+}
+
+.logo-glam {
+  font-family: "Playfair Display", serif;
+  font-size: 22px;
+  font-weight: 700;
+
+  letter-spacing: 0.4px;
+
+  color: var(--بنفسجي);
+}
+
+.logo-qena {
+  font-family: "Playfair Display", serif;
+  font-size: 22px;
+  font-weight: 500;
+
+  color: var(--نص-ثانوي);
+}
+
+.logo-dot {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: var(--ذهبي);
+
+  box-shadow:
+    0 0 8px rgba(212, 175, 55, 0.55),
+    0 0 18px rgba(212, 175, 55, 0.18);
+
+  flex-shrink: 0;
+}
+
+.logo-ar {
+  font-family: "Tajawal", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+
+  margin-inline-start: 2px;
+
+  color: var(--نص-خافت);
+}
+
+/* ───────────────────────────── */
+/* Actions */
+/* ───────────────────────────── */
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ───────────────────────────── */
+/* Icons */
+/* ───────────────────────────── */
+
+.nav-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid transparent;
+  border-radius: 14px;
+
+  background: transparent;
+
+  color: var(--نص-ثانوي);
+
+  cursor: pointer;
+  text-decoration: none;
+
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.nav-icon:hover {
+  background: var(--بنفسجي-خافت);
+
+  border-color: var(--حد-واضح);
+
+  color: var(--بنفسجي);
+
+  transform: translateY(-2px);
+
+  box-shadow: var(--ظل-الأيقونة);
+}
+
+.nav-icon:active {
+  transform: scale(0.96);
+}
+
+/* active route */
+
+.nav-icon.active {
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+
+  border-color: var(--حد-واضح);
+}
+
+/* ───────────────────────────── */
+/* Login Button */
+/* ───────────────────────────── */
+
+.nav-btn-login {
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 0 18px;
+
+  border-radius: var(--راديوس-الزر);
+  border: 1px solid var(--حد-واضح);
+
+  background: transparent;
+
+  color: var(--نص-رئيسي);
+
+  text-decoration: none;
+
+  font-family: "Tajawal", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease;
+}
+
+.nav-btn-login:hover {
+  background: var(--بنفسجي-خافت);
+
+  border-color: var(--بنفسجي);
+
+  color: var(--بنفسجي);
+
+  transform: translateY(-1px);
+}
+
+/* ───────────────────────────── */
+/* Signup Button */
+/* ───────────────────────────── */
+
+.nav-btn-signup {
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 22px;
+
+  border: none;
+  border-radius: var(--راديوس-الزر);
+
+  background: var(--تدرج-الأزرار);
+
+  color: white;
+
+  text-decoration: none;
+
+  font-family: "Tajawal", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+
+  box-shadow: var(--ظل-الزر);
+
+  transition:
+    transform 0.22s ease,
+    opacity 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.nav-btn-signup:hover {
+  opacity: 0.95;
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 30px rgba(168, 85, 247, 0.28);
+}
+
+.nav-btn-signup:active {
+  transform: scale(0.97);
+}
+
+/* ───────────────────────────── */
+/* Theme Toggle */
+/* ───────────────────────────── */
+
+.mode-toggler {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--حد-خافت);
+  border-radius: 50%;
+
+  background: var(--خلفية-2);
+
+  color: var(--بنفسجي);
+
+  cursor: pointer;
+
+  transition:
+    background 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.3s ease,
+    box-shadow 0.22s ease;
+}
+
+.mode-toggler:hover {
+  background: var(--بنفسجي-خافت);
+
+  border-color: var(--حد-واضح);
+
+  transform: rotate(18deg) scale(1.04);
+
+  box-shadow: var(--ظل-الأيقونة);
+}
+
+/* ───────────────────────────── */
+/* Navigation Links  */
+/* ───────────────────────────── */
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  padding: 8px 18px;
+  border-radius: 40px;
+  text-decoration: none;
+  font-family: "Tajawal", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--نص-ثانوي);
+  transition: all 0.22s ease;
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+  transform: translateY(-1px);
+}
+
+.nav-link.active {
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+  font-weight: 700;
+}
+
+/* ───────────────────────────── */
+/* Responsive */
+/* ───────────────────────────── */
+
+@media (max-width: 992px) {
+  .nav-bar {
+    padding: 0 24px;
+  }
+  
+  .nav-link {
+    padding: 6px 14px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    height: 60px;
+  }
+
+  .nav-bar {
+    padding: 0 16px;
+  }
+
+  .logo-glam,
+  .logo-qena {
+    font-size: 18px;
+  }
+
+  /* Hide signup button completely on mobile */
+  .nav-btn-signup {
+    display: none;
+  }
+
+  /* Make login button an icon only on mobile */
+  .nav-btn-login {
+    width: 40px;
+    padding: 0;
+    gap: 0;
+  }
+  
+  .nav-btn-login span {
+    display: none;
+  }
+
+  .nav-actions {
+    gap: 6px;
+  }
+
+  .nav-icon,
+  .mode-toggler {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .nav-links {
+    gap: 6px;
+  }
+  
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 650px) {
+  /* في الموبايل الصغير، نخفي النص ونظهر نقطة */
+  .nav-link {
+    font-size: 0;
+    padding: 8px 10px;
+  }
+  
+  .nav-link:before {
+    content: "●";
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .nav-link.active:before {
+    color: var(--بنفسجي);
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-ar {
+    display: none;
+  }
+
+  .nav-bar {
+    padding: 0 14px;
+  }
+  
+  .nav-links {
+    gap: 4px;
+  }
+  
+  .nav-link {
+    padding: 6px 8px;
+  }
+  
+  .nav-link:before {
+    font-size: 12px;
+  }
+}
