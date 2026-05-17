@@ -8,7 +8,7 @@ import { getCurrentUser } from './users';
 const getStoreId = () => {
   const user = getCurrentUser();
   if (!user) return null;
-  return user._id;  // ✅ user._id مش store_id
+  return user._id;  
 };
 
 // ─────────────────────────────────────────────
