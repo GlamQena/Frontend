@@ -94,14 +94,17 @@ function useProducts() {
   const [submitting, setSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
 
-  const fetchProducts = useCallback(async () => {
-    try {
-      const res = await getProducts();
-      setProducts(res.data ?? res);
-    } catch (err) {
-      console.error('فشل في تحميل المنتجات', err);
-    }
-  }, []);
+const fetchProducts = useCallback(async () => {
+  try {
+    const res = await getProducts();
+    console.log("fetched products res=> ", res);
+    
+    setProducts(res?.data?.products ?? []);
+    
+  } catch (err) {
+    console.error('فشل في تحميل المنتجات', err);
+  }
+}, []);
 
   const fetchCategories = useCallback(async () => {
     try {
