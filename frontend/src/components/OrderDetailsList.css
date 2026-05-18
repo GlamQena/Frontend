@@ -1,18 +1,15 @@
-
-
 button {
   all: unset;
   cursor: pointer;
   align-self: flex-start;
 }
-.modal-header
-{
+.modal-header {
   display: flex;
-  gap:5px
+  gap: 5px;
 }
-.modal-stars-row
-{    display: flex;
-    gap: 8px;
+.modal-stars-row {
+  display: flex;
+  gap: 8px;
 }
 .second-text {
   color: var(--نص-ثانوي);
@@ -43,7 +40,11 @@ button {
   animation: od-spin 0.8s linear infinite;
 }
 
-@keyframes od-spin { to { transform: rotate(360deg); } }
+@keyframes od-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .od-error {
   text-align: center;
@@ -72,7 +73,7 @@ button {
   justify-content: space-between;
   align-items: center;
   padding: 32px;
-  box-shadow: 0px 0px 25px 0px #A855F726;
+  box-shadow: 0px 0px 25px 0px #a855f726;
   border-radius: 48px;
   flex-wrap: wrap;
   gap: 12px;
@@ -92,7 +93,7 @@ button {
 }
 
 .od-od-number {
- font-family: Tajawal, sans-serif;
+  font-family: Tajawal, sans-serif;
   font-weight: 700;
   font-size: 24px;
   line-height: 32px;
@@ -121,13 +122,40 @@ button {
   height: 30px;
 }
 
-.badge--delivered  { background: rgba(34,197,94,0.1);   border: 1px solid #22c55e; color: #22c55e; }
-.badge--pending    { background: rgba(168,85,247,0.1);  border: 1px solid #A855F7; color: #A855F7; }
-.badge--preparing  { background: rgba(212,175,55,0.1);  border: 1px solid #D4AF37; color: #D4AF37; }
-.badge--shipping   { background: rgba(59,130,246,0.1);  border: 1px solid #3b82f6; color: #3b82f6; }
-.badge--cancelled  { background: rgba(239,68,68,0.1);   border: 1px solid #ef4444; color: #ef4444; }
-.badge--ready  { background: rgba(247, 85, 212, 0.1);  border: 1px solid #ff69b4; color: #DB7093; }
-.badge-x { display: flex; align-items: center; }
+.badge--delivered {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid #22c55e;
+  color: #22c55e;
+}
+.badge--pending {
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid #a855f7;
+  color: #a855f7;
+}
+.badge--preparing {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid #d4af37;
+  color: #d4af37;
+}
+.badge--shipping {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid #3b82f6;
+  color: #3b82f6;
+}
+.badge--cancelled {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+.badge--ready {
+  background: rgba(247, 85, 212, 0.1);
+  border: 1px solid #ff69b4;
+  color: #db7093;
+}
+.badge-x {
+  display: flex;
+  align-items: center;
+}
 
 /* ── Print button ────────────────────────────────────── */
 .od-print-btn {
@@ -136,7 +164,7 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var( --تدرج-الأزرار);
+  background: var(--تدرج-الأزرار);
   color: #490080;
   padding: 10px 20px;
   border-radius: 9999px;
@@ -158,7 +186,7 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-areas:
-  "od-header od-header od-header"
+    "od-header od-header od-header"
     "od-shipping  od-payment   od-tracking"
     "od-products  od-products  od-tracking";
   gap: 32px;
@@ -191,8 +219,12 @@ button {
   text-align: right;
 }
 
-.od-payment-card { grid-area: od-payment; }
-.od-shipping-card { grid-area: od-shipping; }
+.od-payment-card {
+  grid-area: od-payment;
+}
+.od-shipping-card {
+  grid-area: od-shipping;
+}
 
 /* ── Info rows ───────────────────────────────────────── */
 .od-info-list {
@@ -211,7 +243,10 @@ button {
   border-bottom: 1px solid var(--حد-خافت);
 }
 
-.od-info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.od-info-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
 
 .od-info-label {
   font-weight: 400;
@@ -232,10 +267,19 @@ button {
   gap: 8px;
 }
 
-.od-address-row { align-items: flex-start; }
-.od-address-val { max-width: 60%; text-align: left; line-height: 20px; }
+.od-address-row {
+  align-items: flex-start;
+}
+.od-address-val {
+  max-width: 60%;
+  text-align: left;
+  line-height: 20px;
+}
 
-.od-mono { font-family: monospace; letter-spacing: 0.5px; }
+.od-mono {
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
 
 /* ── Payment status badge ────────────────────────────── */
 .od-pay-badge {
@@ -245,11 +289,26 @@ button {
   border-radius: 9999px;
 }
 
-.pay--done       { background: rgba(34,197,94,0.1);   color: #22c55e; }
-.pay--pending    { background: rgba(168,85,247,0.1);  color: #A855F7; }
-.pay--processing { background: rgba(59,130,246,0.1);  color: #3b82f6; }
-.pay--fail       { background: rgba(239,68,68,0.1);   color: #ef4444; }
-.pay--refunded   { background: rgba(212,175,55,0.1);  color: #D4AF37; }
+.pay--done {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+.pay--pending {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+}
+.pay--processing {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+.pay--fail {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+.pay--refunded {
+  background: rgba(212, 175, 55, 0.1);
+  color: #d4af37;
+}
 
 /* ── Tracking Card ───────────────────────────────────── */
 .od-tracking-card {
@@ -258,7 +317,7 @@ button {
   border-radius: 48px;
   padding: 28px 24px 24px;
   background: var(--خلفية-حالات-الاوردرات, #fff);
-  box-shadow: 0px 0px 25px 0px #A855F726;
+  box-shadow: 0px 0px 25px 0px #a855f726;
   display: flex;
   flex-direction: column;
 }
@@ -276,7 +335,7 @@ button {
 
 .od-step {
   display: flex;
-  flex-direction: row;      /* circle RIGHT in RTL */
+  flex-direction: row; /* circle RIGHT in RTL */
   align-items: flex-start;
   gap: 16px;
 }
@@ -304,9 +363,19 @@ button {
   z-index: 1;
 }
 
-.circle--done      { background: linear-gradient(135deg,#22c55e,#16a34a); box-shadow: 0 4px 12px rgba(34,197,94,0.35); }
-.circle--pending   { background: linear-gradient(135deg,#A855F7,#7c3aed); box-shadow: 0 4px 12px rgba(168,85,247,0.35); opacity: .3; }
-.circle--cancelled { background: linear-gradient(135deg,#ef4444,#dc2626); box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
+.circle--done {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
+}
+.circle--pending {
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);
+  opacity: 0.3;
+}
+.circle--cancelled {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
 
 /* connecting line via ::after */
 .od-step:not(.od-step--last) .od-step-indicator::after {
@@ -317,15 +386,15 @@ button {
   transform: translateX(-50%);
   width: 2px;
   bottom: -16px;
-  background: linear-gradient(to bottom, #22c55e, rgba(34,197,94,0.15));
+  background: linear-gradient(to bottom, #22c55e, rgba(34, 197, 94, 0.15));
   z-index: 0;
 }
 
 /* pending step: override line to purple via ::after + purple ::before */
 .od-step--pending:not(.od-step--last) .od-step-indicator::after {
-  background: linear-gradient(to bottom, #A855F7, rgba(168,85,247,0.15));
+  background: linear-gradient(to bottom, #a855f7, rgba(168, 85, 247, 0.15));
   z-index: 2;
-  opacity: .3;
+  opacity: 0.3;
 }
 
 .od-step--pending .od-step-indicator::before,
@@ -338,15 +407,15 @@ button {
   width: 2px;
   height: 48px;
   z-index: 2;
-opacity: .3;
+  opacity: 0.3;
 }
 
 .od-step--pending .od-step-indicator::before {
-  background: linear-gradient(to bottom, rgba(168,85,247,0.15), #A855F7);
+  background: linear-gradient(to bottom, rgba(168, 85, 247, 0.15), #a855f7);
 }
 
 .od-step--cancelled .od-step-indicator::before {
-  background: linear-gradient(to bottom, rgba(239,68,68,0.15), #ef4444);
+  background: linear-gradient(to bottom, rgba(239, 68, 68, 0.15), #ef4444);
 }
 
 /* step text */
@@ -360,7 +429,9 @@ opacity: .3;
   padding-top: 4px;
 }
 
-.od-step--last .od-step-text { padding-bottom: 8px; }
+.od-step--last .od-step-text {
+  padding-bottom: 8px;
+}
 
 .od-step-label {
   font-weight: 700;
@@ -368,7 +439,9 @@ opacity: .3;
   color: var(--نص-رئيسي);
 }
 
-.od-step--pending .od-step-label { color: var(--نص-خافت); }
+.od-step--pending .od-step-label {
+  color: var(--نص-خافت);
+}
 
 .od-step-time {
   font-weight: 400;
@@ -376,10 +449,17 @@ opacity: .3;
   color: var(--نص-ثانوي);
 }
 
-.od-step--pending .od-step-time { color: var(--نص-خافت); }
+.od-step--pending .od-step-time {
+  color: var(--نص-خافت);
+}
 
-.cancelled-label { color: var(--أحمر-خطأ) !important; }
-.cancelled-time  { color: var(--أحمر-خطأ) !important; opacity: 0.7; }
+.cancelled-label {
+  color: var(--أحمر-خطأ) !important;
+}
+.cancelled-time {
+  color: var(--أحمر-خطأ) !important;
+  opacity: 0.7;
+}
 
 /* ── Totals ──────────────────────────────────────────── */
 .od-totals {
@@ -424,7 +504,7 @@ opacity: .3;
 .od-grand-val {
   font-weight: 700;
   font-size: 20px;
-  color: #DB7093;
+  color: #db7093;
 }
 
 /* ── Products Card ───────────────────────────────────── */
@@ -445,7 +525,7 @@ opacity: .3;
 }
 
 .od-products-id {
- color: var(--نص-رئيسي);
+  color: var(--نص-رئيسي);
   font-family: Tajawal, sans-serif;
   font-weight: 700;
   font-size: 20px;
@@ -460,7 +540,7 @@ opacity: .3;
 }
 
 .od-product-item {
-   border-top: 1px solid var(--حد-خافت);
+  border-top: 1px solid var(--حد-خافت);
   display: flex;
   margin-right: 20px;
   padding: 20px 0 30px;
@@ -469,12 +549,12 @@ opacity: .3;
 }
 
 .od-product-left {
-      display: flex;
-    align-items: center;
-    gap: 16px;
-    align-items: center;
-    justify-content: flex-start;
-    max-width: 300px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  align-items: center;
+  justify-content: flex-start;
+  max-width: 300px;
 }
 
 .od-product-img img {
@@ -535,7 +615,7 @@ opacity: .3;
 .od-prod-price {
   font-weight: 700;
   font-size: 20px;
-  color: #DB7093;
+  color: #db7093;
 }
 
 .od-review-btn {
@@ -546,27 +626,27 @@ opacity: .3;
   gap: 8px;
   border-radius: 9999px;
   padding: 8px 20px;
-  background: rgba(168,85,247,0.1);
-  border: 1px solid rgba(168,85,247,0.2);
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.2);
   font-family: Tajawal, sans-serif;
   font-weight: 700;
   font-size: 14px;
-  color: #A855F7;
+  color: #a855f7;
   transition: all 0.25s ease;
   white-space: nowrap;
 }
 
 .od-review-btn:hover:not(:disabled) {
-  background: rgba(168,85,247,0.2);
-  border-color: rgba(168,85,247,0.4);
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.4);
   box-shadow: var(--ظل-الأيقونة);
 }
 
 .od-review-btn--done {
   opacity: 0.6;
   cursor: default;
-  background: rgba(34,197,94,0.08);
-  border-color: rgba(34,197,94,0.2);
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.2);
   color: #22c55e;
 }
 
@@ -574,7 +654,7 @@ opacity: .3;
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -584,19 +664,19 @@ opacity: .3;
 }
 
 .modal-card {
-    background: var(--خلفية-البطاقة, #fff);
-    border-radius: 32px;
-    padding: 32px;
-    width: 100%;
-    max-width: 420px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    box-shadow: 0 40px 80px rgba(75, 0, 130, 0.3);
-    text-align: right;
-    direction: rtl;
-    justify-content: center;
-    align-items: center;
+  background: var(--خلفية-البطاقة, #fff);
+  border-radius: 32px;
+  padding: 32px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 40px 80px rgba(75, 0, 130, 0.3);
+  text-align: right;
+  direction: rtl;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal-title {
@@ -625,14 +705,20 @@ opacity: .3;
   cursor: pointer;
   font-size: 32px;
   color: var(--حد-خافت);
-  transition: color 0.15s, transform 0.15s;
+  transition:
+    color 0.15s,
+    transform 0.15s;
   line-height: 1;
 }
 
 .star-btn:hover,
-.star-active { color: #D4AF37; }
+.star-active {
+  color: #d4af37;
+}
 
-.star-btn:hover { transform: scale(1.15); }
+.star-btn:hover {
+  transform: scale(1.15);
+}
 
 .modal-comment {
   width: 100%;
@@ -651,7 +737,9 @@ opacity: .3;
   transition: border-color 0.2s;
 }
 
-.modal-comment:focus { border-color: var(--بنفسجي); }
+.modal-comment:focus {
+  border-color: var(--بنفسجي);
+}
 
 .modal-actions {
   display: flex;
@@ -672,7 +760,9 @@ opacity: .3;
   transition: all 0.2s;
 }
 
-.modal-cancel:hover { background: var(--خلفية-2); }
+.modal-cancel:hover {
+  background: var(--خلفية-2);
+}
 
 .modal-submit {
   all: unset;
@@ -683,15 +773,18 @@ opacity: .3;
   font-weight: 700;
   font-size: 15px;
   color: #fff;
-  background: linear-gradient(135deg, #ff69b4, #A855F7);
+  background: linear-gradient(135deg, #ff69b4, #a855f7);
   box-shadow: var(--ظل-الزر);
   transition: opacity 0.2s;
 }
 
-.modal-submit:disabled { opacity: 0.5; cursor: default; }
-.modal-submit:not(:disabled):hover { opacity: 0.88; }
-
-
+.modal-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.modal-submit:not(:disabled):hover {
+  opacity: 0.88;
+}
 
 .od-grid--store {
   grid-template-columns: 1fr 1fr;
@@ -699,17 +792,19 @@ opacity: .3;
   grid-template-areas:
     "od-header od-header"
     "od-products od-products";
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .od-grid--store .od-products-card {
   grid-column: 1 / -1; /* ✅ المنتجات تاخد العرض الكامل */
 }
 
-
 /* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 768px) {
-  .od-root { padding: 80px 16px 40px; width: 95%; }
+  .od-root {
+    padding: 80px 16px 40px;
+    width: 95%;
+  }
 
   .od-grid {
     grid-template-columns: 1fr;
@@ -719,82 +814,37 @@ opacity: .3;
       "od-shipping"
       "od-products"
       "od-tracking";
-      
   }
 
+  .od-tracking-card {
+    border-radius: 32px;
+  }
 
+  .od-product-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .od-product-right {
+    align-items: flex-start;
+  }
 
-  .od-tracking-card { border-radius: 32px; }
-
-  .od-product-item { flex-direction: column; align-items: flex-start; }
-  .od-product-right { align-items: flex-start; }
-
-  .od-address-val { max-width: 100%; }
+  .od-address-val {
+    max-width: 100%;
+  }
 }
-/* ───────── PRINT FIX (FINAL) ───────── */
+
 @page {
   size: A4;
   margin: 10mm;
 }
 
-@media print {
-
- 
-  .od-products-card,
-  .od-print-btn,
-  .od-review-btn,
-  .od-steps,
-  .od-section-title,
-  .navbar-container{
-    display: none !important;
-  }
-
-
-  .container {
-    height: auto !important;
-    min-height: unset !important;
-  }
-
-  .od-grid {
-    margin: 0;
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "od-header"
-      "od-payment"
-      "od-shipping"
-      "od-tracking";
-
-  }
-
-  .od-header,
-  .od-shipping-card,
-  .od-totals {
-    margin: 0;
-  }
-  .od-tracking-card,.od-header
-  {
-    box-shadow: none;
-  }
-
-
-
-  * {
-    box-sizing: border-box;
-    page-break-inside: avoid;
-  }
-
-  body {
-    zoom: 0.95; /* small safety */
-  }
-}
-
 .back-orders {
-      display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    direction: rtl;
-    margin-bottom: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  direction: rtl;
+  margin-bottom: 50px;
 }
 
 .back-orders .text {
@@ -807,7 +857,7 @@ opacity: .3;
 }
 
 .back-orders:hover svg {
-  transform: translateX(4px); /* حركة خفيفة */
+  transform: translateX(4px);
 }
 .od-review-btn--done svg,
 .od-review-btn--done .star-icon,
@@ -815,9 +865,6 @@ opacity: .3;
   display: none;
 }
 
-
-
-/* في OrderDetailsList.css أضف ده */
 .ol-payment--pending {
   background: rgba(245, 158, 11, 0.12);
   color: #f59e0b;
@@ -858,7 +905,58 @@ opacity: .3;
   padding: 5px;
 }
 
+@media print {
+  .od-print-btn,
+  .od-review-btn,
+  .back-orders,
+  .navbar-container,
+  .od-products-card,
+  .od-tracking-card {
+    display: none !important;
+  }
 
+  .od-root {
+    padding: 10px;
+    width: 100%;
+  }
 
+  .od-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
+  .od-header {
+    border-radius: 16px;
+    box-shadow: none;
+    padding: 12px 16px;
+  }
 
+  .od-payment-card,
+  .od-shipping-card {
+    border-radius: 16px;
+    box-shadow: none;
+    padding: 12px 16px;
+    gap: 8px;
+    margin: 20px 0;
+  }
+
+  * {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    overflow: hidden;
+  }
+
+  .od-grid {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto !important;
+    min-height: unset !important;
+    overflow: visible !important;
+  }
+}
