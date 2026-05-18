@@ -84,8 +84,13 @@ const Store = () => {
     if (!imgArray || imgArray.length === 0) {
       return "https://via.placeholder.com/300?text=No+Image";
     }
-    const fixedPath = imgArray[0].replace(/\\/g, "/");
-    return fixedPath.replace("uploads", "http://127.0.0.1:8080");
+    else{
+      let fixedPath = imgArray[0];
+      if(fixedPath.includes("uploads"))
+        return fixedPath.replace(/\\/g, "/").replace("uploads", "http://127.0.0.1:8080");
+      else
+      return imgArray[0];
+    }
   };
 
   const addToWishlistHandler = async (index, prod_id) => {
