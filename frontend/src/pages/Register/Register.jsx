@@ -120,7 +120,7 @@ const Register = () => {
         email: formData.email.toLowerCase().trim(),
         password: formData.password,
         confirmPassword: formData.confirmPassword,
-        phone: formData.phone || undefined,
+        phoneNumber: formData.phone || undefined,
         birthdate: formData.birthdate || undefined,
         gender: formData.gender || undefined,
         address:

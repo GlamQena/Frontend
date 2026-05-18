@@ -39,10 +39,6 @@ function Navbar() {
     return [];
   };
 
-
- 
-  const showCart = !loggedIn || isClient();
-
   const navLinks = getNavLinks();
 
   return (
@@ -91,7 +87,7 @@ function Navbar() {
           )}
 
         
-          {showCart && (
+          {(
             <NavLink to="/cart" title="السلة" className="nav-icon">
               <ShoppingCart size={20} />
             </NavLink>

@@ -1,14 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap');
 
-*{
-  margin:0;
-  padding:0;
+*, *::before, *::after {
   box-sizing: border-box;
-  direction: rtl;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    direction: rtl;
+}
+
+#root{
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--خلفية-الصفحة);
 }
 
 body {
   background: var(--خلفية-الصفحة);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 60% -10%, rgba(120,40,180,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 10% 90%,  rgba(90,20,140,0.08) 0%, transparent 60%);
   color: var(--نص-رئيسي);
   margin: 0;
   font-family: Tajawal, sans-serif;
@@ -17,6 +30,14 @@ body {
   line-height: 24px;
   letter-spacing: 0px;
   text-align: center;
+}
+
+.page {
+  background: var(--خلفية-الصفحة);
+  color: var(--نص-رئيسي);
+  padding: 30px 50px 60px;
+  min-height: 100vh;
+  transition: background 0.3s;
 }
 
 /* ===== Scrollbar Styling ===== */
@@ -36,16 +57,6 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--وردي);
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-#root{
-  width: 100%;
-  min-height: 100vh;
-  background-color: var(--خلفية-الصفحة);
 }
 
 code {
