@@ -2,7 +2,7 @@ import { getAccessToken, getSessionId, sid_AuthHeader } from "./authService";
 
 const BASE_URL = "http://localhost:8080/cart";
 
-export const addToCart= async (productId, setResponseMessage) => {
+export const addToCart= async (productId, setResponseMessage, quantity=1) => {
     try {
         const {sid, headers} = await sid_AuthHeader(setResponseMessage);
 
@@ -13,7 +13,7 @@ export const addToCart= async (productId, setResponseMessage) => {
         body: JSON.stringify({
             session_id: sid,
             product_id: String(productId),
-            quantity:   1,
+            quantity,
         }),
         });
         return res;

@@ -6,6 +6,7 @@ import {
   deleteProduct,
   getCategories,
 } from '../../../services/products';
+import "./Products.css";
 
 /* ═══════════════════════════════════════════════════════════
    1. Toast Context & Provider
@@ -94,14 +95,17 @@ function useProducts() {
   const [submitting, setSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
 
-  const fetchProducts = useCallback(async () => {
-    try {
-      const res = await getProducts();
-      setProducts(res.data ?? res);
-    } catch (err) {
-      console.error('فشل في تحميل المنتجات', err);
-    }
-  }, []);
+const fetchProducts = useCallback(async () => {
+  try {
+    const res = await getProducts();
+    console.log("fetched products res=> ", res);
+    
+    setProducts(res?.data?.products ?? []);
+    
+  } catch (err) {
+    console.error('فشل في تحميل المنتجات', err);
+  }
+}, []);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -164,12 +168,10 @@ function useProducts() {
     }
   }, [fetchProducts]);
 
-  // =============    (نشط/غير مفعل) =============
   const handleToggleStatus = useCallback(async (product) => {
     const productId = product.id;
     const currentStatus = product.is_active !== false;
     
-    // تحديث محلي مؤقت
     setProducts(prev =>
       prev.map(p => String(p.id) === String(productId)
         ? { ...p, is_active: !currentStatus }
@@ -179,33 +181,8 @@ function useProducts() {
     setUpdatingId(productId);
     
     try {
-      // =============================================
-      // TODO: استبدلي هذا الكود بـ Endpoint الحقيقي
-      // =============================================
-      
-      /*
-      const response = await fetch(`/api/products/${productId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        },
-        body: JSON.stringify({ is_active: !currentStatus })
-      });
-      
-      if (!response.ok) {
-        setProducts(prev =>
-          prev.map(p => String(p.id) === String(productId)
-            ? { ...p, is_active: currentStatus }
-            : p)
-        );
-        return { ok: false, message: 'فشل في تحديث الحالة' };
-      }
-      */
-      
       console.log(`Toggle product ${productId} to ${!currentStatus ? 'active' : 'inactive'}`);
       return { ok: true };
-      
     } catch (err) {
       setProducts(prev =>
         prev.map(p => String(p.id) === String(productId)
@@ -235,12 +212,10 @@ function ProductCard({ product, onEdit, onToggleStatus, onDelete, updating }) {
       <div className="product-name">{product.name}</div>
       <div className="product-price">{Number(product.price).toLocaleString('ar-EG')} ج.م</div>
       
-      {/* زر تعديل المنتج */}
       <button className="btn-edit-product" onClick={() => onEdit(product)}>
         تعديل المنتج
       </button>
       
-      {/* زر نشط/غير مفعل + زر حذف */}
       <div className="row-actions-bottom">
         <button 
           className={`btn-toggle-status ${product.is_active !== false ? 'active' : 'inactive'}`}
@@ -281,7 +256,7 @@ const EMPTY_ADD = {
   description: '', images: [],
 };
 
-function AddProductForm({ categories, onAdd, submitting }) {
+function AddProductForm({ categories, onAdd, submitting, onBack }) {
   const toast   = useToast();
   const fileRef = useRef();
   const [form, setForm]       = useState(EMPTY_ADD);
@@ -314,14 +289,17 @@ function AddProductForm({ categories, onAdd, submitting }) {
     fd.append('category_id', form.category_id);
     fd.append('skinType',    form.skinType);
     fd.append('ingredients', form.ingredients);
-    fd.append('weight',      Number(form.weight) || 0);
+   fd.append('weight',      Number(form.weight) || 0);
     fd.append('description', form.description);
     fd.append('dimensions',  JSON.stringify(form.dimensions));
     form.images.forEach(img => fd.append('images', img));
 
     const result = await onAdd(fd, reset);
-    if (result?.ok) toast.success('تمت إضافة المنتج بنجاح ✓');
-    else            toast.error(result?.message ?? 'فشل في إضافة المنتج');
+    if (result?.ok) {
+      toast.success('تمت إضافة المنتج بنجاح ✓');
+      onBack?.();
+    }
+    else toast.error(result?.message ?? 'فشل في إضافة المنتج');
   };
 
   const reset = () => {
@@ -333,6 +311,9 @@ function AddProductForm({ categories, onAdd, submitting }) {
 
   return (
     <section id="addSection" className="add-section">
+      <button type="button" className="back-btn" onClick={onBack} style={{ marginBottom: 20 }}>
+        <span>→</span> رجوع إلى المنتجات
+      </button>
       <div className="section-header">
         <h1> إضافة منتج جديد</h1>
         <p>قم بتعبئة تفاصيل المنتج الجديد</p>
@@ -428,7 +409,7 @@ const EMPTY_EDIT = {
   description: '', images: [],
 };
 
-function EditProductForm({ products, categories, onUpdate, onDelete, submitting }) {
+function EditProductForm({ products, categories, onUpdate, onDelete, submitting, onBack, onProductDeleted }) {
   const toast   = useToast();
   const fileRef = useRef();
   const [selectedId,    setSelectedId]    = useState('');
@@ -486,8 +467,11 @@ function EditProductForm({ products, categories, onUpdate, onDelete, submitting 
     form.images.forEach(img => fd.append('images', img));
 
     const result = await onUpdate(selectedId, fd);
-    if (result?.ok) toast.success('تم تحديث المنتج بنجاح ✓');
-    else            toast.error(result?.message ?? 'فشل في تحديث المنتج');
+    if (result?.ok) {
+      toast.success('تم تحديث المنتج بنجاح ✓');
+      onBack?.();
+    }
+    else toast.error(result?.message ?? 'فشل في تحديث المنتج');
   };
 
   const confirmDelete = async () => {
@@ -495,8 +479,8 @@ function EditProductForm({ products, categories, onUpdate, onDelete, submitting 
     setShowDeleteModal(false);
     if (result?.ok) {
       toast.success('تم حذف المنتج');
-      setSelectedId('');
-      setForm(EMPTY_EDIT);
+      onProductDeleted?.();
+      onBack?.();
     } else {
       toast.error(result?.message ?? 'فشل في حذف المنتج');
     }
@@ -506,6 +490,9 @@ function EditProductForm({ products, categories, onUpdate, onDelete, submitting 
 
   return (
     <section id="editSection" className="edit-section">
+      <button type="button" className="back-btn" onClick={onBack} style={{ marginBottom: 20 }}>
+        <span>→</span> رجوع إلى المنتجات
+      </button>
       <div className="edit-header">
         <div>
           <h1>تعديل المنتج</h1>
@@ -642,21 +629,71 @@ function EditProductForm({ products, categories, onUpdate, onDelete, submitting 
 }
 
 /* ═══════════════════════════════════════════════════════════
-   6. MAIN ADMIN PANEL 
+   6. DELETE MODAL 
+   ═══════════════════════════════════════════════════════════ */
+function DeleteModal({ product, onConfirm, onCancel, submitting }) {
+  if (!product) return null;
+  
+  return (
+    <div className="modal-overlay active" onClick={onCancel} role="dialog" aria-modal="true">
+      <div className="delete-modal" onClick={e => e.stopPropagation()}>
+        <div className="warning-icon">⚠️</div>
+        <div className="question-text">هل أنت متأكد من حذف هذا المنتج؟</div>
+        <div className="modal-product-name">{product.name}</div>
+        <div className="warning-text">هذا الإجراء لا يمكن التراجع عنه</div>
+        <div className="modal-buttons-vertical">
+          <button className="btn-delete" onClick={onConfirm} disabled={submitting}>
+            {submitting ? <span className="spinner" /> : 'نعم، حذف'}
+          </button>
+          <button className="btn-cancel-modal" onClick={onCancel}>إلغاء</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   7. MAIN ADMIN PANEL 
    ═══════════════════════════════════════════════════════════ */
 function AdminPanel() {
   const toast = useToast();
+  const [step, setStep] = useState(1);
+  const [selectedProductForDelete, setSelectedProductForDelete] = useState(null);
+  
   const {
     products, categories, loading, submitting, updatingId,
     handleAddProduct, handleUpdateProduct, handleDeleteProduct,
     handleToggleStatus,
   } = useProducts();
 
+  // Handle delete from card
   const handleDeleteFromCard = async (product) => {
-    if (!window.confirm(`هل تريد حذف "${product.name}"؟`)) return;
-    const result = await handleDeleteProduct(product.id);
-    if (result?.ok) toast.success('تم حذف المنتج');
-    else toast.error(result?.message ?? 'فشل في الحذف');
+    setSelectedProductForDelete(product);
+    setStep(4);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedProductForDelete) return;
+    const result = await handleDeleteProduct(selectedProductForDelete.id);
+    if (result?.ok) {
+      toast.success('تم حذف المنتج');
+      setSelectedProductForDelete(null);
+      setStep(1);
+    } else {
+      toast.error(result?.message ?? 'فشل في الحذف');
+      setStep(1);
+    }
+  };
+
+  const cancelDelete = () => {
+    setSelectedProductForDelete(null);
+    setStep(1);
+  };
+
+  // Handle edit from card
+  const handleEditFromCard = (product) => {
+    
+    setStep(3);
   };
 
   if (loading) {
@@ -671,65 +708,93 @@ function AdminPanel() {
   return (
     <div className="app-container">
 
-      <section className="products-section">
-        <div className="section-header">
-          <h1>المنتجات</h1>
-          <p>إدارة الكتالوج — {products.length} منتج</p>
-        </div>
-
-        {products.length === 0 ? (
-          <div className="empty-state">
-            
-            <p>لا يوجد منتجات بعد — أضف أول منتج أدناه</p>
+      {/* Step 1: Products List */}
+      {step === 1 && (
+        <section className="products-section">
+          <div className="section-header">
+            <h1>المنتجات</h1>
+            <p>إدارة الكتالوج — {products.length} منتج</p>
           </div>
-        ) : (
-          <div className="products-grid">
-            {products.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onEdit={() => {
-                  document.getElementById('editSection')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                onToggleStatus={handleToggleStatus}
-                onDelete={handleDeleteFromCard}
-                updating={updatingId === product.id}
-              />
-            ))}
-            <div
-              className="add-product-card"
-              onClick={() => document.getElementById('addSection')?.scrollIntoView({ behavior: 'smooth' })}
-              role="button" tabIndex={0}
-              onKeyDown={e => e.key === 'Enter' && document.getElementById('addSection')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              <div className="add-icon">➕</div>
-              <h3>إضافة منتج جديد</h3>
-              <p>أضف منتجاً جديداً للكتالوج</p>
+
+          {products.length === 0 ? (
+            <div className="empty-state">
+              <p>لا يوجد منتجات بعد — أضف أول منتج</p>
             </div>
-          </div>
-        )}
-      </section>
+          ) : (
+            <div className="products-grid">
+              {products.map(product => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onEdit={() => handleEditFromCard(product)}
+                  onToggleStatus={handleToggleStatus}
+                  onDelete={handleDeleteFromCard}
+                  updating={updatingId === product.id}
+                />
+              ))}
+              <div
+                className="add-product-card"
+                onClick={() => setStep(2)}
+                role="button" tabIndex={0}
+                onKeyDown={e => e.key === 'Enter' && setStep(2)}
+              >
+                <div className="add-icon">➕</div>
+                <h3>إضافة منتج جديد</h3>
+                <p>أضف منتجاً جديداً للكتالوج</p>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
-      <hr />
+      {/* Step 2: Add Product */}
+      {step === 2 && (
+        <AddProductForm 
+          categories={categories} 
+          onAdd={handleAddProduct} 
+          submitting={submitting}
+          onBack={() => setStep(1)}
+        />
+      )}
 
-      <AddProductForm categories={categories} onAdd={handleAddProduct} submitting={submitting} />
+      {/* Step 3: Edit Product */}
+      {step === 3 && (
+        <EditProductForm
+          products={products}
+          categories={categories}
+          onUpdate={handleUpdateProduct}
+          onDelete={handleDeleteProduct}
+          submitting={submitting}
+          onBack={() => setStep(1)}
+          onProductDeleted={() => setStep(1)}
+        />
+      )}
 
-      <hr />
+      {/* Step 4: Delete Modal */}
+      {step === 4 && selectedProductForDelete && (
+        <DeleteModal
+          product={selectedProductForDelete}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+          submitting={submitting}
+        />
+      )}
 
-      <EditProductForm
-        products={products}
-        categories={categories}
-        onUpdate={handleUpdateProduct}
-        onDelete={handleDeleteProduct}
-        submitting={submitting}
-      />
+     
+      {step !== 1 && (
+        <style>{`
+          .app-container hr {
+            display: none;
+          }
+        `}</style>
+      )}
 
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════
-   7. ROOT EXPORT
+   8. ROOT EXPORT
    ═══════════════════════════════════════════════════════════ */
 export default function StoreOwnerProducts() {
   return (
