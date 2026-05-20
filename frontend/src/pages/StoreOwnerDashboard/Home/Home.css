@@ -245,7 +245,8 @@
 
 /* ══ أحدث الطلبات ══ */
 .orders-section {
-  padding: 8px 0 32px;
+  padding: 8px 0 48px;
+  overflow: visible;
 }
 
 .orders-header {
@@ -287,9 +288,11 @@
   background: var(--خلفية-البطاقة);
   border: 1px solid var(--حد-واضح);
   border-radius: 16px;
-  padding: 8px 24px 20px;
+  padding: 8px 24px 32px; 
   overflow-x: auto;
+  overflow-y: visible;
   box-shadow: var(--ظل-البطاقة);
+  position: relative;
 }
 
 .orders-table {
@@ -309,6 +312,7 @@
 .orders-table tbody tr {
   border-bottom: 1px solid var(--حد-خافت);
   transition: background 0.15s;
+  position: relative;
 }
 .orders-table tbody tr:last-child {
   border-bottom: none;
@@ -321,6 +325,7 @@
   padding: 14px 8px;
   color: var(--نص-ثانوي);
   vertical-align: middle;
+  position: relative;
 }
 
 .order-id {
@@ -367,36 +372,58 @@
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, transform 0.1s;
   font-family: inherit;
+  background: var(--خلفية-2);
+  color: var(--نص-ثانوي);
 }
+
+.status-badge:hover:not(:disabled):not(.loading) {
+  transform: scale(1.02);
+  filter: brightness(1.05);
+}
+
+.status-badge:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .status-badge.loading {
   opacity: 0.6;
-  cursor: not-allowed;
+  cursor: wait;
 }
+
 .status-badge .chevron {
   transition: transform 0.2s;
+  width: 12px;
+  height: 12px;
 }
+
 .status-badge .chevron.open {
   transform: rotate(180deg);
 }
 
+/* Status color variants */
 .st-wait {
   background: rgba(251, 146, 60, 0.15);
   color: #fb923c;
 }
+
 .st-prep {
   background: rgba(96, 165, 250, 0.15);
   color: #60a5fa;
 }
+
 .st-ready {
   background: rgba(74, 222, 128, 0.15);
   color: #4ade80;
 }
+
 .st-done {
   background: rgba(155, 109, 255, 0.15);
   color: #c4a4ff;
 }
+
 .st-cancel {
   background: rgba(248, 113, 113, 0.15);
   color: #f87171;
@@ -411,6 +438,7 @@
   flex-shrink: 0;
 }
 
+/* Dropdown menu - Default opens downward */
 .status-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -420,8 +448,17 @@
   border-radius: 12px;
   padding: 10px 8px;
   min-width: 170px;
-  z-index: 100;
+  z-index: 1000;
   box-shadow: var(--ظل-البطاقة);
+  backdrop-filter: blur(8px);
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+/* Opens upward for last rows */
+.status-menu.open-upward {
+  top: auto;
+  bottom: calc(100% + 8px);
+  animation: dropdownFadeUp 0.15s ease-out;
 }
 
 .status-menu-title {
@@ -430,6 +467,7 @@
   padding: 0 8px 8px;
   border-bottom: 1px solid var(--حد-خافت);
   margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .status-menu-item {
@@ -448,14 +486,40 @@
   color: var(--نص-ثانوي);
   transition: background 0.15s;
 }
-.status-menu-item:hover {
+
+.status-menu-item:hover:not(:disabled) {
   background: var(--بنفسجي-خافت);
 }
+
 .status-menu-item.current {
   background: var(--بنفسجي-خافت);
   color: var(--بنفسجي);
 }
 
+.status-menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Tooltip for disabled buttons */
+.status-badge:disabled:hover::after {
+  content: "لا يمكن تغيير الحالة";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--خلفية-البطاقة);
+  color: var(--أحمر-خطأ);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  white-space: nowrap;
+  border: 1px solid var(--حد-واضح);
+  z-index: 1001;
+  pointer-events: none;
+}
+
+/* Details button */
 .btn-details {
   background: transparent;
   border: 1.5px solid var(--حد-خافت);
@@ -467,9 +531,68 @@
   transition: all 0.2s;
   font-family: inherit;
 }
+
 .btn-details:hover {
   border-color: var(--بنفسجي);
   color: var(--بنفسجي);
+  background: var(--بنفسجي-خافت);
+}
+
+/* Animations */
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dropdownFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile responsive dropdowns */
+@media (max-width: 768px) {
+  .status-menu,
+  .status-menu.open-upward {
+    position: fixed;
+    top: auto;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    max-width: 90vw;
+    z-index: 1050;
+  }
+  
+  /* Backdrop for mobile dropdowns */
+  .status-menu::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 }
 
 /* ══ Responsive ══ */

@@ -1,24 +1,4 @@
 /* =============================================
-   Reset
-   ============================================= */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-/* =============================================
-   Page
-   ============================================= */
-.page {
-  direction: rtl;
-  background: var(--خلفية-الصفحة);
-  min-height: 100vh;
-  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-  transition: background 0.3s;
-}
-
-/* =============================================
    Body Wrap
    ============================================= */
 .body-wrap {

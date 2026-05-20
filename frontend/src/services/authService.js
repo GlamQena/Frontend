@@ -126,14 +126,13 @@ export const sid_AuthHeader = async (setResponseMessage) => {
 }
 
 export function responseMessageSetter(success, message, setResponseMessage) {
-  if(typeof setResponseMessage === "string")
-    setResponseMessage(message);
-  else
+   if (success, message, setResponseMessage){
     setResponseMessage({ success, message });
-  
-  setTimeout(() => {
-    setResponseMessage({ success: false, message: "" });
-  }, 6000);
+
+    setTimeout(() => {
+      setResponseMessage({ success: false, message: "" });
+    }, 6000);
+   }
 }
 
 export function closeTabHandler() {

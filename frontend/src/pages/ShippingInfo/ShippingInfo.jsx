@@ -177,9 +177,8 @@ export default function CheckoutPage() {
     onBlur: () => setFocusedField(null),
   });
 
-  async function checkoutPaymentHandler(e) {
+  async function checkoutPaymentHandler() {
     try {
-      e.preventDefault();
       setCheckoutLoading(true);
 
       const billingData = {
@@ -236,13 +235,14 @@ export default function CheckoutPage() {
     }
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (e) => {
+    e.preventDefault();
     const isValid = await validate();
     if (!isValid) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    checkoutPaymentHandler(orderId);
+    checkoutPaymentHandler();
   };
 
   return (
