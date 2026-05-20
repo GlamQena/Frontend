@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./OrderDetailsList.css";
-import axios from "axios";
 import { getUserRole } from "../services/users";
 import { getOrderDetails } from "../services/order";
 import { api } from "../services/authService";
-
-const BASE_URL = "http://localhost:8080";
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 const CheckIcon = () => (
@@ -130,20 +127,25 @@ const ArrowIcon = () => (
 const STATUS_MAP = {
   pending: { label: "قيد الانتظار", cls: "badge--pending" },
   preparing: { label: "جاري التجهيز", cls: "badge--preparing" },
+  ready: { label: "جاهز للتوصيل", cls: "badge--ready" },
   shipping: { label: "قيد التوصيل", cls: "badge--shipping" },
   delivered: { label: "تم التوصيل", cls: "badge--delivered" },
   cancelled: { label: "ملغي", cls: "badge--cancelled" },
 };
 const PAYMENT_STATUS_MAP = {
-  "قيد الانتظار": { label: "مؤجل",         cls: "ol-payment ol-payment--pending" },
-  "قيد المعالجة": { label: "قيد المعالجة", cls: "ol-payment ol-payment--processing" },
-  "مكتمل":        { label: "مكتمل",        cls: "ol-payment ol-payment--completed" },
-  "فشل":          { label: "فشل",          cls: "ol-payment ol-payment--failed" },
-  "مسترجع":       { label: "مسترجع",       cls: "ol-payment ol-payment--refunded" },
+  "قيد الانتظار": { label: "مؤجل", cls: "ol-payment ol-payment--pending" },
+  "قيد المعالجة": {
+    label: "قيد المعالجة",
+    cls: "ol-payment ol-payment--processing",
+  },
+  مكتمل: { label: "مكتمل", cls: "ol-payment ol-payment--completed" },
+  فشل: { label: "فشل", cls: "ol-payment ol-payment--failed" },
+  مسترجع: { label: "مسترجع", cls: "ol-payment ol-payment--refunded" },
 };
 const TRACKING_STEPS = [
   { key: "pending", label: "تم استلام الطلب" },
   { key: "preparing", label: "جاري التجهيز" },
+  { key: "ready", label: "جاهز للتوصيل" },
   { key: "shipping", label: "خرج للشحن" },
   { key: "delivered", label: "تم التوصيل" },
 ];
@@ -168,14 +170,14 @@ function normalizeStatus(status) {
 }
 
 function getStepState(stepKey, orderStatus) {
-  const ORDER = ["pending", "preparing", "shipping", "delivered"];
+  const ORDER = ["pending", "preparing", "ready", "shipping", "delivered"];
   const currentIdx = ORDER.indexOf(normalizeStatus(orderStatus));
   const stepIdx = ORDER.indexOf(stepKey);
   return stepIdx <= currentIdx ? "done" : "pending";
 }
 
 function getCompletedStepsBeforeCancel(order) {
-  const ORDER = ["pending", "preparing", "shipping", "delivered"];
+  const ORDER = ["pending", "preparing", "ready", "shipping", "delivered"];
   const idx = ORDER.indexOf(
     normalizeStatus(order.lastStatusBeforeCancel || order.status),
   );
@@ -212,51 +214,41 @@ const RatingStar = ({ filled, onClick }) => (
 );
 
 function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
+  
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const submit = async () => {
-  if (!rating) return;
+    if (!rating) return;
 
-  setLoading(true);
-  setError(null);
+    setLoading(true);
+    setError(null);
 
-  try {
-    const productId = product?.prod_id?._id || product?.prod_id;
+    try {
+      const productId = product?.prod_id?._id || product?.prod_id;
 
-    if (!productId) {
-      throw new Error("Product ID missing");
-    }
+      if (!productId) {
+        throw new Error("Product ID missing");
+      }
 
-    console.log("SENDING PRODUCT ID =>", productId);
-    console.log("ORDER ID =>", orderId);
-
-    await api.post(
-      `${BASE_URL}/order/${orderId}/rating`,
-      {
+      await api.post(`/order/${orderId}/rating`, {
         productId,
         rate: Number(rating),
         comment: comment?.trim(),
-      },
-    );
+      });
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.log("400 error response =>", err.response?.data);
 
-    onSuccess();
-    onClose();
-
-  } catch (err) {
-    console.log("400 error response =>", err.response?.data);
-
-    setError(
-      err.response?.data?.message ||
-      "فشل إرسال التقييم"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      setError(err.response?.data?.message || "فشل إرسال التقييم");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -324,113 +316,110 @@ function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
   );
 }
 
-
-function ProductsList({ order, normalizedStatus, ratedProducts, setReview, showReviewBtn }) {
-
-  const isDelivered = normalizedStatus === "delivered";
-    const buildImgSrc = (imgPath) => {
-    if(!imgPath) return null;
-    return imgPath.replace(/\\/g, "//").replace("uploads", "http://127.0.0.1:8080");
-  }
-   const totalProducts = order.products.reduce(
+function ProductsList({
+  order,
+  normalizedStatus,
+  ratedProducts,
+  setReview,
+  showReviewBtn,
+}) {
+  const buildImgSrc = (imgPath) => {
+    if (!imgPath) return null;
+    return imgPath.replace(/\\/g, "//").replace("uploads", api);
+  };
+  const totalProducts = order.products.reduce(
     (acc, s) => acc + s.products.length,
     0,
   );
 
-
   return (
     <div className="od-products-card">
-          <div className="od-products-header">
-            <span className="od-products-id">
-              المنتجات المشتراة ({totalProducts})
-            </span>
-          </div>
-          <div className="od-products-list">
-            {order.products?.flatMap((store) =>
-              store.products.map((prod) => {
-                const imgSrc = buildImgSrc(prod.prod_id?.images?.[0]);
-                const isDelivered = normalizedStatus === "delivered";
+      <div className="od-products-header">
+        <span className="od-products-id">
+          المنتجات المشتراة ({totalProducts})
+        </span>
+      </div>
+      <div className="od-products-list">
+        {order.products?.flatMap((store) =>
+          store.products.map((prod) => {
+            const imgSrc = buildImgSrc(prod.prod_id?.images?.[0]);
+            const isDelivered = normalizedStatus === "delivered";
             const realProdId =
-  prod.prod_id && typeof prod.prod_id === "object"
-    ? prod.prod_id._id
-    : prod.prod_id;
+              prod.prod_id && typeof prod.prod_id === "object"
+                ? prod.prod_id._id
+                : prod.prod_id;
 
-// ✅ skip if no product id
-if (!realProdId) return null;
+            if (!realProdId) return null;
 
-const hasReviewed =
-  prod?.hasReviewed === true ||
-  ratedProducts.includes(realProdId.toString());
+            const hasReviewed =
+              prod?.hasReviewed === true ||
+              ratedProducts.includes(realProdId.toString());
 
-console.log(
-  "REAL PRODUCT ID =>",
-  realProdId.toString(),
-  "ratedProducts =>",
-  ratedProducts,
-  "hasReviewed =>",
-  hasReviewed
-);
-                return (
-                  <div key={prod._id} className="od-product-item">
-                    <div className="od-product-left">
-                      <div className="od-product-img">
-                        {imgSrc ? (
-                          <img
-                            src={imgSrc}
-                            alt={prod.name}
-                            loading="lazy"
-                            onError={(e) => {
-                              e.target.style.display = "none";
-                              e.target.parentElement.innerHTML =
-                                "<span class='od-img-placeholder'>🧴</span>";
-                            }}
-                          />
-                        ) : (
-                          <div className="od-img-placeholder">🛍️</div>
-                        )}
-                      </div>
-                      <div className="od-product-info">
-                        <p className="od-prod-name">{prod.name}</p>
-                        <p className="od-prod-store">
-                          {store.owner_store_id?.store_name || "—"}
-                        </p>
-                        <p className="od-prod-qty">الكمية: {prod.quantity}</p>
-                      </div>
-                    </div>
-                    <div className="od-product-right">
-                      <span className="od-prod-price">
-                        {prod.subtotal_price} ج.م
-                      </span>
-                      {isDelivered && (
-                        <button
-                          className={`od-review-btn ${hasReviewed ? "od-review-btn--done" : ""}`}
-                          onClick={() =>
-                            !hasReviewed &&
-                            setReview({
-                              prod,
-                              // ✅ pass storeOwnerId for ReviewSchema
-                              storeOwnerId:
-                                store.owner_store_id?._id ||
-                                store.owner_store_id,
-                            })
-                          }
-                          disabled={hasReviewed}
-                        >
-                          <StarIcon />
-                          {hasReviewed ? "تم التقييم ✓" : "تقييم المنتج"}
-                        </button>
-                      )}
-                    </div>
+            console.log(
+              "REAL PRODUCT ID =>",
+              realProdId.toString(),
+              "ratedProducts =>",
+              ratedProducts,
+              "hasReviewed =>",
+              hasReviewed,
+            );
+            return (
+              <div key={prod._id} className="od-product-item">
+                <div className="od-product-left">
+                  <div className="od-product-img">
+                    {imgSrc ? (
+                      <img
+                        src={imgSrc}
+                        alt={prod.name}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                          e.target.parentElement.innerHTML =
+                            "<span class='od-img-placeholder'>🧴</span>";
+                        }}
+                      />
+                    ) : (
+                      <div className="od-img-placeholder">🛍️</div>
+                    )}
                   </div>
-                );
-              }),
-            )}
-          </div>
-        </div>
-     
+                  <div className="od-product-info">
+                    <p className="od-prod-name">{prod.name}</p>
+                    <p className="od-prod-store">
+                      {store.owner_store_id?.store_name || "—"}
+                    </p>
+                    <p className="od-prod-qty">الكمية: {prod.quantity}</p>
+                  </div>
+                </div>
+                <div className="od-product-right">
+                  <span className="od-prod-price">
+                    {prod.subtotal_price} ج.م
+                  </span>
+                  {isDelivered && (
+                    <button
+                      className={`od-review-btn ${hasReviewed ? "od-review-btn--done" : ""}`}
+                      onClick={() =>
+                        !hasReviewed &&
+                        setReview({
+                          prod,
+                          storeOwnerId:
+                            store.owner_store_id?._id || store.owner_store_id,
+                        })
+                      }
+                      disabled={hasReviewed}
+                    >
+                      <StarIcon />
+                      {hasReviewed ? "تم التقييم ✓" : "تقييم المنتج"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          }),
+        )}
+      </div>
+    </div>
   );
 }
-
 
 // ─── Client View ──────────────────────────────────────────────────────────────
 function ClientOrderView({
@@ -440,8 +429,7 @@ function ClientOrderView({
   ratedProducts,
   setReview,
 }) {
-  
- const resolvedPaymentStatus = () => {
+  const resolvedPaymentStatus = () => {
     const method = order.payment?.method;
     const rawStatus = order.payment?.status;
 
@@ -458,161 +446,162 @@ function ClientOrderView({
   return (
     <div className="od-grid">
       <aside className="od-tracking-card">
-          <h2 className="od-section-title">تتبع الطلب</h2>
+        <h2 className="od-section-title">تتبع الطلب</h2>
 
-          <div className="od-steps">
-            {TRACKING_STEPS.filter((step) => {
-              if (!isCancelled) return true;
-              const ORDER = ["pending", "preparing", "shipping", "delivered"];
-              return (
-                ORDER.indexOf(step.key) <= getCompletedStepsBeforeCancel(order)
-              );
-            }).map((step, i, arr) => {
-              const state = isCancelled
-                ? "done"
-                : getStepState(step.key, order.status);
-              const isLastFiltered = isCancelled && i === arr.length - 1;
-              const isLast = !isCancelled && i === TRACKING_STEPS.length - 1;
-              const isPend = state === "pending";
-              const isDone = state === "done";
-             
-              return (
+        <div className="od-steps">
+          {TRACKING_STEPS.filter((step) => {
+            if (!isCancelled) return true;
+            const ORDER = ["pending", "preparing", "shipping", "delivered"];
+            return (
+              ORDER.indexOf(step.key) <= getCompletedStepsBeforeCancel(order)
+            );
+          }).map((step, i, arr) => {
+            const state = isCancelled
+              ? "done"
+              : getStepState(step.key, order.status);
+            const isLastFiltered = isCancelled && i === arr.length - 1;
+            const isLast = !isCancelled && i === TRACKING_STEPS.length - 1;
+            const isPend = state === "pending";
+            const isDone = state === "done";
+
+            return (
               <div
-                  key={step.key}
-                  className={`od-step ${isDone ? "od-step--done" : ""} ${isPend ? "od-step--pending" : ""} ${(isLast && !isCancelled) || isLastFiltered ? "od-step--last" : ""}`}
-                >
-                  <div className="od-step-indicator">
-                    <div
-                      className={`od-step-circle ${isDone ? "circle--done" : ""} ${isPend ? "circle--pending" : ""}`}
-                    >
-                      {isDone && <CheckIcon />}
-                    </div>
-                  </div>
-                  <div className="od-step-text">
-                    <span className="od-step-label">{step.label}</span>
-                    <span className="od-step-time">
-                      {isDone ? formatDate(order.updatedAt) : "-- : --"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-
-            {isCancelled && (
-              <div className="od-step od-step--cancelled od-step--last">
+                key={step.key}
+                className={`od-step ${isDone ? "od-step--done" : ""} ${isPend ? "od-step--pending" : ""} ${(isLast && !isCancelled) || isLastFiltered ? "od-step--last" : ""}`}
+              >
                 <div className="od-step-indicator">
-                  <div className="od-step-circle circle--cancelled">
-                    <XWhiteIcon />
+                  <div
+                    className={`od-step-circle ${isDone ? "circle--done" : ""} ${isPend ? "circle--pending" : ""}`}
+                  >
+                    {isDone && <CheckIcon />}
                   </div>
                 </div>
                 <div className="od-step-text">
-                  <span className="od-step-label cancelled-label">ملغي</span>
-                  <span className="od-step-time cancelled-time">
-                    {formatDate(order.cancelledAt || order.updatedAt)}
+                  <span className="od-step-label">{step.label}</span>
+                  <span className="od-step-time">
+                    {isDone ? formatDate(order.updatedAt) : "-- : --"}
                   </span>
                 </div>
               </div>
-            )}
-          </div>
+            );
+          })}
 
-          {/* Totals */}
-          <div className="od-totals">
-            <div className="od-total-row">
-              <span className="od-total-label">المجموع الفرعي</span>
-              <span className="od-total-val">{order.subtotal_price} ج.م</span>
-            </div>
-            <div className="od-total-row">
-              <span className="od-total-label">الشحن</span>
-              <span className="od-total-val">{order.delivery_cost} ج.م</span>
-            </div>
-            <div className="od-total-row od-grand-row">
-              <span className="od-grand-label">الإجمالي</span>
-              <span className="od-grand-val">{order.total_price} ج.م</span>
-            </div>
-          </div>
-        </aside>
- {/* ── PAYMENT ── */}
-        <div className="od-card od-payment-card">
-          <div className="od-card-header">
-            <MoneyIcon />
-            <h2 className="od-section-title">تفاصيل الدفع</h2>
-          </div>
-          <div className="od-info-list">
-            <div className="od-info-row">
-              <span className="od-info-label">طريقة الدفع</span>
-              <span className="od-info-val od-method-val">
-                <CardIcon />
-                {PAYMENT_METHOD_MAP[order.payment?.method] ||
-                  order.payment?.method}
-              </span>
-            </div>
-            <div className="od-info-row">
-              <span className="od-info-label">حالة الدفع</span>
-              <span className={`od-pay-badge ${payBadge.cls || ""}`}>
-               {payBadge.label || resolvedPaymentStatus()}
-              </span>
-            </div>
-            <div className="od-info-row">
-              <span className="od-info-label">تاريخ العملية</span>
-              <span className="od-info-val">
-                {formatDate(order.payment?.completedAt || order.createdAt)}
-              </span>
-            </div>
-            {order.payment?.paymob_order_id && (
-              <div className="od-info-row">
-                <span className="od-info-label">رقم العملية</span>
-                <span className="od-info-val od-mono">
-                  {order.payment.paymob_order_id}
+          {isCancelled && (
+            <div className="od-step od-step--cancelled od-step--last">
+              <div
+                className="od-step-indicator"
+              
+              >
+                <div className="od-step-circle circle--cancelled">
+                  <XWhiteIcon />
+                </div>
+              </div>
+              <div className="od-step-text">
+                <span className="od-step-label cancelled-label">ملغي</span>
+                <span className="od-step-time cancelled-time">
+                  {formatDate(order.cancelledAt || order.updatedAt)}
                 </span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
-        {/* ── SHIPPING ── */}
-        <div className="od-card od-shipping-card">
-          <div className="od-card-header">
-            <TruckIcon />
-            <h2 className="od-section-title">معلومات الشحن</h2>
+        {/* Totals */}
+        <div className="od-totals">
+          <div className="od-total-row">
+            <span className="od-total-label">المجموع الفرعي</span>
+            <span className="od-total-val">{order.subtotal_price} ج.م</span>
           </div>
-          <div className="od-info-list">
+          <div className="od-total-row">
+            <span className="od-total-label">الشحن</span>
+            <span className="od-total-val">{order.delivery_cost} ج.م</span>
+          </div>
+          <div className="od-total-row od-grand-row">
+            <span className="od-grand-label">الإجمالي</span>
+            <span className="od-grand-val">{order.total_price} ج.م</span>
+          </div>
+        </div>
+      </aside>
+      {/* ── PAYMENT ── */}
+      <div className="od-card od-payment-card">
+        <div className="od-card-header">
+          <MoneyIcon />
+          <h2 className="od-section-title">تفاصيل الدفع</h2>
+        </div>
+        <div className="od-info-list">
+          <div className="od-info-row">
+            <span className="od-info-label">طريقة الدفع</span>
+            <span className="od-info-val od-method-val">
+              <CardIcon />
+              {PAYMENT_METHOD_MAP[order.payment?.method] ||
+                order.payment?.method}
+            </span>
+          </div>
+          <div className="od-info-row">
+            <span className="od-info-label">حالة الدفع</span>
+            <span className={`od-pay-badge ${payBadge.cls || ""}`}>
+              {payBadge.label || resolvedPaymentStatus()}
+            </span>
+          </div>
+          <div className="od-info-row">
+            <span className="od-info-label">تاريخ العملية</span>
+            <span className="od-info-val">
+              {formatDate(order.payment?.completedAt || order.createdAt)}
+            </span>
+          </div>
+          {order.payment?.paymob_order_id && (
             <div className="od-info-row">
-              <span className="od-info-label">الاسم</span>
-              <span className="od-info-val">
-               {customerInfo?.firstName
-  ? `${customerInfo.firstName} ${customerInfo.lastName || ""}`.trim()
-  : "—"}
-              </span>
-            </div>
-            <div className="od-info-row">
-              <span className="od-info-label">الهاتف</span>
+              <span className="od-info-label">رقم العملية</span>
               <span className="od-info-val od-mono">
-                {customerInfo?.phoneNumber || "—"}
+                {order.payment.paymob_order_id}
               </span>
             </div>
-            <div className="od-info-row od-address-row">
-              <span className="od-info-label">العنوان</span>
-              <span className="od-info-val od-address-val">
-               {customerInfo?.address
-  ? `${customerInfo.address.street || ""}، ${customerInfo.address.city || ""}، مصر.`
-  : "—"}
-              </span>
-            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── SHIPPING ── */}
+      <div className="od-card od-shipping-card">
+        <div className="od-card-header">
+          <TruckIcon />
+          <h2 className="od-section-title">معلومات الشحن</h2>
+        </div>
+        <div className="od-info-list">
+          <div className="od-info-row">
+            <span className="od-info-label">الاسم</span>
+            <span className="od-info-val">
+              {customerInfo?.firstName
+                ? `${customerInfo.firstName} ${customerInfo.lastName || ""}`.trim()
+                : "—"}
+            </span>
+          </div>
+          <div className="od-info-row">
+            <span className="od-info-label">الهاتف</span>
+            <span className="od-info-val od-mono">
+              {customerInfo?.phoneNumber || "—"}
+            </span>
+          </div>
+          <div className="od-info-row od-address-row">
+            <span className="od-info-label">العنوان</span>
+            <span className="od-info-val od-address-val">
+              {customerInfo?.address
+                ? `${customerInfo.address.street || ""}، ${customerInfo.address.city || ""}، مصر.`
+                : "—"}
+            </span>
           </div>
         </div>
+      </div>
 
-  <ProductsList
+      <ProductsList
         order={order}
         normalizedStatus={normalizedStatus}
         ratedProducts={ratedProducts}
         setReview={setReview}
         showReviewBtn={true}
       />
-    
     </div>
   );
 }
-
 
 function StoreOrderView({ order, normalizedStatus, isCancelled }) {
   const customer = order.customer || {};
@@ -620,7 +609,7 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
   const totalProducts = products.length;
 
   return (
-   <div className="od-grid od-grid--store">
+    <div className="od-grid od-grid--store">
       <div className="od-card od-client-info-card">
         <div className="od-card-header">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -651,9 +640,18 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
 
       <div className="od-card od-order-info-card">
         <div className="od-card-header">
-         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M2 20C1.45 20 0.979167 19.8042 0.5875 19.4125C0.195833 19.0208 0 18.55 0 18V7C0 6.45 0.195833 5.97917 0.5875 5.5875C0.979167 5.19583 1.45 5 2 5H7V2C7 1.45 7.19583 0.979167 7.5875 0.5875C7.97917 0.195833 8.45 0 9 0H11C11.55 0 12.0208 0.195833 12.4125 0.5875C12.8042 0.979167 13 1.45 13 2V5H18C18.55 5 19.0208 5.19583 19.4125 5.5875C19.8042 5.97917 20 6.45 20 7V18C20 18.55 19.8042 19.0208 19.4125 19.4125C19.0208 19.8042 18.55 20 18 20H2ZM2 18H18V7H13C13 7.55 12.8042 8.02083 12.4125 8.4125C12.0208 8.80417 11.55 9 11 9H9C8.45 9 7.97917 8.80417 7.5875 8.4125C7.19583 8.02083 7 7.55 7 7H2V18ZM4 16H10V15.55C10 15.2667 9.92083 15.0042 9.7625 14.7625C9.60417 14.5208 9.38333 14.3333 9.1 14.2C8.76667 14.05 8.42917 13.9375 8.0875 13.8625C7.74583 13.7875 7.38333 13.75 7 13.75C6.61667 13.75 6.25417 13.7875 5.9125 13.8625C5.57083 13.9375 5.23333 14.05 4.9 14.2C4.61667 14.3333 4.39583 14.5208 4.2375 14.7625C4.07917 15.0042 4 15.2667 4 15.55V16ZM12 14.5H16V13H12V14.5ZM7 13C7.41667 13 7.77083 12.8542 8.0625 12.5625C8.35417 12.2708 8.5 11.9167 8.5 11.5C8.5 11.0833 8.35417 10.7292 8.0625 10.4375C7.77083 10.1458 7.41667 10 7 10C6.58333 10 6.22917 10.1458 5.9375 10.4375C5.64583 10.7292 5.5 11.0833 5.5 11.5C5.5 11.9167 5.64583 12.2708 5.9375 12.5625C6.22917 12.8542 6.58333 13 7 13ZM12 11.5H16V10H12V11.5ZM9 7H11V2H9V7Z" fill="#A855F7"/>
-</svg>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M2 20C1.45 20 0.979167 19.8042 0.5875 19.4125C0.195833 19.0208 0 18.55 0 18V7C0 6.45 0.195833 5.97917 0.5875 5.5875C0.979167 5.19583 1.45 5 2 5H7V2C7 1.45 7.19583 0.979167 7.5875 0.5875C7.97917 0.195833 8.45 0 9 0H11C11.55 0 12.0208 0.195833 12.4125 0.5875C12.8042 0.979167 13 1.45 13 2V5H18C18.55 5 19.0208 5.19583 19.4125 5.5875C19.8042 5.97917 20 6.45 20 7V18C20 18.55 19.8042 19.0208 19.4125 19.4125C19.0208 19.8042 18.55 20 18 20H2ZM2 18H18V7H13C13 7.55 12.8042 8.02083 12.4125 8.4125C12.0208 8.80417 11.55 9 11 9H9C8.45 9 7.97917 8.80417 7.5875 8.4125C7.19583 8.02083 7 7.55 7 7H2V18ZM4 16H10V15.55C10 15.2667 9.92083 15.0042 9.7625 14.7625C9.60417 14.5208 9.38333 14.3333 9.1 14.2C8.76667 14.05 8.42917 13.9375 8.0875 13.8625C7.74583 13.7875 7.38333 13.75 7 13.75C6.61667 13.75 6.25417 13.7875 5.9125 13.8625C5.57083 13.9375 5.23333 14.05 4.9 14.2C4.61667 14.3333 4.39583 14.5208 4.2375 14.7625C4.07917 15.0042 4 15.2667 4 15.55V16ZM12 14.5H16V13H12V14.5ZM7 13C7.41667 13 7.77083 12.8542 8.0625 12.5625C8.35417 12.2708 8.5 11.9167 8.5 11.5C8.5 11.0833 8.35417 10.7292 8.0625 10.4375C7.77083 10.1458 7.41667 10 7 10C6.58333 10 6.22917 10.1458 5.9375 10.4375C5.64583 10.7292 5.5 11.0833 5.5 11.5C5.5 11.9167 5.64583 12.2708 5.9375 12.5625C6.22917 12.8542 6.58333 13 7 13ZM12 11.5H16V10H12V11.5ZM9 7H11V2H9V7Z"
+              fill="#A855F7"
+            />
+          </svg>
 
           <h2 className="od-section-title">معلومات الطلب</h2>
         </div>
@@ -666,7 +664,9 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
           </div>
           <div className="od-info-row">
             <span className="od-info-label">التاريخ:</span>
-            <span className="od-info-val">{formatDate(order.order_created_at)}</span>
+            <span className="od-info-val">
+              {formatDate(order.order_created_at)}
+            </span>
           </div>
           <div className="od-info-row">
             <span className="od-info-label">المنتجات:</span>
@@ -683,7 +683,9 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
 
       <div className="od-products-card">
         <div className="od-products-header">
-          <span className="od-products-id">المنتجات المشتراة ({totalProducts})</span>
+          <span className="od-products-id">
+            المنتجات المشتراة ({totalProducts})
+          </span>
         </div>
         <div className="od-products-list">
           {products.map((prod) => {
@@ -695,7 +697,11 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
                 <div className="od-product-left">
                   <div className="od-product-img">
                     {imgSrc ? (
-                      <img src={imgSrc} alt={prod.product_name} loading="lazy" />
+                      <img
+                        src={imgSrc}
+                        alt={prod.product_name}
+                        loading="lazy"
+                      />
                     ) : (
                       <div className="od-img-placeholder">🛍️</div>
                     )}
@@ -748,12 +754,13 @@ export default function MyOrderDetails() {
     }
   };
 
-  if (loading) return (
-    <div className="od-loading">
-      <div className="od-spinner" />
-      <p>جاري تحميل الطلب...</p>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="od-loading">
+        <div className="od-spinner" />
+        <p>جاري تحميل الطلب...</p>
+      </div>
+    );
   if (error) return <div className="od-error">{error}</div>;
   if (!order) return <div className="od-error">لم يتم العثور على الطلب</div>;
 
@@ -767,7 +774,12 @@ export default function MyOrderDetails() {
 
   return (
     <div className="od-root" dir="rtl">
-      <div className="back-orders" onClick={() => navigate(storeMode ? "/dashboard/store_owner/orders" : "/orders")}>
+      <div
+        className="back-orders"
+        onClick={() =>
+          navigate(storeMode ? "/dashboard/store_owner/orders" : "/orders")
+        }
+      >
         <ArrowIcon />
         <span className="text">رجوع للطلبات</span>
       </div>
@@ -781,7 +793,9 @@ export default function MyOrderDetails() {
             <span className={`od-badge ${badge.cls}`}>
               {normalizedStatus === "delivered" && <CheckCircleIcon />}
               {normalizedStatus === "cancelled" && (
-                <span className="badge-x"><XIcon /></span>
+                <span className="badge-x">
+                  <XIcon />
+                </span>
               )}
               {badge.label}
             </span>
@@ -792,7 +806,10 @@ export default function MyOrderDetails() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path
               d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"
-              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           </svg>
           تحميل الفاتورة
@@ -829,11 +846,20 @@ export default function MyOrderDetails() {
                 ? review.prod.prod_id._id
                 : review.prod?.prod_id;
             if (!realProdId) return;
-            setRatedProducts((prev) =>
-              prev.includes(realProdId.toString())
-                ? prev
-                : [...prev, realProdId.toString()]
-            );
+
+            setOrder((prev) => ({
+              ...prev,
+              products: prev.products.map((store) => ({
+                ...store,
+                products: store.products.map((p) => {
+                  const pId = p.prod_id?._id || p.prod_id;
+                  return pId?.toString() === realProdId.toString()
+                    ? { ...p, hasReviewed: true }
+                    : p;
+                }),
+              })),
+            }));
+
             setReview(null);
           }}
         />

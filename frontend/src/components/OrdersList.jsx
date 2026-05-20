@@ -3,17 +3,67 @@ import { useState, useRef, useEffect } from "react";
 import "./OrdersList.css";
 import { getUserRole } from "../services/users";
 import { api, isUserLogged } from "../services/authService";
+const STATUS_CONFIG = {
+  pending: {
+    label: "قيد الانتظار",
+    color: "#D4AF37",
+    cls: "ol-status--pending",
+    aliases: ["قيد الانتظار", "pending"],
+  },
+  preparing: {
+    label: "جاري التجهيز",
+    color: "#A855F7",
+    cls: "ol-status--preparing",
+    aliases: ["جاري التجهيز", "preparing"],
+  },
+  ready: {
+    label: "جاهز للتوصيل",
+    color: "#e610c6",
+    cls: "ol-status--ready",
+    aliases: ["جاهز للتوصيل", "ready"],
+  },
+  shipping: {
+    label: "قيد التوصيل",
+    color: "#3B82F6",
+    cls: "ol-status--shipping",
+    aliases: ["قيد التوصيل", "shipping"],
+  },
+  delivered: {
+    label: "تم التوصيل",
+    color: "#16a34a",
+    cls: "ol-status--delivered",
+    aliases: ["تم التوصيل", "delivered"],
+  },
+  cancelled: {
+    label: "ملغى",
+    color: "#ef4444",
+    cls: "ol-status--cancelled",
+    aliases: ["ملغي", "ملغى", "cancelled"],
+  },
+};
+const normalizeStatus = (raw) => {
+  if (!raw) return "pending";
 
-const BASE_URL = "http://127.0.0.1:8080";
+  const value = String(raw).trim();
 
-const STORE_STATUS_OPTIONS = [
-  { value: "pending", label: "قيد الانتظار", color: "#D4AF37" },
-  { value: "preparing", label: "قيد التجهيز", color: "#A855F7" },
-  { value: "ready", label: "جاهز للتوصيل", color: "#22c55e" },
-  { value: "shipping", label: "قيد التوصيل", color: "#3B82F6" },
-  { value: "delivered", label: "تم التسليم", color: "#16a34a" },
-  { value: "cancelled", label: "ملغي", color: "#ef4444" },
-];
+  for (const [key, config] of Object.entries(STATUS_CONFIG)) {
+    if (config.aliases.includes(value)) {
+      return key;
+    }
+  }
+
+  console.log("UNKNOWN STATUS:", raw);
+
+  return "pending";
+};
+
+const STORE_STATUS_OPTIONS = Object.entries(STATUS_CONFIG).map(
+  ([value, config]) => ({
+    value,
+    label: config.label,
+    color: config.color,
+  }),
+);
 
 function StatusDropdown({ currentKey, orderId, onStatusChange }) {
   const [open, setOpen] = useState(false);
@@ -135,82 +185,14 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
   );
 }
 
-const normalizeStatus = (raw) => {
-  if (!raw) return "pending";
+const ALL_FILTERS = [
+  { label: "الكل", value: "all" },
 
-  const value = String(raw).trim();
-
-  switch (value) {
-    case "قيد الانتظار":
-      return "pending";
-
-    case "جاري التجهيز":
-    case "قيد التجهيز":
-      return "preparing";
-
-    case "قيد التوصيل":
-      return "shipping";
-
-    case "جاهز للتوصيل":
-      return "ready";
-
-    case "تم التوصيل":
-    case "تم التسليم":
-      return "delivered";
-
-    case "ملغي":
-      return "cancelled";
-
-    case "pending":
-    case "preparing":
-    case "shipping":
-    case "ready":
-    case "delivered":
-    case "cancelled":
-      return value;
-
-    default:
-      console.log("UNKNOWN STATUS:", raw);
-      return "pending";
-  }
-};
-
-const STATUS_CONFIG = {
-  pending: {
-    client: "قيد الانتظار",
-    store: "قيد الانتظار",
-    cls: "ol-status--pending",
-  },
-
-  preparing: {
-    client: "قيد التجهيز",
-    store: "قيد التجهيز",
-    cls: "ol-status--preparing",
-  },
-
-  ready: {
-    store: "جاهز للتوصيل",
-    cls: "ol-status--ready",
-  },
-
-  shipping: {
-    client: "قيد التوصيل",
-    store: "قيد التوصيل",
-    cls: "ol-status--shipping",
-  },
-
-  delivered: {
-    client: "تم التسليم",
-    store: "تم التسليم",
-    cls: "ol-status--delivered",
-  },
-
-  cancelled: {
-    client: "ملغي",
-    store: "ملغي",
-    cls: "ol-status--cancelled",
-  },
-};
+  ...Object.entries(STATUS_CONFIG).map(([value, config]) => ({
+    label: config.label,
+    value,
+  })),
+];
 
 const PAYMENT_STATUS_CONFIG = {
   pending: {
@@ -239,32 +221,11 @@ const PAYMENT_STATUS_CONFIG = {
   },
 };
 
-const CLIENT_FILTERS = [
-  { label: "الكل", value: "all" },
-  { label: "قيد الانتظار", value: "pending" },
-  { label: "قيد التجهيز", value: "preparing" },
-  { label: "قيد التوصيل", value: "shipping" },
-  { label: "تم التسليم", value: "delivered" },
-  { label: "ملغى", value: "cancelled" },
-];
-
-const STORE_FILTERS = [
-  { label: "الكل", value: "all" },
-  { label: "قيد الانتظار", value: "pending" },
-  { label: "قيد التجهيز", value: "preparing" },
-  { label: "جاهز للتوصيل", value: "ready" },
-  { label: "قيد التوصيل", value: "shipping" },
-  { label: "تم التسليم", value: "delivered" },
-  { label: "ملغى", value: "cancelled" },
-];
-
 const normalizePaymentStatus = (payment, orderStatus) => {
   const method = payment?.method;
   const rawStatus = payment?.status;
 
-  const value = String(rawStatus || "")
-    .trim()
-    .toLowerCase();
+  const value = String(rawStatus || "").trim();
 
   // CASH LOGIC
   if (method === "cash") {
@@ -343,12 +304,9 @@ export default function OrdersList({
   const storeMode = role === "store_owner";
   const clientMode = role === "client";
 
-
   useEffect(() => {
     setOrders(ordersProp);
   }, [ordersProp]);
-
-  const FILTERS = storeMode ? STORE_FILTERS : CLIENT_FILTERS;
 
   const filtered = orders
     .filter((o) => {
@@ -426,7 +384,7 @@ export default function OrdersList({
 
   const formattedImage = (imgPath) => {
     if (!imgPath) return null;
-    return imgPath.replace(/\\/g, "//").replace("uploads", BASE_URL);
+    return imgPath.replace(/\\/g, "//").replace("uploads", api);
   };
 
   if (!isUserLogged())
@@ -461,7 +419,7 @@ export default function OrdersList({
       </div>
 
       <div className="ol-filters">
-        {FILTERS.map((f) => (
+        {ALL_FILTERS.map((f) => (
           <button
             key={f.value}
             className={`ol-filter-btn${filter === f.value ? " ol-filter-btn--active" : ""}`}
@@ -481,22 +439,18 @@ export default function OrdersList({
           </div>
         ) : (
           filtered.map((order) => {
-            const id = order._id || order.order_id;
+            const id = order._id ||order.order_id;
             const rawStatus = order.status || order.order_status;
             const key = normalizeStatus(rawStatus);
             const cfg = STATUS_CONFIG[key] || STATUS_CONFIG.pending;
-            const isPending = key === "pending" || key === "preparing";
+            const isPendingOrPreparing =
+              key === "pending" || key === "preparing";
             const isCancelled = key === "cancelled";
             const prodCount = countProducts(order);
             const total = order.total_price || order.store_subtotal || 0;
-
             const paymentMethod = order.payment?.method;
 
-            
-           const paymentStatusKey = normalizePaymentStatus(
-  order.payment || { method: order.payment_method, status: order.payment_status },
-  key
-);
+            const paymentStatusKey = normalizePaymentStatus(order.payment, key);
             const paymentCfg =
               PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
               PAYMENT_STATUS_CONFIG.pending;
@@ -505,10 +459,8 @@ export default function OrdersList({
               clientMode &&
               ["wallet", "card"].includes(paymentMethod) &&
               ["pending", "processing", "failed"].includes(paymentStatusKey) &&
-              key !== "cancelled";
- console.log("payment status =>", order.payment?.status);
+              !isCancelled;
             return (
-             
               <div className="ol-card" key={id}>
                 {/* Card Header */}
                 <div className="ol-card-header">
@@ -534,22 +486,31 @@ export default function OrdersList({
                   ) : (
                     <span className={`ol-status ${cfg.cls}`}>
                       <span className="ol-dot" />
-                      {cfg[storeMode ? "store" : "client"] || rawStatus}
+                      {cfg.label || rawStatus}
                     </span>
                   )}
-                    <div>
-                  {/* PAYMENT STATUS */}
-                  <span className={`ol-payment-badge ${paymentCfg.cls}`}>
-                <svg className="bedge-svg" width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M13 9C12.1667 9 11.4583 8.70833 10.875 8.125C10.2917 7.54167 10 6.83333 10 6C10 5.16667 10.2917 4.45833 10.875 3.875C11.4583 3.29167 12.1667 3 13 3C13.8333 3 14.5417 3.29167 15.125 3.875C15.7083 4.45833 16 5.16667 16 6C16 6.83333 15.7083 7.54167 15.125 8.125C14.5417 8.70833 13.8333 9 13 9ZM6 12C5.45 12 4.97917 11.8042 4.5875 11.4125C4.19583 11.0208 4 10.55 4 10V2C4 1.45 4.19583 0.979167 4.5875 0.5875C4.97917 
+                  <div>
+                    {/* PAYMENT STATUS */}
+                    <span className={`ol-payment-badge ${paymentCfg.cls}`}>
+                      <svg
+                        className="bedge-svg"
+                        width="22"
+                        height="16"
+                        viewBox="0 0 22 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M13 9C12.1667 9 11.4583 8.70833 10.875 8.125C10.2917 7.54167 10 6.83333 10 6C10 5.16667 10.2917 4.45833 10.875 3.875C11.4583 3.29167 12.1667 3 13 3C13.8333 3 14.5417 3.29167 15.125 3.875C15.7083 4.45833 16 5.16667 16 6C16 6.83333 15.7083 7.54167 15.125 8.125C14.5417 8.70833 13.8333 9 13 9ZM6 12C5.45 12 4.97917 11.8042 4.5875 11.4125C4.19583 11.0208 4 10.55 4 10V2C4 1.45 4.19583 0.979167 4.5875 0.5875C4.97917 
 0.195833 5.45 0 6 0H20C20.55 0 21.0208 0.195833 21.4125 0.5875C21.8042 0.979167 22 1.45 22 2V10C22 10.55 21.8042 11.0208 21.4125 11.4125C21.0208 11.8042 20.55 12 20 12H6ZM8 10H18C18 9.45 18.1958 8.97917 18.5875 8.5875C18.9792 8.19583 19.45 8 20 8V4C19.45 4 18.9792 3.80417 18.5875 3.4125C18.1958 3.02083 18 2.55 18 2H8C8 2.55 7.80417 3.02083 7.4125 3.4125C7.02083 3.80417 6.55 4 6 4V8C6.55 8 7.02083 8.19583 7.4125 8.5875C7.80417 
-8.97917 8 9.45 8 10ZM19 16H2C1.45 16 0.979167 15.8042 0.5875 15.4125C0.195833 15.0208 0 14.55 0 14V3H2V14H19V16ZM6 10V2V10Z" fill="#822a91"/>
-</svg>
+8.97917 8 9.45 8 10ZM19 16H2C1.45 16 0.979167 15.8042 0.5875 15.4125C0.195833 15.0208 0 14.55 0 14V3H2V14H19V16ZM6 10V2V10Z"
+                          fill="#822a91"
+                        />
+                      </svg>
 
-                    
-                    {paymentCfg.label}
-                  </span>
-                </div>
+                      {paymentCfg.label}
+                    </span>
+                  </div>
 
                   <div className="ol-order-meta">
                     <span className="ol-order-id">
@@ -564,8 +525,6 @@ export default function OrdersList({
                     </span>
                   </div>
                 </div>
-
-              
 
                 {/* Card Body */}
                 <div className="ol-card-body">
@@ -684,25 +643,25 @@ export default function OrdersList({
                           التفاصيل
                         </Link>
 
-                      {canCompletePayment && (
-  <button
-    className="ol-btn ol-btn--reorder"
-    onClick={() => {
-      navigate("/shipping/info", {
-        state: {
-          orderId: order._id,
-          subtotal: order.subtotal_price,
-          shipping: 50,
-          total: order.total_price,
-        },
-      });
-    }}  
-  >
-    إكمال الدفع
-  </button>
-)}
+                        {canCompletePayment && (
+                          <button
+                            className="ol-btn ol-btn--reorder"
+                            onClick={() => {
+                              navigate("/shipping/info", {
+                                state: {
+                                  orderId: order._id,
+                                  subtotal: order.subtotal_price,
+                                  shipping: 50,
+                                  total: order.total_price,
+                                },
+                              });
+                            }}
+                          >
+                            إكمال الدفع
+                          </button>
+                        )}
 
-                        {isPending && (
+                        {isPendingOrPreparing && (
                           <button
                             className="ol-btn ol-btn--cancel"
                             onClick={() => cancelOrder(id)}
