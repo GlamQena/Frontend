@@ -141,12 +141,12 @@
 }
 
 .ol-status--ready {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: var(--أخضر-نجاح);
-  color: var(--أخضر-نجاح);
+  background:  #e610c61a;
+  border-color:  #e610c6;
+  color: #e610c6;
 }
 .ol-status--ready .ol-dot {
-  background: var(--أخضر-نجاح);
+  background: #e610c6;
 }
 
 .ol-status--delivered {
@@ -459,6 +459,7 @@
 
 .sd-trigger--locked {
   opacity: 0.8;
+  cursor:default;
 }
 
 .sd-trigger--locked:hover {

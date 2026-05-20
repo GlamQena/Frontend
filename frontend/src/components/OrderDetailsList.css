@@ -127,12 +127,12 @@ button {
   border: 1px solid #22c55e;
   color: #22c55e;
 }
-.badge--pending {
+.badge--preparing {
   background: rgba(168, 85, 247, 0.1);
   border: 1px solid #a855f7;
   color: #a855f7;
 }
-.badge--preparing {
+ .badge--pending{
   background: rgba(212, 175, 55, 0.1);
   border: 1px solid #d4af37;
   color: #d4af37;
@@ -333,14 +333,15 @@ button {
   flex: 1;
 }
 
+/* STEP */
 .od-step {
   display: flex;
-  flex-direction: row; /* circle RIGHT in RTL */
+  flex-direction: row;
   align-items: flex-start;
   gap: 16px;
 }
 
-/* circle column */
+/* INDICATOR */
 .od-step-indicator {
   display: flex;
   flex-direction: column;
@@ -351,9 +352,74 @@ button {
   align-self: stretch;
 }
 
+/* TOP LINE */
+.od-step-indicator::before {
+    content: "";
+    position: absolute;
+    top: -55px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 56px;
+    z-index: 0;
+}
+
+/* FIRST STEP → no line */
+.od-step:first-child .od-step-indicator::before {
+  display: none;
+}
+
+/* DONE */
+.od-step--done .od-step-indicator::before {
+  background: linear-gradient(
+    to top,
+    #22c55e,
+    rgba(34, 197, 94, 0.15)
+  );
+}
+
+/* PENDING */
+.od-step--pending .od-step-indicator::before {
+  background: linear-gradient(
+    to top,
+    #a855f7,
+    rgba(168, 85, 247, 0.15)
+  );
+  
+
+  opacity: 0.3;
+}
+
+/* CANCELLED */
+.od-step--cancelled .od-step-indicator::before {
+  background: linear-gradient(
+    to top,
+    #ef4444,
+    rgba(239, 68, 68, 0.15)
+  );
+
+  opacity: 0.3;
+}
+
+
+.od-step--pending .od-step-indicator::before, .od-step--cancelled .od-step-indicator::before {
+    content: "";
+    position: absolute;
+    bottom: calc(100% - 16px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 56px;
+    z-index: 2;
+    opacity: 0.3;
+
+}
+
 .od-step-circle {
   width: 32px;
   height: 32px;
+   min-width: 32px;  
+  min-height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -377,48 +443,20 @@ button {
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
 }
 
-/* connecting line via ::after */
-.od-step:not(.od-step--last) .od-step-indicator::after {
-  content: "";
-  position: absolute;
-  top: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  bottom: -16px;
-  background: linear-gradient(to bottom, #22c55e, rgba(34, 197, 94, 0.15));
-  z-index: 0;
-}
-
-/* pending step: override line to purple via ::after + purple ::before */
-.od-step--pending:not(.od-step--last) .od-step-indicator::after {
-  background: linear-gradient(to bottom, #a855f7, rgba(168, 85, 247, 0.15));
-  z-index: 2;
-  opacity: 0.3;
-}
-
-.od-step--pending .od-step-indicator::before,
-.od-step--cancelled .od-step-indicator::before {
-  content: "";
-  position: absolute;
-  bottom: calc(100% - 16px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 48px;
-  z-index: 2;
-  opacity: 0.3;
-}
-
-.od-step--pending .od-step-indicator::before {
-  background: linear-gradient(to bottom, rgba(168, 85, 247, 0.15), #a855f7);
+.od-step--cancelled .od-step-circle {
+  width: 32px;
+  height: 32px;
 }
 
 .od-step--cancelled .od-step-indicator::before {
-  background: linear-gradient(to bottom, rgba(239, 68, 68, 0.15), #ef4444);
+  background: linear-gradient(to top, #ef4444, rgba(239, 68, 68, 0.15));
+  opacity: 1; 
+  height: 56px;
+  top: -55px;
 }
 
-/* step text */
+
+
 .od-step-text {
   flex: 1;
   display: flex;
@@ -429,9 +467,6 @@ button {
   padding-top: 4px;
 }
 
-.od-step--last .od-step-text {
-  padding-bottom: 8px;
-}
 
 .od-step-label {
   font-weight: 700;
