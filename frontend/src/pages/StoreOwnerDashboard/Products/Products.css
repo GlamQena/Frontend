@@ -1,43 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
 
-html { direction: rtl; }
-
-body {
-  background: var(--bg-base);
-  font-family: 'Cairo', sans-serif;
-  color: var(--text-primary);
-  min-height: 100vh;
-  /* subtle grain texture */
-  background-image:
-    radial-gradient(ellipse 80% 60% at 60% -10%, rgba(120,40,180,0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 40% at 10% 90%,  rgba(90,20,140,0.08) 0%, transparent 60%);
-}
-
-/* ── CSS Variables ─────────────────────────────────────────── */
-:root {
-  --bg-base: #0a0418;
-  --bg-card: #0f0a1a;
-  --bg-input: #110c1f;
-  --text-primary: #f1e7fd;
-  --text-secondary: #c9b3e6;
-  --text-muted: #7a6a8a;
-  --border: rgba(185, 77, 212, 0.18);
-  --border-hover: rgba(185, 77, 212, 0.45);
-  --accent: #b94dd4;
-  --purple-300: #c084fc;
-  --purple-500: #a855f7;
-  --red: #ef4444;
-  --red-soft: rgba(239, 68, 68, 0.12);
-  --warning: #fbbf24;
-  --success: #22c55e;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --transition: 0.22s ease;
-  --spring: cubic-bezier(0.34, 1.2, 0.64, 1);
-}
-
 /* ── Layout ──────────────────────────────────────────── */
 .app-container {
   max-width: 1280px;
@@ -47,7 +9,7 @@ body {
 
 hr {
   border: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--حد-واضح);
   margin: 48px 0;
 }
 
@@ -59,14 +21,14 @@ hr {
   justify-content: center;
   gap: 20px;
   height: 100vh;
-  color: var(--purple-300);
+  color: var(--نص-ثانوي);
   font-size: 1rem;
 }
 
 .loader-ring {
   width: 44px; height: 44px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
+  border: 3px solid var(--حد-واضح);
+  border-top-color: var(--بنفسجي);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -92,7 +54,7 @@ hr {
 .section-header h1 {
   font-size: clamp(1.5rem, 3vw, 2.1rem);
   font-weight: 700;
-  background: linear-gradient(135deg, var(--text-primary) 30%, var(--purple-300));
+  background: linear-gradient(135deg, var(--نص-رئيسي) 30%, var(--بنفسجي));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -101,10 +63,10 @@ hr {
 }
 
 .section-header p {
-  color: var(--text-muted);
+  color: var(--نص-خافت);
   font-size: 0.88rem;
   margin-top: 8px;
-  border-right: 2px solid var(--accent);
+  border-right: 2px solid var(--بنفسجي);
   padding-right: 12px;
 }
 
@@ -117,14 +79,14 @@ hr {
 
 /* ── Product card ────────────────────────────────────── */
 .product-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
+  background: var(--خلفية-البطاقة);
+  border-radius: var(--راديوس-البطاقة);
   padding: 20px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--حد-واضح);
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
   position: relative;
   overflow: hidden;
 }
@@ -133,34 +95,34 @@ hr {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(185,77,212,0.04) 0%, transparent 60%);
+  background: linear-gradient(135deg, var(--بنفسجي-خافت) 0%, transparent 60%);
   pointer-events: none;
 }
 
 .product-card:hover {
-  border-color: var(--border-hover);
+  border-color: var(--حد-تركيز);
   transform: translateY(-4px);
-  box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(185,77,212,0.1);
+  box-shadow: var(--ظل-البطاقة);
 }
 
 .product-img {
   width: 100%;
   height: 130px;
   background: linear-gradient(135deg, #1c1230, #0e0818);
-  border-radius: var(--radius-md);
+  border-radius: var(--راديوس-الحقل);
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.2rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--حد-واضح);
 }
 
 .product-name {
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--text-primary);
+  color: var(--نص-رئيسي);
   margin-bottom: 6px;
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -170,39 +132,39 @@ hr {
 .product-price {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--purple-300);
+  color: var(--بنفسجي);
   margin: 4px 0;
 }
 
 .product-stock {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--نص-خافت);
   margin-bottom: 14px;
 }
 
-.product-stock.low  { color: var(--warning); }
-.product-stock.out  { color: var(--red); }
+.product-stock.low  { color: var(--ذهبي); }
+.product-stock.out  { color: var(--أحمر-خطأ); }
 
 /* ── Card buttons ────────────────────────────────────── */
 .btn-edit-product {
-  background: rgba(185,77,212,0.1);
-  color: var(--purple-300);
-  border: 1px solid var(--border-hover);
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+  border: 1px solid var(--حد-واضح);
   padding: 8px 14px;
   border-radius: 30px;
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition: background 0.22s ease, color 0.22s ease;
   width: 100%;
   margin-bottom: 10px;
   font-family: inherit;
 }
 
 .btn-edit-product:hover {
-  background: var(--accent);
+  background: var(--بنفسجي);
   color: #fff;
-  border-color: var(--accent);
+  border-color: var(--بنفسجي);
 }
 
 /* ── New: Row actions bottom (نشط + حذف ) ── */
@@ -221,7 +183,7 @@ hr {
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
   border: none;
   font-family: inherit;
   display: flex;
@@ -231,12 +193,12 @@ hr {
 }
 
 .btn-toggle-status.active {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: var(--تدرج-نجاح);
   color: white;
 }
 
 .btn-toggle-status.inactive {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: var(--تدرج-خطأ);
   color: white;
 }
 
@@ -270,14 +232,14 @@ hr {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background var(--transition);
-  background: var(--red-soft);
+  transition: background 0.22s ease;
+  background: var(--أحمر-خافت);
   border: 1px solid rgba(239,68,68,0.25);
   flex-shrink: 0;
 }
 
 .delete-icon:hover:not(:disabled) {
-  background: var(--red);
+  background: var(--أحمر-خطأ);
 }
 
 .delete-icon:disabled {
@@ -288,10 +250,10 @@ hr {
 .delete-icon svg {
   width: 16px;
   height: 16px;
-  stroke: var(--red);
+  stroke: var(--أحمر-خطأ);
   stroke-width: 2;
   fill: none;
-  transition: stroke var(--transition);
+  transition: stroke 0.22s ease;
 }
 
 .delete-icon:hover:not(:disabled) svg {
@@ -305,44 +267,44 @@ hr {
 
 /* ── Add-product card ────────────────────────────────── */
 .add-product-card {
-  background: rgba(18,13,30,0.6);
-  border-radius: var(--radius-lg);
-  border: 2px dashed rgba(185,77,212,0.4);
+  background: var(--خلفية-2);
+  border-radius: var(--راديوس-البطاقة);
+  border: 2px dashed var(--حد-واضح);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
   min-height: 280px;
   padding: 28px;
 }
 
 .add-product-card:hover {
-  background: rgba(185,77,212,0.07);
-  border-color: var(--accent);
+  background: var(--بنفسجي-خافت);
+  border-color: var(--بنفسجي);
   transform: translateY(-4px);
 }
 
 .add-icon { font-size: 2.8rem; margin-bottom: 14px; }
-.add-product-card h3 { font-size: 1.05rem; color: var(--purple-300); margin-bottom: 6px; font-weight: 600; }
-.add-product-card p  { font-size: 0.78rem; color: var(--text-muted); }
+.add-product-card h3 { font-size: 1.05rem; color: var(--بنفسجي); margin-bottom: 6px; font-weight: 600; }
+.add-product-card p  { font-size: 0.78rem; color: var(--نص-خافت); }
 
 /* ── Empty state ─────────────────────────────────────── */
 .empty-state {
   text-align: center;
   padding: 64px 24px;
-  color: var(--text-muted);
+  color: var(--نص-خافت);
 }
 .empty-icon { font-size: 3rem; margin-bottom: 16px; }
 
 /* ── Form container ──────────────────────────────────── */
 .form-container {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
+  background: var(--خلفية-البطاقة);
+  border-radius: var(--راديوس-البطاقة);
   padding: clamp(20px, 4vw, 40px);
-  border: 1px solid var(--border);
+  border: 1px solid var(--حد-واضح);
   max-width: 800px;
   margin: 0 auto;
 }
@@ -355,32 +317,32 @@ hr {
   margin-bottom: 8px;
   font-size: 0.83rem;
   font-weight: 600;
-  color: var(--purple-300);
+  color: var(--بنفسجي);
   letter-spacing: 0.02em;
 }
 
-.req { color: var(--red); margin-right: 2px; }
+.req { color: var(--أحمر-خطأ); margin-right: 2px; }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 11px 15px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
+  padding: var(--padding-الحقل);
+  background: var(--خلفية-2);
+  border: 1px solid var(--حد-خافت);
+  border-radius: var(--راديوس-الحقل);
+  color: var(--نص-رئيسي);
   font-size: 0.9rem;
   outline: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
   font-family: inherit;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(185,77,212,0.12);
+  border-color: var(--حد-تركيز);
+  box-shadow: var(--ظل-تركيز-الحقل);
 }
 
 .form-group input:disabled,
@@ -398,30 +360,30 @@ hr {
 
 /* ── Image upload ────────────────────────────────────── */
 .image-upload-area {
-  background: rgba(12,8,22,0.6);
-  border: 2px dashed rgba(185,77,212,0.35);
-  border-radius: var(--radius-lg);
+  background: var(--خلفية-3);
+  border: 2px dashed var(--حد-واضح);
+  border-radius: var(--راديوس-البطاقة);
   padding: 36px 20px;
   text-align: center;
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
 }
 
 .image-upload-area:hover {
-  background: rgba(185,77,212,0.07);
-  border-color: var(--accent);
+  background: var(--بنفسجي-خافت);
+  border-color: var(--بنفسجي);
 }
 
 .upload-icon  { font-size: 2.2rem; margin-bottom: 10px; }
-.upload-text  { color: var(--text-secondary); font-size: 0.85rem; }
-.upload-hint  { color: var(--text-muted); font-size: 0.72rem; margin-top: 6px; }
+.upload-text  { color: var(--نص-ثانوي); font-size: 0.85rem; }
+.upload-hint  { color: var(--نص-خافت); font-size: 0.72rem; margin-top: 6px; }
 
 .image-preview { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 .image-preview img {
   width: 76px; height: 76px;
   object-fit: cover;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--accent);
+  border-radius: var(--راديوس-الحقل);
+  border: 1px solid var(--بنفسجي);
 }
 
 /* ── Buttons ─────────────────────────────────────────── */
@@ -434,32 +396,32 @@ hr {
 
 .btn-cancel {
   background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border-hover);
-  color: var(--text-secondary);
+  border: 1px solid var(--حد-واضح);
+  color: var(--نص-ثانوي);
   padding: 10px 26px;
-  border-radius: 40px;
+  border-radius: var(--راديوس-الزر);
   cursor: pointer;
   font-family: inherit;
   font-size: 0.88rem;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
 }
 
 .btn-cancel:hover:not(:disabled) {
   background: rgba(255,255,255,0.08);
-  color: var(--text-primary);
+  color: var(--نص-رئيسي);
 }
 
 .btn-submit {
-  background: var(--accent);
+  background: var(--تدرج-الأزرار);
   color: #fff;
   border: none;
   padding: 10px 28px;
-  border-radius: 40px;
+  border-radius: var(--راديوس-الزر);
   font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
   font-family: inherit;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -468,8 +430,8 @@ hr {
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: var(--purple-500);
-  box-shadow: 0 0 20px rgba(185,77,212,0.4);
+  background: var(--بنفسجي);
+  box-shadow: var(--ظل-الزر);
 }
 
 .btn-submit:disabled,
@@ -488,25 +450,25 @@ hr {
 }
 
 .edit-header h1 { font-size: clamp(1.4rem,2.5vw,1.9rem); font-weight: 700; margin-bottom: 4px; }
-.edit-header p  { font-size: 0.85rem; color: var(--text-muted); }
+.edit-header p  { font-size: 0.85rem; color: var(--نص-خافت); }
 
 .action-buttons { display: flex; gap: 12px; align-items: center; }
 
 /* ── Info cards ──────────────────────────────────────── */
 .info-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
+  background: var(--خلفية-البطاقة);
+  border-radius: var(--راديوس-البطاقة);
   padding: clamp(18px, 3vw, 28px);
-  border: 1px solid var(--border);
+  border: 1px solid var(--حد-واضح);
   margin-bottom: 24px;
 }
 
 .card-title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--purple-300);
+  color: var(--بنفسجي);
   margin-bottom: 20px;
-  border-right: 2px solid var(--accent);
+  border-right: 2px solid var(--بنفسجي);
   padding-right: 12px;
 }
 
@@ -515,19 +477,19 @@ hr {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(185,77,212,0.1);
-  border: 1px solid var(--border-hover);
+  background: var(--بنفسجي-خافت);
+  border: 1px solid var(--حد-واضح);
   border-radius: 30px;
   padding: 6px 14px;
   font-size: 0.8rem;
-  color: var(--purple-300);
+  color: var(--بنفسجي);
   margin-top: 10px;
 }
 
 .sel-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: var(--success);
+  background: var(--أخضر-نجاح);
   animation: pulse 2s ease-in-out infinite;
   flex-shrink: 0;
 }
@@ -546,19 +508,19 @@ hr {
 }
 
 .spec-item {
-  background: var(--bg-input);
-  border-radius: var(--radius-md);
+  background: var(--خلفية-2);
+  border-radius: var(--راديوس-الحقل);
   padding: 14px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--حد-خافت);
 }
 
-.spec-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px; }
+.spec-label { font-size: 0.72rem; color: var(--نص-خافت); margin-bottom: 6px; }
 
 .spec-value-input {
   width: 100%;
   background: transparent;
   border: none;
-  color: var(--purple-300);
+  color: var(--بنفسجي);
   font-size: 1rem;
   font-weight: 600;
   outline: none;
@@ -569,20 +531,20 @@ hr {
 .dimensions { display: flex; gap: 14px; margin-top: 14px; }
 
 .dimension-box {
-  background: var(--bg-input);
-  border-radius: var(--radius-md);
+  background: var(--خلفية-2);
+  border-radius: var(--راديوس-الحقل);
   padding: 12px;
   text-align: center;
   flex: 1;
-  border: 1px solid var(--border);
+  border: 1px solid var(--حد-خافت);
 }
 
-.dimension-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 6px; }
+.dimension-label { font-size: 0.7rem; color: var(--نص-خافت); margin-bottom: 6px; }
 
 .dimension-box input {
   background: transparent;
   border: none;
-  color: var(--purple-300);
+  color: var(--بنفسجي);
   font-size: 0.95rem;
   font-weight: 600;
   text-align: center;
@@ -593,12 +555,12 @@ hr {
 
 /* ── Ingredients ─────────────────────────────────────── */
 .ingredients-text {
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  background: var(--خلفية-2);
+  border: 1px solid var(--حد-خافت);
+  border-radius: var(--راديوس-الحقل);
   padding: 14px;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--نص-ثانوي);
   line-height: 1.6;
   width: 100%;
   font-family: inherit;
@@ -607,28 +569,28 @@ hr {
 
 .ingredients-text:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(185,77,212,0.12);
+  border-color: var(--حد-تركيز);
+  box-shadow: var(--ظل-تركيز-الحقل);
 }
 
 /* ── Delete section ──────────────────────────────────── */
 .delete-section { margin-top: 28px; text-align: center; }
 
 .btn-delete-product {
-  background: var(--red-soft);
+  background: var(--أحمر-خافت);
   border: 1px solid rgba(239,68,68,0.28);
-  color: var(--red);
+  color: var(--أحمر-خطأ);
   padding: 11px 32px;
-  border-radius: 40px;
+  border-radius: var(--راديوس-الزر);
   font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
   font-family: inherit;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
 }
 
 .btn-delete-product:hover:not(:disabled) {
-  background: var(--red);
+  background: var(--أحمر-خطأ);
   color: #fff;
 }
 
@@ -648,13 +610,13 @@ hr {
 
 /* ── Stock modal ─────────────────────────────────────── */
 .stock-modal {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
+  background: var(--خلفية-البطاقة);
+  border-radius: var(--راديوس-البطاقة);
   padding: 32px;
   width: min(420px, 92vw);
-  border: 1px solid var(--border-hover);
-  box-shadow: 0 32px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(185,77,212,0.08);
-  animation: slideUp 0.3s var(--spring);
+  border: 1px solid var(--حد-واضح);
+  box-shadow: var(--ظل-البطاقة);
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 
 @keyframes slideUp { from { opacity:0; transform: translateY(24px) scale(0.97); } to { opacity:1; transform: none; } }
@@ -663,7 +625,7 @@ hr {
   font-size: 1.4rem;
   font-weight: 700;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, var(--text-primary), var(--purple-300));
+  background: linear-gradient(135deg, var(--نص-رئيسي), var(--بنفسجي));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -674,12 +636,12 @@ hr {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--حد-واضح);
 }
 
 .info-field:last-of-type { margin-bottom: 20px; }
-.info-label { font-size: 0.8rem; color: var(--text-muted); }
-.info-value { font-size: 0.88rem; font-weight: 600; color: var(--text-primary); }
+.info-label { font-size: 0.8rem; color: var(--نص-خافت); }
+.info-value { font-size: 0.88rem; font-weight: 600; color: var(--نص-رئيسي); }
 
 .input-field { margin: 20px 0; }
 
@@ -687,7 +649,7 @@ hr {
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--purple-300);
+  color: var(--بنفسجي);
   margin-bottom: 10px;
 }
 
@@ -701,35 +663,35 @@ hr {
 .stock-input-row input {
   flex: 1;
   padding: 10px 14px;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
+  background: var(--خلفية-2);
+  border: 1px solid var(--حد-خافت);
+  border-radius: var(--راديوس-الحقل);
+  color: var(--نص-رئيسي);
   font-size: 1.1rem;
   font-weight: 700;
   text-align: center;
   outline: none;
   font-family: inherit;
-  transition: border-color var(--transition);
+  transition: border-color 0.22s ease;
 }
 
-.stock-input-row input:focus { border-color: var(--accent); }
+.stock-input-row input:focus { border-color: var(--حد-تركيز); }
 
 .stock-step-btn {
   width: 40px; height: 40px;
   border-radius: 50%;
-  background: rgba(185,77,212,0.12);
-  border: 1px solid var(--border-hover);
-  color: var(--purple-300);
+  background: var(--بنفسجي-خافت);
+  border: 1px solid var(--حد-واضح);
+  color: var(--بنفسجي);
   font-size: 1.4rem;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
   line-height: 1;
   font-family: inherit;
 }
 
-.stock-step-btn:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); }
+.stock-step-btn:hover:not(:disabled) { background: var(--بنفسجي); color: #fff; border-color: var(--بنفسجي); }
 .stock-step-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .stock-diff {
@@ -748,58 +710,58 @@ hr {
 
 .btn-update {
   flex: 1;
-  background: var(--accent);
+  background: var(--تدرج-الأزرار);
   color: #fff;
   border: none;
   padding: 12px;
-  border-radius: 40px;
+  border-radius: var(--راديوس-الزر);
   font-weight: 700;
   font-size: 0.9rem;
   cursor: pointer;
   font-family: inherit;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 
 .btn-update:hover:not(:disabled) {
-  background: var(--purple-500);
-  box-shadow: 0 0 20px rgba(185,77,212,0.4);
+  background: var(--بنفسجي);
+  box-shadow: var(--ظل-الزر);
 }
 
 .btn-cancel-modal {
   flex: 1;
   background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
+  border: 1px solid var(--حد-خافت);
+  color: var(--نص-ثانوي);
   padding: 12px;
-  border-radius: 40px;
+  border-radius: var(--راديوس-الزر);
   font-size: 0.9rem;
   cursor: pointer;
   font-family: inherit;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
 }
 
-.btn-cancel-modal:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+.btn-cancel-modal:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: var(--نص-رئيسي); }
 
 .btn-update:disabled,
 .btn-cancel-modal:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Delete modal ────────────────────────────────────── */
 .delete-modal {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
+  background: var(--خلفية-البطاقة);
+  border-radius: var(--راديوس-البطاقة);
   padding: 36px 32px;
   width: min(380px, 92vw);
   text-align: center;
   border: 1px solid rgba(239,68,68,0.25);
-  box-shadow: 0 32px 64px rgba(0,0,0,0.6);
-  animation: slideUp 0.3s var(--spring);
+  box-shadow: var(--ظل-البطاقة);
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
 
 .warning-icon  { font-size: 2.8rem; margin-bottom: 16px; }
-.question-text { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
-.modal-product-name { font-size: 0.9rem; color: var(--purple-300); font-weight: 600; margin-bottom: 8px; }
-.warning-text  { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 24px; }
+.question-text { font-size: 1.05rem; font-weight: 600; color: var(--نص-رئيسي); margin-bottom: 8px; }
+.modal-product-name { font-size: 0.9rem; color: var(--بنفسجي); font-weight: 600; margin-bottom: 8px; }
+.warning-text  { font-size: 0.78rem; color: var(--نص-خافت); margin-bottom: 24px; }
 
 .modal-buttons-vertical {
   display: flex;
@@ -808,16 +770,16 @@ hr {
 }
 
 .btn-delete {
-  background: var(--red);
+  background: var(--تدرج-خطأ);
   color: #fff;
   border: none;
   padding: 12px;
-  border-radius: 40px;
+  border-radius: var(--راديوس-الزر);
   font-weight: 700;
   font-size: 0.9rem;
   cursor: pointer;
   font-family: inherit;
-  transition: all var(--transition);
+  transition: all 0.22s ease;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 

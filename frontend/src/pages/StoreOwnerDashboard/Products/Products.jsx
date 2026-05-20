@@ -6,6 +6,8 @@ import {
   deleteProduct,
   getCategories,
 } from '../../../services/products';
+import "./Products.css";
+const BASE_URL = "http://localhost:8080";
 
 /* ═══════════════════════════════════════════════════════════
    1. Toast Context & Provider

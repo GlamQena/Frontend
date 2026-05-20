@@ -26,7 +26,7 @@ import Profile from "./pages/Profile/Profile";
 import StoreOwnerHome from "./pages/StoreOwnerDashboard/Home/Home";
 import StoreOwnerProducts from "./pages/StoreOwnerDashboard/Products/Products";
 import StoreOwnerOrders from "./pages/StoreOwnerDashboard/Orders/Orders";
-import StoreOwnerOrderDetails from "./pages/StoreOwnerDashboard/Orders/OrderDetails";
+import StoreOwnerActiveClients from "./pages/StoreOwnerDashboard/ActiveClients/ActiveClients";
 
 // 404
 import NotFound from "./pages/NotFound/NotFound";
@@ -65,7 +65,8 @@ function App() {
         <Route path="/dashboard/store_owner/" element={<StoreOwnerHome />} />
         <Route path="/dashboard/store_owner/products" element={<StoreOwnerProducts/>} />
         <Route path="/dashboard/store_owner/orders" element={<StoreOwnerOrders />} />
-        <Route path="/dashboard/store_owner/orders/:id" element={<StoreOwnerOrderDetails />} />
+        <Route path="/dashboard/store_owner/orders/:id" element={<OrderDetails />} />
+        <Route path="/dashboard/store_owner/active_clients" element={<StoreOwnerActiveClients />} />
 
         {/* ── Fallback ── */}
         <Route path="*" element={<NotFound />} />

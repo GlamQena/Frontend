@@ -1,42 +1,69 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { getCart, addToCart } from "../../services/cart";
+import { responseMessageSetter } from "../../services/authService";
 
 const CartContext = createContext();
 
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+  // Simple state: { productId: quantity }
+  const [cart, setCart] = useState({});
 
-  // تحميل من localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) setCart(JSON.parse(savedCart));
+    const loadCart = async () => {
+      try {
+        const res = await getCart();
+        const resData = await res.json();
+        console.log("load cart resData =>", resData);
+
+        if (resData.success || res.ok) {
+          const Cart = {};
+          resData.data?.products?.forEach(store => {
+            store.products.forEach(product => {
+              Cart[product.product_id] = product.quantity || 0;
+            });
+          });
+          setCart(Cart);
+        }
+      } catch (err) {
+        console.error("Error fetching cart:", err);
+      }
+    };
+    
+    loadCart();
   }, []);
 
-  // حفظ في localStorage
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+  // Add to cart
+  const addToCartHandler = async (productId, quantity = 1, setResMessage) => {
+    try {
+      const res = await addToCart(productId, setResMessage, quantity);
+      const resData = await res.json();
 
-  // إضافة منتج
-  const addToCart = (product, quantity = 1) => {
-    setCart(prev => {
-      const exists = prev.find(item => item._id === product._id);
+      if (res.ok && resData.success) {
+        console.log("Product added to cart... resData =>", resData);
 
-      if (exists) {
-        return prev.map(item =>
-          item._id === product._id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
+        setCart(prev => ({
+          ...prev,
+          [productId]: (prev[productId] || 0) + quantity
+        }));
+        
+        if (setResMessage) {
+          responseMessageSetter(true, "تم إضافة المنتج للسلة", setResMessage);
+        }
+      } else if (setResMessage) {
+        responseMessageSetter(false, resData.message || "فشل إضافة المنتج للسلة", setResMessage);
       }
-
-      return [...prev, { ...product, quantity }];
-    });
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      if (setResMessage) {
+        responseMessageSetter(false, err.message || "فشل إضافة المنتج للسلة", setResMessage);
+      }
+    }
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart }}>
+    <CartContext.Provider value={{ cart, addToCartHandler }}>
       {children}
     </CartContext.Provider>
   );

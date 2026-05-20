@@ -134,11 +134,11 @@ export default function CartPage() {
       if(!res.ok)
         return responseMessageSetter(false, json.message || "خطأ فى الإزالة من قائمة الرغبات", setActionMsg);
 
-      const updatedWishlist= json.updatedClientData.wishlist;
+      const updatedWishlist= json.foundClient.wishlist;
 
       setWishlist(updatedWishlist);
 
-      localStorage.setItem("user", JSON.stringify(json.updatedClientData));
+      localStorage.setItem("user", JSON.stringify(json.foundClient));
 
       responseMessageSetter(true, json.message || "تمت الإزالة بنجاح", setActionMsg);
     }catch(err){
@@ -239,6 +239,7 @@ export default function CartPage() {
                 {group.products.map((item, index) => (
                   <CartItem
                     key={item.product_id || index}
+                    store_id= {group.store_id}
                     item={item}
                     onIncrease={() => handleAddToCart(item.product_id)}
                     onDecrease={() =>
@@ -292,9 +293,10 @@ const formattedImage = (image) => {
 /* ══════════════════════════════════════
    CART ITEM
 ══════════════════════════════════════ */
-function CartItem({ item, onIncrease, onDecrease, onRemove }) {
+function CartItem({ item, store_id, onIncrease, onDecrease, onRemove }) {
+  const navigate= useNavigate();
   return (
-    <div className="cart-item">
+    <div className="cart-item" onClick={() => navigate(`/stores/${store_id}/products/${item.product_id}`)}>
       <div className="cart-item-image">
         {item.image ? (
           <img
@@ -321,16 +323,16 @@ function CartItem({ item, onIncrease, onDecrease, onRemove }) {
       </div>
 
       <div className="cart-qty-control">
-        <button className="cart-qty-btn" onClick={onIncrease}>
+        <button className="cart-qty-btn" onClick={(e) => {e.stopPropagation(); onIncrease()}}>
           +
         </button>
         <span className="cart-qty-value">{item.quantity}</span>
-        <button className="cart-qty-btn" onClick={onDecrease}>
+        <button className="cart-qty-btn" onClick={(e) => {e.stopPropagation(); onDecrease()}}>
           −
         </button>
       </div>
 
-      <button className="cart-delete-btn" onClick={onRemove}>
+      <button className="cart-delete-btn" onClick={(e) => {e.stopPropagation(); onRemove()}}>
         🗑️
       </button>
     </div>
