@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import OrdersList from "../../components/OrdersList";
 import "./Orders.css";
 import "../../components/OrdersList.css";
@@ -21,14 +20,29 @@ export default function MyOrders() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => 
+    {
+
     fetchOrders();
+
   }, []);
+
+  const handleStatusChange = (id, status) => {
+  setOrders(prev =>
+    prev.map(o =>
+      (o._id ) === id
+        ? { ...o, status }
+        : o
+    )
+  );
+};
 
   return (
     <>
       <OrdersList
         orders={orders}
+        onStatusChange={handleStatusChange}
+
         headerTitle="📦 طلباتي"
         onCancelSuccess={(orderId) => {
           if (orderId) {

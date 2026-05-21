@@ -22,6 +22,17 @@ setOrders(res.data.orders || []);
     };
     fetchOrders();
   }, []);
+    const handleStatusChange = (id, status) => {
+  setOrders(prev =>
+    prev.map(o =>
+      (o.order_id) === id
+        ? { ...o, status }
+        : o
+    )
+  );
+};
 
-  return <OrdersList orders={orders} headerTitle="الطلبات" />;
+  return <OrdersList orders={orders} 
+   onStatusChange={handleStatusChange}
+  headerTitle="الطلبات" />;
 }
