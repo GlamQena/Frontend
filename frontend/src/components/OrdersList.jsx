@@ -291,11 +291,12 @@ function countProducts(order) {
 export default function OrdersList({
   orders: ordersProp = [],
   onCancelSuccess,
+  onStatusChange,
   headerTitle = "الطلبات",
 }) {
   const [filter, setFilter] = useState("all");
   const [cancellingId, setCancellingId] = useState(null);
-  const [orders, setOrders] = useState(ordersProp);
+
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
@@ -304,36 +305,35 @@ export default function OrdersList({
   const storeMode = role === "store_owner";
   const clientMode = role === "client";
 
-  useEffect(() => {
-    setOrders(ordersProp);
-  }, [ordersProp]);
 
-  const filtered = orders
-    .filter((o) => {
-      const statusMatch =
-        filter === "all" ||
-        normalizeStatus(o.status || o.order_status) === filter;
-      const searchValue = search.toLowerCase();
 
-      const searchMatch =
-        search === "" ||
-        String(o._id || o.order_id || "")
-          .toLowerCase()
-          .includes(searchValue) ||
-        (storeMode && o.customer?.name?.toLowerCase().includes(searchValue)) ||
-        (storeMode &&
-          o.store_products?.some((item) =>
-            item.product_name?.toLowerCase().includes(searchValue),
-          )) ||
-        (clientMode &&
-          o.products?.some((store) =>
-            store.products?.some((item) =>
-              item.name?.toLowerCase().includes(searchValue),
-            ),
-          ));
+  
+  const filtered = ordersProp.filter((o) => {
+  const statusMatch =
+    filter === "all" ||
+    normalizeStatus(o.status || o.order_status) === filter;
 
-      return statusMatch && searchMatch;
-    })
+  const searchValue = search.toLowerCase();
+
+  const searchMatch =
+    search === "" ||
+    String(o._id || o.order_id || "")
+      .toLowerCase()
+      .includes(searchValue) ||
+    (storeMode && o.customer?.name?.toLowerCase().includes(searchValue)) ||
+    (storeMode &&
+      o.store_products?.some((item) =>
+        item.product_name?.toLowerCase().includes(searchValue),
+      )) ||
+    (clientMode &&
+      o.products?.some((store) =>
+        store.products?.some((item) =>
+          item.name?.toLowerCase().includes(searchValue),
+        ),
+      ));
+
+  return statusMatch && searchMatch;
+})
     .sort((a, b) => {
       const dateA = new Date(
         a.createdAt || a.order_date || a.order_created_at || 0,
@@ -394,7 +394,7 @@ export default function OrdersList({
       </div>
     );
 
-  if (!orders.length) {
+  if (!ordersProp.length) {
     return (
       <div className="ol-empty">
         <span className="ol-empty-icon">🛍️</span>
@@ -460,30 +460,19 @@ export default function OrdersList({
               ["wallet", "card"].includes(paymentMethod) &&
               ["pending", "processing", "failed"].includes(paymentStatusKey) &&
               !isCancelled;
+              
+
             return (
               <div className="ol-card" key={id}>
                 {/* Card Header */}
                 <div className="ol-card-header">
                   {/* Status — store gets dropdown, client gets static badge */}
                   {storeMode ? (
-                    <StatusDropdown
-                      currentKey={key}
-                      orderId={id}
-                      onStatusChange={(oid, newStatus) => {
-                        setOrders((prev) =>
-                          prev.map((o) =>
-                            (o._id || o.order_id) === oid
-                              ? {
-                                  ...o,
-                                  status: newStatus,
-                                  order_status: newStatus,
-                                }
-                              : o,
-                          ),
-                        );
-                      }}
-                    />
-                  ) : (
+                  <StatusDropdown
+  currentKey={key}
+  orderId={id}
+  onStatusChange={onStatusChange}
+/>) : (
                     <span className={`ol-status ${cfg.cls}`}>
                       <span className="ol-dot" />
                       {cfg.label || rawStatus}
