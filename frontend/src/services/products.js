@@ -2,8 +2,7 @@ import { api } from './authService';
 import { getCurrentUser } from './users';
 
 // ─────────────────────────────────────────────
-// 
-//    user._id
+//   user._id
 // ─────────────────────────────────────────────
 const getStoreId = () => {
   const user = getCurrentUser();
@@ -12,7 +11,7 @@ const getStoreId = () => {
 };
 
 // ─────────────────────────────────────────────
-// 1.    (GET /stores/:id/products)
+// 1. (GET /stores/:id/products)
 // ─────────────────────────────────────────────
 export const getProducts = async () => {
   const storeId = getStoreId();
@@ -26,7 +25,7 @@ export const getProducts = async () => {
 };
 
 // ─────────────────────────────────────────────
-// 2.   (POST /products)
+// 2.(POST /products)
 // ─────────────────────────────────────────────
 export const addProduct = async (formData) => {
   const response = await api.post('/products', formData, {
@@ -36,7 +35,7 @@ export const addProduct = async (formData) => {
 };
 
 // ─────────────────────────────────────────────
-// 3.   (PUT /products/:id)
+// 3. (PUT /products/:id)
 // ─────────────────────────────────────────────
 export const updateProduct = async (id, formData) => {
   const response = await api.put(`/products/${id}`, formData, {
@@ -54,9 +53,22 @@ export const deleteProduct = async (id) => {
 };
 
 // ─────────────────────────────────────────────
-// 5.   (GET /categories)
+// 5.(GET /categories)
 // ─────────────────────────────────────────────
 export const getCategories = async () => {
   const response = await api.get('/categories');
   return response.data;
+};
+
+// ─────────────────────────────────────────────
+
+//    (PATCH /products/:id?activate=true/false)
+// ─────────────────────────────────────────────
+export const toggleProductStatus = async (id, isActive) => {
+  try {
+    const response = await api.patch(`/products/${id}?activate=${isActive}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
 };

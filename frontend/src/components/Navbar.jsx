@@ -1,11 +1,14 @@
 import { Moon, Sun, LogIn, LogOut, User, ShoppingCart } from "lucide-react";
+import { Moon, Sun, LogIn, LogOut, User, ShoppingCart } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
+import { useLocation, NavLink } from "react-router-dom";
 import { useLocation, NavLink } from "react-router-dom";
 import "./Navbar.css";
 import { isUserLogged, logout } from "../services/authService";
 import { getUserRole, isClient, isStoreOwner } from "../services/users";
 
 function Navbar() {
+  const { theme, setTheme } = useTheme();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const loggedIn = isUserLogged();
@@ -116,10 +119,10 @@ function Navbar() {
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
-
       </nav>
     </div>
   );
 }
 
 export default Navbar;
+
