@@ -13,15 +13,26 @@ export default function StoreOwnerOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await api.get(`${BASE_URL}/order/`);
-        console.log("Orders fetched:", res.data.orders);
-        setOrders(res.data.orders || []);
+       const res = await api.get(`${BASE_URL}/order/`);
+console.log("Orders fetched:", res.data);
+setOrders(res.data.orders || []); 
       } catch (err) {
         console.error(err);
       }
     };
     fetchOrders();
   }, []);
+    const handleStatusChange = (id, status) => {
+  setOrders(prev =>
+    prev.map(o =>
+      (o.order_id) === id
+        ? { ...o, status }
+        : o
+    )
+  );
+};
 
-  return <OrdersList orders={orders} headerTitle="الطلبات" />;
+  return <OrdersList orders={orders} 
+   onStatusChange={handleStatusChange}
+  headerTitle="الطلبات" />;
 }

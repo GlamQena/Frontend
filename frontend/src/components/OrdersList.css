@@ -85,7 +85,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--خلفية-الهيدر);
+  background: var(--بنفسجي-خافت);
   padding: 18px 28px;
   border-bottom: none;
   min-height: 72px;
@@ -141,12 +141,12 @@
 }
 
 .ol-status--ready {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: var(--أخضر-نجاح);
-  color: var(--أخضر-نجاح);
+  background:  #e610c61a;
+  border-color:  #e610c6;
+  color: #e610c6;
 }
 .ol-status--ready .ol-dot {
-  background: var(--أخضر-نجاح);
+  background: #e610c6;
 }
 
 .ol-status--delivered {
@@ -307,7 +307,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--خلفية-الفوتر);
+  background: var(--حد-واضح);
   padding: 20px 28px;
   border-top: 1px solid var(--حد-خافت);
   gap: 16px;
@@ -459,6 +459,7 @@
 
 .sd-trigger--locked {
   opacity: 0.8;
+  cursor:default;
 }
 
 .sd-trigger--locked:hover {
@@ -632,3 +633,90 @@
     width: 100%;
   }
 }
+.ol-header-statuses {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* PAYMENT BADGES */
+
+.ol-payment--pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+    border-radius: 29px;
+    padding: 5px;
+}
+
+.ol-payment--pending .bedge-svg path {
+  fill: #f59e0b;
+}
+
+.ol-payment--processing {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+    border-radius: 29px;
+    padding: 5px;
+}
+
+.ol-payment--processing .bedge-svg path {
+  fill: #3b82f6;
+}
+
+.ol-payment--completed {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid #22c55e;
+    border-radius: 29px;
+    padding: 5px;
+}
+.ol-payment--completed .bedge-svg path {
+  fill: #22c55e;
+}
+
+.ol-payment--failed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+    border-radius: 29px;
+    padding: 5px;
+}
+.ol-payment--failed .bedge-svg path {
+  fill: #ef4444;
+}
+
+.ol-payment--refunded {
+  background: rgba(168, 85, 247, 0.12);
+  color: #a855f7;
+  border: 1px solid #a855f7;
+    border-radius: 29px;
+    padding: 5px;
+}
+.ol-payment--refunded .bedge-svg path {
+  fill: #a855f7;
+}
+.ol-payment-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+/* PAYMENT BUTTON */
+
+
+
+
+.ol-btn--pay {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+}
+
+.ol-btn--pay:hover {
+  transform: translateY(-1px);
+}
+
+
