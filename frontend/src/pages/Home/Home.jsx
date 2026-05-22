@@ -27,6 +27,10 @@ function Home() {
         if (section) {
             section.scrollIntoView({ behavior: 'smooth' });
         }
+        
+    };
+    const handleViewAllProducts = () => {
+        window.location.href = '/products?filter=special';
     };
 
     return (
@@ -336,7 +340,7 @@ function Home() {
                     </div>
 
                     <div className="view-all-btn">
-                        <button className="btn-view-all">عرض جميع المنتجات</button>
+                       <button className="btn-view-all" onClick={handleViewAllProducts}>عرض جميع المنتجات</button>
                     </div>
                 </div>
             </section>
