@@ -263,7 +263,7 @@ export default function CartPage() {
         </div>
 
          <div className="cart-wishlist-grid">
-          {wishlist.map((w, index) => (
+         {wishlist.slice(0, 4).map((w, index)  => (
             <WishlistCard
               key={`${w.productId}-${index}`}
               item={w}
@@ -273,11 +273,14 @@ export default function CartPage() {
             />
           ))}
 
-          <button className="cart-wishlist-more">
-            <div className="cart-wishlist-more-icon">+</div>
-            <span>عرض المزيد</span>
-          </button>
-          {/*TODO => go to the whishlist page*/}
+          {/*<button className="cart-wishlist-more">
+            <div className="cart-wishlist-more-icon">+</div>*/}
+            {wishlist.length > 4 && (
+            <button className="cart-wishlist-more" onClick={() => navigate("/wishlist")}>
+              <div className="cart-wishlist-more-icon">+</div>
+              <span>عرض المزيد</span>
+            </button>
+                    )}
         </div>
       </div>}
     </div>

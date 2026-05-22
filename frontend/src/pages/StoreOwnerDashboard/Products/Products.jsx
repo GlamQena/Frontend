@@ -7,7 +7,7 @@ import {
   getCategories,
   toggleProductStatus,
 } from '../../../services/products';
-import { buildImgSrc } from '../../../services/imageUtils';
+//import { buildImgSrc } from '../../../services/imageUtils';
 import './Products.css';
 
 /* ═══════════════════════════════════════════════════════════
