@@ -61,12 +61,63 @@ export const getCategories = async () => {
 };
 
 // ─────────────────────────────────────────────
+// 6.   (GET /products/special) - 
+// ─────────────────────────────────────────────
+export const getSpecialProducts = async (params = {}) => {
+  try {
+    const { limit = 4, status = 'تم التوصيل', start_date, end_date } = params;
+    
+    // بناء query string
+    const queryParams = new URLSearchParams();
+    queryParams.append('limit', limit);
+    queryParams.append('status', status);
+    if (start_date) queryParams.append('start_date', start_date);
+    if (end_date) queryParams.append('end_date', end_date);
+    
+    // استخدام الـ api instance
+    const response = await api.get(`/products/special?${queryParams.toString()}`);
+    return response.data;
+    
+  } catch (error) {
+    console.error('Error in getSpecialProducts:', error);
+    throw error;
+  }
+};
+
+// ─────────────────────────────────────────────
+// 7.   (GET /products/:id) -
+// ─────────────────────────────────────────────
+export const getProductById = async (productId) => {
+  try {
+    const response = await api.get(`/products/${productId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error in getProductById:', error);
+    throw error;
+  }
+};
+
+// ─────────────────────────────────────────────
+// 8.   (GET /products) 
+// ─────────────────────────────────────────────
+export const getAllProducts = async (params = {}) => {
+  try {
+    const queryParams = new URLSearchParams(params);
+    const response = await api.get(`/products?${queryParams.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error in getAllProducts:', error);
+    throw error;
+  }
+};
+
+// ─────────────────────────────────────────────
 
 //    (PATCH /products/:id?activate=true/false)
 // ─────────────────────────────────────────────
 export const toggleProductStatus = async (id, isActive) => {
   try {
-    const response = await api.patch(`/products/${id}?activate=${isActive}`);
+    const response = await api.patch(`/products/${id}/activation?activate=${isActive}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
