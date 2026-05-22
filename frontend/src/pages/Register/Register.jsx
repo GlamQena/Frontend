@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {useNavigate} from "react-router-dom";
-import * as yup from "yup";
+import { useNavigate } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   User,
@@ -20,80 +19,25 @@ import {
   Building2,
   MapPinned,
 } from "lucide-react";
-import { registerUser, passwordField } from "../../services/authService";
+import {
+  registerUser,
+  responseMessageSetter,
+  clientSchema,
+  storeOwnerSchema,
+  getSessionId,
+} from "../../services/authService";
 import "./Register.css";
 
-// Define validation schemas
-const commonFieldsSchema = {
-  username: yup.string()
-    .required("اسم المستخدم مطلوب")
-    .min(3, "اسم المستخدم يجب أن يكون 3 أحرف على الأقل")
-    .max(64, "اسم المستخدم يجب أن يكون أقل من 64 حرف")
-    .matches(/^[a-z0-9_]+$/, "اسم المستخدم يمكن أن يحتوي فقط على أحرف إنجليزية صغيرة وأرقام وشرطة سفلية"),
-  
-  email: yup.string()
-    .required("البريد الإلكتروني مطلوب")
-    .email("البريد الإلكتروني غير صالح")
-    .max(254, "البريد الإلكتروني طويل جداً"),
-  
-  password: passwordField, // Assuming this is defined in authService
-  
-  confirmPassword: yup.string()
-    .required("تأكيد كلمة المرور مطلوب")
-    .oneOf([yup.ref("password")], "كلمة المرور غير متطابقة"),
-  
-  phone: yup.string()
-    .required("رقم الهاتف مطلوب")
-    .matches(/^01[0125][0-9]{8}$/, "رقم الهاتف غير صالح (يجب أن يبدأ بـ 010, 011, 012, 015 ثم 8 أرقام)"),
-  
-  gender: yup.string()
-    .nullable()
-    .optional()
-    .oneOf(["male", "female"], "الجنس يجب أن يكون ذكر أو أنثى"),
-  
-  birthdate: yup.string().nullable().optional(),
-  
-  address: yup.object({
-    city: yup.string().max(50, "اسم المدينة يجب أن يكون أقل من 50 حرف").optional(),
-    district: yup.string().max(50, "اسم المنطقة يجب أن يكون أقل من 50 حرف").optional(),
-    street: yup.string().max(100, "اسم الشارع يجب أن يكون أقل من 100 حرف").optional(),
-  }).optional()
-};
-
-const clientSchema = yup.object(commonFieldsSchema);
-
-const storeOwnerSchema = yup.object({
-  ...commonFieldsSchema,
-  store_name: yup.string()
-    .required("اسم المحل مطلوب")
-    .max(100, "اسم المحل يجب أن يكون أقل من 100 حرف"),
-  
-  store_email: yup.string()
-    .required("البريد الإلكتروني للمحل مطلوب")
-    .email("البريد الإلكتروني للمحل غير صالح"),
-  
-  store_phone: yup.string()
-    .required("رقم هاتف المحل مطلوب")
-    .matches(/^01[0125][0-9]{8}$/, "رقم هاتف المحل غير صالح (يجب أن يبدأ بـ 010, 011, 012, 015 ثم 8 أرقام)"),
-  
-  store_address: yup.object({
-    city: yup.string()
-      .required("مدينة المحل مطلوبة")
-      .max(50, "اسم المدينة يجب أن يكون أقل من 50 حرف"),
-    district: yup.string()
-      .required("منطقة المحل مطلوبة")
-      .max(50, "اسم المنطقة يجب أن يكون أقل من 50 حرف"),
-    street: yup.string()
-      .required("شارع المحل مطلوب")
-      .max(100, "اسم الشارع يجب أن يكون أقل من 100 حرف"),
-  })
-});
-
 const Register = () => {
-  const navigate= useNavigate();
-  const [selectedRole, setSelectedRole] = useState("client");
+  const navigate = useNavigate();
+  const queryParams= new URLSearchParams(window.location.search);
+  const role= queryParams.get("role");
+  const [selectedRole, setSelectedRole] = useState(role || "client");
   const [loading, setLoading] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState({ success: false, message: "" });
+  const [submitMessage, setSubmitMessage] = useState({
+    success: false,
+    message: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -107,7 +51,7 @@ const Register = () => {
     handleSubmit,
     formState: { errors },
     setValue,
-    getValues
+    getValues,
   } = useForm({
     resolver: yupResolver(getCurrentSchema()),
     defaultValues: {
@@ -132,14 +76,14 @@ const Register = () => {
         street: "",
       },
     },
-    mode: "onChange"
+    mode: "onChange",
   });
 
   // Handle role change
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
     // Clear errors when switching roles
-    setSubmitMessage({ success: false, message: "" });
+    responseMessageSetter(false, "", setSubmitMessage);
   };
 
   // Handle gender selection
@@ -166,7 +110,7 @@ const Register = () => {
   // Form submission handler
   const onSubmit = async (formData) => {
     setLoading(true);
-    setSubmitMessage({ success: false, message: "" });
+    responseMessageSetter(false, "", setSubmitMessage);
 
     try {
       // Prepare data for API
@@ -176,22 +120,27 @@ const Register = () => {
         email: formData.email.toLowerCase().trim(),
         password: formData.password,
         confirmPassword: formData.confirmPassword,
-        phone: formData.phone || undefined,
+        phoneNumber: formData.phone || undefined,
         birthdate: formData.birthdate || undefined,
         gender: formData.gender || undefined,
-        address: (formData.address?.city || formData.address?.district || formData.address?.street)
-          ? {
-              city: formData.address.city || undefined,
-              district: formData.address.district || undefined,
-              street: formData.address.street || undefined,
-            }
-          : undefined,
+        address:
+          formData.address?.city ||
+          formData.address?.district ||
+          formData.address?.street
+            ? {
+                city: formData.address.city || undefined,
+                district: formData.address.district || undefined,
+                street: formData.address.street || undefined,
+              }
+            : undefined,
       };
 
       // Add store owner specific data
       if (selectedRole === "store_owner") {
         registrationData.store_name = formData.store_name;
-        registrationData.store_email = formData.store_email.toLowerCase().trim();
+        registrationData.store_email = formData.store_email
+          .toLowerCase()
+          .trim();
         registrationData.store_phone = formData.store_phone;
         registrationData.store_address = {
           city: formData.store_address.city,
@@ -199,31 +148,35 @@ const Register = () => {
           street: formData.store_address.street,
         };
       }
+      const session_id= getSessionId();
+      registrationData["session_id"] = session_id;
 
       console.log("Sending data:", registrationData);
       const responseData = await registerUser(registrationData);
-      
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setSubmitMessage({
-        success: true,
-        message: responseData.message || "تم إرسال رابط التفعيل إلى بريدك الإلكتروني"
-      });
 
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      responseMessageSetter(
+        true,
+        responseData.message || "تم إرسال رابط التفعيل إلى بريدك الإلكتروني",
+        setSubmitMessage,
+      );
+
+      localStorage.removeItem("session_id");
       localStorage.setItem("user", JSON.stringify(responseData.user));
       localStorage.setItem("accessToken", responseData.accessToken);
       localStorage.setItem("refreshToken", responseData.refreshToken);
 
-      if(responseData.user.role === "client")
-          navigate("/")
-      else
-          navigate("/dashboard");
+      const role = responseData.user.role;
+      if(role === "store_owner") navigate("/dashboard/store_owner");
+      else navigate("/"); //client usual home
     } catch (err) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Registration error:", err);
-      setSubmitMessage({
-        success: false,
-        message: err.message || "حدث خطأ أثناء التسجيل"
-      });
+      responseMessageSetter(
+        false,
+        err.message || "حدث خطأ أثناء التسجيل",
+        setSubmitMessage,
+      );
     } finally {
       setLoading(false);
     }
@@ -282,7 +235,9 @@ const Register = () => {
         </div>
 
         {submitMessage.message && (
-          <div className={`${submitMessage.success ? "success-message" : "error-message"}`}>
+          <div
+            className={`${submitMessage.success ? "success-message" : "error-message"}`}
+          >
             {submitMessage.message}
           </div>
         )}
@@ -307,7 +262,8 @@ const Register = () => {
               <span className="field-error">{errors.username.message}</span>
             )}
             <small className="field-hint">
-              يمكن استخدام الأحرف الإنجليزية الصغيرة والأرقام والشرطة السفلية فقط
+              يمكن استخدام الأحرف الإنجليزية الصغيرة والأرقام والشرطة السفلية
+              فقط
             </small>
           </div>
 
@@ -388,7 +344,9 @@ const Register = () => {
               </button>
             </div>
             {errors.confirmPassword && (
-              <span className="field-error">{errors.confirmPassword.message}</span>
+              <span className="field-error">
+                {errors.confirmPassword.message}
+              </span>
             )}
           </div>
 
@@ -396,7 +354,6 @@ const Register = () => {
           <div className="form-group">
             <label>
               <Phone size={18} /> رقم الهاتف{" "}
-              <span className="required-star">*</span>
             </label>
             <input
               type="tel"
@@ -480,7 +437,9 @@ const Register = () => {
                 className={errors.address?.city ? "error" : ""}
               />
               {errors.address?.city && (
-                <span className="field-error">{errors.address.city.message}</span>
+                <span className="field-error">
+                  {errors.address.city.message}
+                </span>
               )}
             </div>
 
@@ -492,13 +451,17 @@ const Register = () => {
                 type="text"
                 name="address.district"
                 value={getValues("address.district") || ""}
-                onChange={(e) => handleAddressChange("district", e.target.value)}
+                onChange={(e) =>
+                  handleAddressChange("district", e.target.value)
+                }
                 placeholder="المنطقة"
                 disabled={loading}
                 className={errors.address?.district ? "error" : ""}
               />
               {errors.address?.district && (
-                <span className="field-error">{errors.address.district.message}</span>
+                <span className="field-error">
+                  {errors.address.district.message}
+                </span>
               )}
             </div>
           </div>
@@ -517,7 +480,9 @@ const Register = () => {
               className={errors.address?.street ? "error" : ""}
             />
             {errors.address?.street && (
-              <span className="field-error">{errors.address.street.message}</span>
+              <span className="field-error">
+                {errors.address.street.message}
+              </span>
             )}
           </div>
 
@@ -545,7 +510,9 @@ const Register = () => {
                   className={errors.store_name ? "error" : ""}
                 />
                 {errors.store_name && (
-                  <span className="field-error">{errors.store_name.message}</span>
+                  <span className="field-error">
+                    {errors.store_name.message}
+                  </span>
                 )}
               </div>
 
@@ -564,7 +531,9 @@ const Register = () => {
                   className={errors.store_email ? "error" : ""}
                 />
                 {errors.store_email && (
-                  <span className="field-error">{errors.store_email.message}</span>
+                  <span className="field-error">
+                    {errors.store_email.message}
+                  </span>
                 )}
               </div>
 
@@ -583,7 +552,9 @@ const Register = () => {
                   className={errors.store_phone ? "error" : ""}
                 />
                 {errors.store_phone && (
-                  <span className="field-error">{errors.store_phone.message}</span>
+                  <span className="field-error">
+                    {errors.store_phone.message}
+                  </span>
                 )}
                 <small className="field-hint">
                   رقم مصري صحيح (010, 011, 012, 015 ثم 8 أرقام)
@@ -608,13 +579,17 @@ const Register = () => {
                     type="text"
                     name="store_address.city"
                     value={getValues("store_address.city") || ""}
-                    onChange={(e) => handleStoreAddressChange("city", e.target.value)}
+                    onChange={(e) =>
+                      handleStoreAddressChange("city", e.target.value)
+                    }
                     placeholder="مدينة المحل"
                     disabled={loading}
                     className={errors.store_address?.city ? "error" : ""}
                   />
                   {errors.store_address?.city && (
-                    <span className="field-error">{errors.store_address.city.message}</span>
+                    <span className="field-error">
+                      {errors.store_address.city.message}
+                    </span>
                   )}
                 </div>
 
@@ -627,13 +602,17 @@ const Register = () => {
                     type="text"
                     name="store_address.district"
                     value={getValues("store_address.district") || ""}
-                    onChange={(e) => handleStoreAddressChange("district", e.target.value)}
+                    onChange={(e) =>
+                      handleStoreAddressChange("district", e.target.value)
+                    }
                     placeholder="منطقة المحل"
                     disabled={loading}
                     className={errors.store_address?.district ? "error" : ""}
                   />
                   {errors.store_address?.district && (
-                    <span className="field-error">{errors.store_address.district.message}</span>
+                    <span className="field-error">
+                      {errors.store_address.district.message}
+                    </span>
                   )}
                 </div>
               </div>
@@ -647,13 +626,17 @@ const Register = () => {
                   type="text"
                   name="store_address.street"
                   value={getValues("store_address.street") || ""}
-                  onChange={(e) => handleStoreAddressChange("street", e.target.value)}
+                  onChange={(e) =>
+                    handleStoreAddressChange("street", e.target.value)
+                  }
                   placeholder="شارع المحل"
                   disabled={loading}
                   className={errors.store_address?.street ? "error" : ""}
                 />
                 {errors.store_address?.street && (
-                  <span className="field-error">{errors.store_address.street.message}</span>
+                  <span className="field-error">
+                    {errors.store_address.street.message}
+                  </span>
                 )}
               </div>
             </>

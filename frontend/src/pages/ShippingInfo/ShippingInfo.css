@@ -1,0 +1,333 @@
+/* =============================================
+   Body Wrap
+   ============================================= */
+.body-wrap {
+  padding: 20px 24px;
+}
+
+.back-link {
+  text-align: right;
+  font-size: 13px;
+  color: var(--بنفسجي);
+  margin-bottom: 20px;
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+
+/* =============================================
+   Layout Grid
+   ============================================= */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* =============================================
+   Cards
+   ============================================= */
+.card,
+.summary-card {
+  background: var(--خلفية-البطاقة);
+  border-radius: var(--راديوس-البطاقة);
+  padding: 24px;
+  border: 1px solid var(--حد-واضح);
+  box-shadow: var(--ظل-البطاقة);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--نص-رئيسي);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =============================================
+   Form
+   ============================================= */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 12px;
+  color: var(--نص-خافت);
+  text-align: right;
+}
+
+input,
+textarea,
+select {
+  background: var(--خلفية-2);
+  border: 1px solid var(--حد-خافت);
+  border-radius: 50px;
+  padding: 11px 16px;
+  font-size: 14px;
+  color: var(--نص-رئيسي);
+  width: 100%;
+  outline: none;
+  font-family: inherit;
+  direction: rtl;
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  height: var(--ارتفاع-الحقل);
+}
+
+textarea {
+  border-radius: 16px;
+  height: 80px;
+  resize: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--نص-placeholder);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  background: var(--خلفية-3);
+  border-color: var(--حد-تركيز);
+  box-shadow: var(--ظل-تركيز-الحقل);
+}
+
+.field-error {
+  display: block;
+  color: var(--أحمر-خطأ);
+  font-size: 13px;
+  margin-top: 6px;
+  text-align: right;
+}
+
+/* =============================================
+   Order Summary
+   ============================================= */
+.summary-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--نص-رئيسي);
+  margin-bottom: 20px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.summary-label {
+  color: var(--نص-خافت);
+}
+
+.summary-val {
+  color: var(--نص-ثانوي);
+  font-weight: 500;
+}
+
+.discount-val {
+  color: #e36b6b;
+  font-weight: 500;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--حد-خافت);
+  margin: 14px 0;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--نص-رئيسي);
+  margin-bottom: 20px;
+}
+
+.total-val {
+  color: var(--بنفسجي);
+  font-size: 20px;
+}
+
+/* =============================================
+   Confirm Button
+   ============================================= */
+.confirm-btn {
+  width: 100%;
+  background: var(--تدرج-الأزرار);
+  color: #fff;
+  border: none;
+  border-radius: var(--راديوس-الزر);
+  padding: 0 20px;
+  height: var(--ارتفاع-الزر);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  box-shadow: var(--ظل-الزر);
+  transition: opacity 0.2s, transform 0.15s;
+  letter-spacing: 0.3px;
+}
+
+.confirm-btn:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.confirm-btn:active {
+  transform: scale(0.98);
+}
+
+/* =============================================
+   Payment Methods
+   ============================================= */
+.pay-options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pay-opt {
+  flex: 1;
+  min-width: 100px;
+  background: var(--خلفية-2);
+  border: 1.5px solid transparent;
+  border-radius: 50px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--نص-ثانوي);
+  font-family: inherit;
+  direction: rtl;
+  transition: all 0.2s;
+}
+
+.pay-opt:hover {
+  background: var(--خلفية-3);
+}
+
+.pay-opt.active {
+  border-color: var(--بنفسجي);
+  background: var(--بنفسجي-خافت);
+  color: var(--بنفسجي);
+}
+
+.pay-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* =============================================
+   Messages
+   ============================================= */
+.success-message {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--أخضر-نجاح);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  text-align: right;
+  direction: rtl;
+}
+
+.error-message {
+  background: var(--أحمر-خافت);
+  color: var(--أحمر-خطأ);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  text-align: right;
+  direction: rtl;
+}
+
+.required-star {
+  color: var(--أحمر-خطأ);
+  margin-right: 2px;
+}
+
+/* =============================================
+   Security Note
+   ============================================= */
+.security-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--نص-ثانوي);
+  margin-top: 14px;
+  justify-content: center;
+  text-align: center;
+  background: var(--بنفسجي-خافت);
+  border-radius: 40px;
+  padding: 12px 16px;
+}
+
+.shield-icon {
+  color: var(--بنفسجي);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* =============================================
+   Responsive
+   ============================================= */
+@media (max-width: 640px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .body-wrap {
+    padding: 16px;
+  }
+}
