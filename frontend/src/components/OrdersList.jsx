@@ -293,6 +293,7 @@ export default function OrdersList({
   onCancelSuccess,
   onStatusChange,
   headerTitle = "الطلبات",
+  loading = true,
 }) {
   const [filter, setFilter] = useState("all");
   const [cancellingId, setCancellingId] = useState(null);
@@ -305,35 +306,43 @@ export default function OrdersList({
   const storeMode = role === "store_owner";
   const clientMode = role === "client";
 
+  const filtered = ordersProp
+    .filter((o) => {
+      const statusMatch =
+        filter === "all" ||
+        normalizeStatus(o.status || o.order_status) === filter;
 
+      const searchValue = search.toLowerCase();
 
-  
-  const filtered = ordersProp.filter((o) => {
-  const statusMatch =
-    filter === "all" ||
-    normalizeStatus(o.status || o.order_status) === filter;
+      const searchMatch =
+        search === "" ||
+        String(o._id || o.order_id || "")
+          .toLowerCase()
+          .includes(searchValue) ||
+        (storeMode && o.customer?.name?.toLowerCase().includes(searchValue)) ||
+        (storeMode &&
+          o.store_products?.some((item) =>
+            item.product_name?.toLowerCase().includes(searchValue),
+          )) ||
+        (clientMode &&
+          o.products?.some((store) =>
+            store.products?.some((item) =>
+              item.name?.toLowerCase().includes(searchValue),
+            ),
+          )) ||
+        (clientMode &&
+          o.products?.some(
+            (store) =>
+              store.owner_store_id?.store_name
+                ?.toLowerCase()
+                .includes(searchValue) ||
+              store.products?.some((item) =>
+                item.name?.toLowerCase().includes(searchValue),
+              ),
+          ));
 
-  const searchValue = search.toLowerCase();
-
-  const searchMatch =
-    search === "" ||
-    String(o._id || o.order_id || "")
-      .toLowerCase()
-      .includes(searchValue) ||
-    (storeMode && o.customer?.name?.toLowerCase().includes(searchValue)) ||
-    (storeMode &&
-      o.store_products?.some((item) =>
-        item.product_name?.toLowerCase().includes(searchValue),
-      )) ||
-    (clientMode &&
-      o.products?.some((store) =>
-        store.products?.some((item) =>
-          item.name?.toLowerCase().includes(searchValue),
-        ),
-      ));
-
-  return statusMatch && searchMatch;
-})
+      return statusMatch && searchMatch;
+    })
     .sort((a, b) => {
       const dateA = new Date(
         a.createdAt || a.order_date || a.order_created_at || 0,
@@ -394,6 +403,15 @@ export default function OrdersList({
       </div>
     );
 
+  if (loading) {
+    return (
+      <div className="ol-empty">
+        <span className="ol-empty-icon">⏳</span>
+        <p>جاري التحميل...</p>
+      </div>
+    );
+  }
+
   if (!ordersProp.length) {
     return (
       <div className="ol-empty">
@@ -439,7 +457,7 @@ export default function OrdersList({
           </div>
         ) : (
           filtered.map((order) => {
-            const id = order._id ||order.order_id;
+            const id = order._id || order.order_id;
             const rawStatus = order.status || order.order_status;
             const key = normalizeStatus(rawStatus);
             const cfg = STATUS_CONFIG[key] || STATUS_CONFIG.pending;
@@ -460,7 +478,6 @@ export default function OrdersList({
               ["wallet", "card"].includes(paymentMethod) &&
               ["pending", "processing", "failed"].includes(paymentStatusKey) &&
               !isCancelled;
-              
 
             return (
               <div className="ol-card" key={id}>
@@ -468,11 +485,12 @@ export default function OrdersList({
                 <div className="ol-card-header">
                   {/* Status — store gets dropdown, client gets static badge */}
                   {storeMode ? (
-                  <StatusDropdown
-  currentKey={key}
-  orderId={id}
-  onStatusChange={onStatusChange}
-/>) : (
+                    <StatusDropdown
+                      currentKey={key}
+                      orderId={id}
+                      onStatusChange={onStatusChange}
+                    />
+                  ) : (
                     <span className={`ol-status ${cfg.cls}`}>
                       <span className="ol-dot" />
                       {cfg.label || rawStatus}
@@ -520,12 +538,21 @@ export default function OrdersList({
                   {/* CLIENT: products */}
                   {clientMode && (
                     <div className="ol-items">
-                      {order.products?.map((store, i) =>
-                        store.products?.slice(0, 3).map((item, j) => {
-                          const img = item.prod_id?.images?.[0];
-                          const src = formattedImage(img);
+                      {order.products
+                        ?.flatMap(
+                          (
+                            store, // flatten all stores into one array
+                          ) =>
+                            store.products?.map((item) => ({
+                              ...item,
+                              storeName: store.owner_store_id?.store_name,
+                            })) || [],
+                        )
+                        .slice(0, 3) // take only first 3 from ALL stores
+                        .map((item, j) => {
+                          const src = formattedImage(item.prod_id?.images?.[0]);
                           return (
-                            <div className="ol-item" key={`${i}-${j}`}>
+                            <div className="ol-item" key={j}>
                               <div className="ol-item-img">
                                 {src ? (
                                   <img
@@ -544,7 +571,7 @@ export default function OrdersList({
                               <div className="ol-item-info">
                                 <p className="ol-item-name">{item.name}</p>
                                 <p className="ol-item-store">
-                                  من: {store.owner_store_id?.store_name}
+                                  من: {item.storeName}
                                 </p>
                                 <p className="ol-item-qty">
                                   الكمية: {item.quantity}
@@ -555,8 +582,7 @@ export default function OrdersList({
                               </span>
                             </div>
                           );
-                        }),
-                      )}
+                        })}
                     </div>
                   )}
 
