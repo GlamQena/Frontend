@@ -1,600 +1,799 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./Profile.css";
 import { useNavigate } from "react-router-dom";
+import {
+  responseMessageSetter,
+  isUserLogged,
+  logout,
+  getEmailToken,
+} from "../../services/authService";
+import {
+  changePassword,
+  deleteProfile,
+  editProfile,
+  editAvatar,
+  getProfile,
+} from "../../services/profileService";
 
-//TODO=> yub validations schema for the edit form
-const Profile= ()=>{
-    const navigate= useNavigate();
-    const [loading, setLoading] = useState(true);
-    const [editMode, setEditMode] = useState(false);
-    const [profileForm, setProfileForm] = useState(null);
-    const [avatarImg, setAvatarImg] = useState(null);
-    const [passwordForm, setPasswordForm] = useState({
+import Footer from "../../components/Footer";
+import { useTheme } from "../../components/ThemeProvider";
+import { getCurrentUser } from "../../services/users";
+
+const Profile = () => {
+  const navigate = useNavigate();
+  const { theme } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [profileForm, setProfileForm] = useState(null);
+  const [avatarImg, setAvatarImg] = useState(null);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [formMessage, setFormMessage] = useState({
+    success: false,
+    message: "",
+  });
+  
+  const profileFormRef = useRef(null);
+
+  useEffect(() => {
+    getUserProfile();
+  }, [editMode]);
+
+  // Prevent accidental form submissions globally
+  useEffect(() => {
+    const handleGlobalSubmit = (e) => {
+      if (e.target && e.target.tagName === 'FORM') {
+        if (!editMode && e.target.id === 'profile-form') {
+          e.preventDefault();
+          console.log("Prevented form submission because not in edit mode");
+          return false;
+        }
+      }
+    };
+    
+    document.addEventListener('submit', handleGlobalSubmit, true);
+    
+    return () => {
+      document.removeEventListener('submit', handleGlobalSubmit);
+    };
+  }, [editMode]);
+
+  const loadUserData = async () => {
+    setLoading(true);
+    const user = await getCurrentUser();
+    if (user && user !== "undefined" && user !== "null" && user !== "") {
+      setProfileForm({ ...JSON.parse(user) });
+      setLoading(false);
+    } else {
+      localStorage.removeItem("user");
+      await getUserProfile();
+    }
+  };
+
+  const getUserProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await getProfile(setFormMessage);
+      const data = await response.json();
+
+      if (!response.ok) {
+        responseMessageSetter(false, data.message, setFormMessage);
+        setLoading(false);
+        return;
+      }
+
+      setProfileForm({ ...data.user });
+      setLoading(false);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setLoading(false);
+    } catch (error) {
+      responseMessageSetter(false, error.message, setFormMessage);
+      setLoading(false);
+    }
+  };
+
+  const handleChangeInput = (e) => {
+    let { name, value, type, checked } = e.target;
+    
+    if (type === "password") {
+      setPasswordForm((prev) => ({ ...prev, [name]: value }));
+    } 
+    else if (type === "file") {
+      const file = e.target.files[0];
+      if (file) {
+        setAvatarImg(file);
+        const previewUrl = URL.createObjectURL(file);
+        setProfileForm((prev) => ({ ...prev, imagePreview: previewUrl }));
+      }
+    } 
+    else if (type === "checkbox") {
+      let newNotifications = [...(profileForm.notifications || [])];
+      if (newNotifications.includes(name)) {
+        newNotifications = newNotifications.filter((not) => not !== name);
+      } else {
+        newNotifications.push(name);
+      }
+      setProfileForm((prev) => ({
+        ...prev,
+        notifications: newNotifications,
+      }));
+    } 
+    else if (name.includes("store_address")) {
+      const fieldName = name.split(".")[1];
+      setProfileForm((prev) => ({
+        ...prev,
+        store_address: { ...prev.store_address, [fieldName]: value },
+      }));
+    } 
+    else if (name.includes("address")) {
+      const fieldName = name.split(".")[1];
+      setProfileForm((prev) => ({
+        ...prev,
+        address: { ...prev.address, [fieldName]: value },
+      }));
+    } 
+    else {
+      setProfileForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSelection = (field, value) => {
+    if (!editMode) return;
+    
+    if (Array.isArray(profileForm[field])) {
+      let newArr = [...profileForm[field]];
+      if (newArr.includes(value)) {
+        newArr = newArr.filter((val) => val !== value);
+      } else {
+        newArr.push(value);
+      }
+      setProfileForm((prev) => ({ ...prev, [field]: newArr }));
+    } else {
+      setProfileForm((prev) => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!passwordForm.currentPassword) {
+      responseMessageSetter(false, "الرجاء إدخال كلمة المرور الحالية", setFormMessage);
+      return;
+    }
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      responseMessageSetter(false, "كلمة المرور الجديدة غير متطابقة", setFormMessage);
+      return;
+    }
+    
+    if (passwordForm.newPassword && passwordForm.newPassword.length < 8) {
+      responseMessageSetter(false, "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل", setFormMessage);
+      return;
+    }
+
+    try {
+      const reqBody = JSON.stringify({
+        email: profileForm.email,
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+        confirmNewPassword: passwordForm.confirmPassword,
+      });
+
+      const response = await changePassword(reqBody, setFormMessage);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        return responseMessageSetter(false, data.message, setFormMessage);
+      }
+
+      responseMessageSetter(true, "تم تغيير كلمة المرور بنجاح، سيتم تسجيل الخروج...", setFormMessage);
+      
+      setPasswordForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
-    });
-    const [showPasswordForm, setShowPasswordForm] = useState(false);
-    const [formMessage, setFormMessage]= useState({success: false, message: ""});
+      });
+      setShowPasswordForm(false);
 
-    useEffect(()=>{
-        loadUserData();
-    }, [editMode]);
-
-    const loadUserData= async ()=> {
-        const user= localStorage.getItem("user");
-        if(user && user!==undefined){
-            setProfileForm({...JSON.parse(user)});
-            setLoading(false);
-        }
-        else{
-            localStorage.removeItem("user");
-            await getUserProfile();
-        }
-
-        console.log(profileForm);
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+      
+    } catch (e) {
+      responseMessageSetter(false, e.message, setFormMessage);
+      console.error(e);
     }
+  };
 
-    const getUserProfile= async()=>{
-        const accessToken= await getAccessToken();
+  const handleEditProfile = async (e) => {
+    e.preventDefault();
+    
+    if (!editMode) return;
 
-        try{
-            const response= await fetch("http://127.0.0.1:8080/profile/",{
-                method: "GET",
-                headers:{
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`,
-                },
-                credentials: "include", //send browser cookies including accessToken
-            });
-            const data= await response.json();
+    if (avatarImg && avatarImg instanceof File) {
+      const imageFormData = new FormData();
+      imageFormData.append("image", avatarImg);
 
-            if(!response.ok)
-                formMessageSetter(false, data.message);
-
-            setProfileForm({...data.user});
-            setLoading(false);
-            localStorage.setItem("user", JSON.stringify(data.user));
-            console.log(data.message);
-        }catch(error){
-            formMessageSetter(false, error.message);
+      try {
+        const response = await editAvatar(imageFormData, setFormMessage);
+        const avatarResData = await response.json();
+        
+        if (!response.ok) {
+          console.log("Avatar upload failed:", avatarResData);
+          return responseMessageSetter(false, avatarResData.message, setFormMessage);
         }
-    }
-
-    function formMessageSetter(success, message){
-        setFormMessage({success, message});
-        setTimeout(()=>{
-            setFormMessage({success: false, message: ""});
-        }, 6000);
-    }
-
-    const handleChangeInput = (e) => {
-        const { name, value, type, checked } = e.target;
-        if(type === "password")
-            setPasswordForm(prev => ({...prev, [name]: value}));
-
-        else if(type === "file"){
-            const file = e.target.files[0];
-            setAvatarImg(file);
+        
+        responseMessageSetter(true, "تم تحديث الصورة بنجاح", setFormMessage);
+        
+        if (avatarResData.user) {
+          localStorage.setItem("user", JSON.stringify(avatarResData.user));
+          setProfileForm((prev) => ({ ...prev, image: avatarResData.user.image }));
         }
-
-        else if (type === "checkbox"){
-            let newNotifications= [...profileForm.notifications];
-            
-            if(newNotifications.includes(name))
-                newNotifications= newNotifications.filter(not=>not!==name);
-            else
-                newNotifications.push(name);
-
-            setProfileForm(prev => ({
-                ...prev,
-                notifications: newNotifications,
-            }));
-        }
-
-        else 
-            setProfileForm(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSelection = (field, value) => {
-
-        if(typeof profileForm[field] === "object"){  //array selection like skinConcerns
-            let newArr= [...profileForm[field]];
-
-            if(newArr.includes(value))
-                newArr= newArr.filter(val=> val !== value);
-            else
-                newArr.push(value);
-
-            setProfileForm(prev => ({ ...prev, [field]: [...newArr] }));
-        }
-        else
-            setProfileForm(prev => ({ ...prev, [field]: value }));
-    };
-
-    const getAccessToken= async()=>{
-        try{
-            let accessToken= localStorage.getItem("accessToken");
-            if(!accessToken){
-                formMessageSetter(false, "please login first");
-                return null;
-            }
-
-            const decodedAccessToken= JSON.parse(atob(accessToken.split(".")[1]));
-            //atob is a global javaScript method for decoding (ASCII to binary)
-
-            if(decodedAccessToken.exp*1000 < Date.now()){
-                const response= await fetch("http://127.0.0.1:8080/auth/refresh-token", 
-                    {
-                        credentials: "include",
-                        headers:{
-                        "Authorization": `Bearer ${localStorage.getItem("refreshToken")}`,
-                        "Content-Type": "application/json",
-                    }});
-                const refreshData= await response.json();
-                console.log("refresh token response => ", refreshData);
-                if(refreshData.message.includes("expired")){
-                    formMessageSetter(false, "your session ended, please login");
-                    return null;
-                }
-                else if(!response.ok){
-                    formMessageSetter(false, refreshData.message);
-                    //TODO=> handle the not found account case
-                    return null;
-                }
-                else{
-                    localStorage.setItem("user", JSON.stringify(refreshData.user));
-                    localStorage.setItem("accessToken", refreshData.accessToken);
-                    accessToken= refreshData.accessToken;
-                }
-            }
-            return accessToken;
-
-        }catch(error){
-            formMessageSetter(false, "your session ended, please login");
-            return null;
-        }
-    }
-
-    const handleChangePassword= async (e)=> {
-        e.preventDefault();
-        if (passwordForm.newPassword && passwordForm.newPassword !== passwordForm.confirmPassword) {
-        formMessageSetter(false, "كلمة المرور غير متطابقة");
+      } catch (error) {
+        responseMessageSetter(false, error.message, setFormMessage);
         return;
-        }
-
-        try{
-            let accessToken= await getAccessToken();
-
-            const reqBody=JSON.stringify({
-                    email: profileForm.email,
-                    currentPassword: passwordForm.currentPassword,
-                    newPassword: passwordForm.newPassword,
-                    confirmNewPassword: passwordForm.confirmPassword
-                });
-
-            const response= await fetch("http://127.0.0.1:8080/profile/change-password", {
-                method: "PATCH",
-                headers:{
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`
-                },
-                credentials: "include",
-                body: reqBody
-            });
-
-            const data= await response.json();
-            if(!response.ok)
-                return formMessageSetter(false, data.message);
-
-            formMessageSetter(true, data.message);
-
-            setTimeout(()=>{
-                navigate("/login");
-            }, 6000);
-
-        }catch(e){
-            formMessageSetter(false, e.message);
-            console.error(e.error);
-        }
+      }
     }
 
-    const handleEditProfile = async (e) => {
-        e.preventDefault();
-        let accessToken = await getAccessToken();
-        console.log("profile data=> ", profileForm);
+    const { imagePreview, ...updateData } = profileForm;
+    console.log("edit profile updated data to be sent:", updateData);
 
-        if (avatarImg && avatarImg instanceof File) {
-            const imageFormData= new FormData();
-            imageFormData.append('image', avatarImg);
-            console.log('Appended image:', imageFormData.get("image").name);
+    try {
+      const res = await editProfile(updateData, setFormMessage);
+      const data = await res.json();
 
-            try{
-                const response = await fetch("http://127.0.0.1:8080/profile/avatar", {
-                    method: "PATCH",
-                    headers: { 
-                        "Authorization": `Bearer ${accessToken}`
-                    }, //the Content-Type will be by default multipart/form-data due to the file field
-                    credentials: "include",
-                    body: imageFormData
-                });
+      if (res.ok) {
+        responseMessageSetter(true, data.message || "تم حفظ التعديلات بنجاح", setFormMessage);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setProfileForm(data.user);
+        setEditMode(false);
+        setAvatarImg(null);
+      } else {
+        console.log("edit profile failed:", data);
+        responseMessageSetter(false, data.message || "فشل التعديل", setFormMessage);
+      }
+    } catch (err) {
+      responseMessageSetter(false, err.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
+    }
+  };
 
-                const avatarResData= await response.json();
-                if(!response.ok)
-                    return formMessageSetter(false, avatarResData.message);
-
-                formMessageSetter(true, avatarResData.message);
-
-            }catch(error){
-                formMessageSetter(false, error.message);
-            }
-        }
-
-        try {
-
-            const res = await fetch("http://127.0.0.1:8080/profile/edit", {
-                method: "PUT",
-                headers: { 
-                    "Authorization": `Bearer ${accessToken}`,
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify(profileForm)
-            });
-
-            const data= await res.json();
-
-            if (res.ok) {
-                formMessageSetter(true, data.message || "تم حفظ التعديلات بنجاح ");
-                localStorage.setItem("user", JSON.stringify(data.user));
-                setEditMode(false);
-            }
-            else 
-                formMessageSetter(false, data.message || "فشل التعديل");
-
-        } 
-        catch (err) {
-            formMessageSetter(false, "خطأ في الاتصال بالسيرفر");
-        }
-    };
-
-    const handleDeleteProfile = async () => {
-        let accessToken= await getAccessToken();
-
-        try {
-        const res = await fetch("http://127.0.0.1:8080/profile/delete", {
-            method: "DELETE",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${accessToken}`
-            },
-            credentials: "include"
-        });
-
-        const data= await res.json();
+  const handleDeleteProfile = async () => {
+    if (window.confirm("هل أنت متأكد من حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه")) {
+      try {
+        const res = await deleteProfile(setFormMessage);
+        const data = await res.json();
 
         if (res.ok) {
-            formMessageSetter(true,  data.message);
-            const response= await fetch("http://127.0.0.1:8080/auth/logout", {method: "DELETE"});
-            const logoutData= await response.json();
-            if(!response.ok)
-                console.error(logoutData.message);
-            console.log(logoutData.message)
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
-
-            setTimeout(()=>{
-                navigate("/");
-            }, 6000);
+          responseMessageSetter(true, data.message, setFormMessage);
+          await logout();
+          setTimeout(() => {
+            navigate("/");
+          }, 3000);
+        } else {
+          responseMessageSetter(false, data.message, setFormMessage);
         }
-        else formMessageSetter(false,  data.message);
+      } catch (err) {
+        responseMessageSetter(false, "خطأ في الاتصال بالسيرفر", setFormMessage);
+      }
+    }
+  };
 
-        } catch (err) {
-            formMessageSetter(false, "خطأ في الاتصال بالسيرفر");
-        }
-    };
+  const cancelEdit = () => {
+    loadUserData();
+    setEditMode(false);
+    setAvatarImg(null);
+    setFormMessage({ success: false, message: "" });
+  };
 
-    if (loading) return <div className="loading">جاري تحميل البيانات...</div>;
+  const enterEditMode = () => {
+    setEditMode(true);
+    setShowPasswordForm(false);
+  };
 
-    return(
-        <div className="profile-page-wrapper" dir="rtl">
-            <form onSubmit={handleEditProfile}>
-                {/* 1. Header Section (Top Card) */}
-                <section className="profile-header-card">
-                    <div className="user-main-info">
-                        <div className="profile-avatar">
-                            {profileForm.image && <img src={profileForm.image} alt="Profile"/>}
-                            {/*ToDo => edit image by uploading file (handled with multer in back) */}
-                            {editMode && <input type="file" name="image" placeholder="upload image" onChange={handleChangeInput}></input>}
-                        </div>
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().split('T')[0];
+  };
 
-                        <div className="user-text">
-                            {(profileForm.firstName && profileForm.lastName) && <h2>profileForm.firstName + " " + profileForm.lastName</h2>}
-                            <div className="status-badges">
-                                {profileForm.isEmailVerified?
-                                 <span className="badge-green">الإيميل مفعل</span>:
-                                 <span className="badge-red">الإيميل غير مفعل</span>}
+  const getAvatarSrc = () => {
+    if (profileForm.imagePreview) {
+      return profileForm.imagePreview;
+    }
+    if (profileForm.image) {
+      return encodeURI(
+        profileForm.image
+          .replace(/\\/g, "//")
+          .replace("uploads", "http://127.0.0.1:8080")
+      );
+    }
+    return theme === "light" ? "/images/profile/Avatar Light.png" : "/images/profile/Avatar.png";
+  };
 
-                                 {profileForm.isPhoneVerified?
-                                <span className="badge-green">رقم الهاتف مفعل</span>:
-                                <span className="badge-red">رقم الهاتف غير مفعل</span>}
-                            </div>
+  const getEmailVerificationToken = async () => {
+    try{
+      let res = await getEmailToken(profileForm.email);
+      let data = await res.json();
 
-                            {profileForm.role === "admin" &&
-                            <p className="last-seen">آخر تواجد: {profileForm.lastActivity}</p>
-                            }
-                        </div>
-                    </div>
-                    {profileForm.role === "client" &&
-                    <div className="quick-stats">
-                        <div className="stat">
-                            <span>الطلبات</span>
-                            <strong>{profileForm.totalOrders}</strong>
-                        </div>
-                        <div className="stat">
-                            <span>إجمالي المشتريات</span>
-                            <strong>{profileForm.totalSpent} EGP</strong>
-                        </div>
-                    </div>}
-                </section>
+      if(!res.ok){
+        return responseMessageSetter(false, data.message || "فشل الحصول على رابط التحقق", setFormMessage);
+      }
 
-                {formMessage.message && <p className={formMessage.success? "success-message": "error-message"}>{formMessage.message}</p>}
+      responseMessageSetter(true, data.message || "تم إرسال رابط التحقق إلى بريدك الإلكتروني", setFormMessage);
+    }catch(err){
+      responseMessageSetter(false, err.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
+    }
+  }
 
-                <div className="profile-content-grid">    
-                    {/* 2. Right Side: Personal Info*/}
-                    <main className="main-form-content">
-                        {/*common personal data */}
-                        <section className="form-card">
-                            <h3>المعلومات الشخصية</h3>
-                            <div className="inputs-grid">
-                                {((profileForm.firstName && !editMode) || editMode) &&
-                                <div className="input-field">
-                                <label>الاسم الاول</label>
-                                <input name="firstName" value={profileForm.firstName} onChange={handleChangeInput} readOnly={!editMode}/>
-                                </div>}
-
-                                {((profileForm.lastName && !editMode) || editMode) &&
-                                <div className="input-field">
-                                <label>اسم العائلة</label>
-                                <input name="lastName" value={profileForm.lastName} onChange={handleChangeInput} readOnly={!editMode}/>
-                                </div>}
-
-                                <div className="input-field">
-                                <label>اسم المستخدم</label>
-                                <input name="username" value={profileForm.username} onChange={handleChangeInput}  readOnly={!editMode}/>
-                                </div>
-
-                                <div className="input-field">
-                                <label>البريد الإلكتروني</label>
-                                <input name="email" value={profileForm.email} onChange={handleChangeInput} readOnly={!editMode} />
-                                </div>
-
-                                {((profileForm.phone && !editMode) || editMode) &&
-                                <div className="input-field">
-                                <label>رقم الهاتف</label>
-                                <input name="phone" value={profileForm.phone} onChange={handleChangeInput} readOnly={!editMode}/>
-                                </div>}
-                            </div>
-
-                            {((profileForm.gender && !editMode) || editMode) &&
-                            <div className="gender-toggle">
-                                <p>الجنس</p>
-                                <button 
-                                type="button" 
-                                className={profileForm.gender === 'female' ? 'active' : ''}  
-                                disabled={!editMode} 
-                                onClick={() => handleSelection('gender', 'female')}
-                                style= {{opacity: !editMode && profileForm.gender !== "female" ? 0.5 : 1}}
-                                >أنثى
-                                </button>
-                                <button 
-                                type="button" 
-                                className={profileForm.gender === 'male' ? 'active' : ''} 
-                                style= {{opacity: !editMode && profileForm.gender !== "male" ? 0.5 : 1}}
-                                disabled={!editMode} 
-                                onClick={() => handleSelection('gender', 'male')}
-                                >ذكر
-                                </button>
-                            </div>}
-
-                            {((profileForm.address && !editMode) || editMode) &&
-                            <div className="address-fields">
-                                <h3>العنوان</h3>
-                                <div className="address-inputs">
-                                    {(editMode || (profileForm.address?.city && !editMode)) &&
-                                    <div className="input-field">
-                                    <label>المدينة</label>
-                                    <input name="city" value={profileForm.address?.city || ''} onChange={handleChangeInput} readOnly={!editMode}/>
-                                    </div>}
-
-                                    {((profileForm.address?.district && !editMode) || editMode) &&
-                                    <div className="input-field">
-                                    <label>المنطقة</label>
-                                    <input name="district" value={profileForm.address?.district || ""} onChange={handleChangeInput} readOnly={!editMode}/>
-                                    </div>}
-
-                                    {((profileForm.address?.street && !editMode) || editMode) &&
-                                    <div className="input-field">
-                                    <label>الشارع</label>
-                                    <input name="street" value={profileForm.address?.street || ""} onChange={handleChangeInput} readOnly={!editMode}/>
-                                    </div>}
-                                </div>
-                            </div>}
-                        </section>
-
-                        {profileForm.role==="client" &&
-                        <React.Fragment>
-                            {/*additional client data */}
-                            <section className="form-card skincare-section">
-                                <h3>ملف العناية بالبشرة</h3>
-                                <div className="skin-types">
-                                    <p>نوع البشرة</p>
-                                    {['جافة', 'دهنية', 'مختلطة', 'حساسة', 'عادية'].map(type =>(
-                                    <button 
-                                        key={type} 
-                                        type="button"
-                                        className={profileForm.skinType === type ? 'chip active' : 'chip'}
-                                        onClick={() => handleSelection('skinType', type)}
-                                        style= {{opacity: !editMode && profileForm.skinType !== type ? 0.5 : 1}}
-                                        disabled={!editMode}
-                                    >
-                                        {type}
-                                    </button>)
-                                    )}
-                                </div>
-                                <div className="skin-interests">
-                                    <p>الاهتمامات</p>
-                                    {['حب الشباب', 'تجاعيد', 'جفاف', 'تصبغات', 'هالات سوداء'].map(item => (
-                                    <button 
-                                    key={item} 
-                                    type="button" 
-                                    onClick={() => handleSelection('skinConcerns', item)}
-                                    className={profileForm.skinConcerns.includes(item) ? "chip active" : "chip"} 
-                                    style= {{opacity: !editMode && !profileForm.skinConcerns.includes(item) ? 0.5 : 1}}
-                                    disabled={!editMode}
-                                    >
-                                        {item}
-                                    </button>)
-                                    )}
-                                </div>
-                            </section>
-                        </React.Fragment>}
-
-                        {profileForm.role==="store_owner" &&
-                        <React.Fragment>
-                            {/*additional store_owner data */}
-                            {/* Store Info */}
-                            <section className="form-card">
-                                <h3>بيانات المتجر</h3>
-
-                                <div className="input-field">
-                                    <label>اسم المتجر</label>
-                                    <input name="store_name" value={profileForm.store_name} onChange={handleChangeInput} readOnly={!editMode} />
-                                </div>
-
-                                <div className="input-field">
-                                    <label>بريد المتجر</label>
-                                    <input name="store_email" value={profileForm.store_email} onChange={handleChangeInput} readOnly={!editMode}/>
-                                </div>
-
-                                <div className="input-field">
-                                    <label>رقم هاتف المتجر</label>
-                                    <input name="store_phone" value={profileForm.store_phone} onChange={handleChangeInput} readOnly={!editMode}/>
-                                </div>
-                                <br/>
-                                <div className="store_address">
-                                    <p>عنوان المتجر</p>
-                                    <div className="address-inputs">
-                                        <div className="input-field">
-                                        <label>المدينة</label>
-                                        <input name="city" value={profileForm.store_address.city} onChange={handleChangeInput} readOnly={!editMode}/>
-                                        </div>
-
-                                        <div className="input-field">
-                                        <label>المنطقة</label>
-                                        <input name="district" value={profileForm.store_address.district} onChange={handleChangeInput} readOnly={!editMode}/>
-                                        </div>
-
-                                        <div className="input-field">
-                                        <label>الشارع</label>
-                                        <input name="street" value={profileForm.store_address.street} onChange={handleChangeInput} readOnly={!editMode}/>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {((profileForm.store_description && !editMode) || editMode) &&
-                                <textarea
-                                    name="storeDescription"
-                                    value={profileForm.store_description}
-                                    onChange={handleChangeInput}
-                                    readOnly={!editMode}
-                                />}
-                            </section>
-                            <hr />
-
-                            {/* Bank Info */}
-                            {((profileForm.bankAccount && !editMode) || editMode) &&
-                            <section className="form-card">
-                                <h3>بيانات الدفع</h3>
-
-                                {((profileForm.bankAccount.bankName && !editMode) || editMode) &&
-                                <div className="input-field">
-                                    <label>اسم البنك</label>
-                                    <input name="bankName" value={profileForm.bankName} onChange={handleChangeInput} readOnly={!editMode}/>
-                                </div>}
-
-                                {((profileForm.bankAccount.accountNumber && !editMode) || editMode) &&
-                                <div className="input-field">
-                                    <label>IBAN رقم الحساب</label>
-                                    <input name="iban" value={profileForm.iban} onChange={handleChangeInput} readOnly={!editMode} />
-                                </div>}
-
-                                {((profileForm.bankAccount.accountName && !editMode) || editMode) &&
-                                <div className="input-field">
-                                    <label>اسم الحساب</label>
-                                    <input name="accountName" value={profileForm.accountName} onChange={handleChangeInput} readOnly={!editMode}/>
-                                </div>}
-                            </section>}
-                        </React.Fragment>}
-
-                        {profileForm.role==="admin" &&
-                        <React.Fragment>
-                            {/*additional admin data */}
-                            <section className="info-card">
-                                <h3>الصلاحيات الممنوحة</h3>
-                                <div className="permissions-grid">
-                                    {profileForm.permissions.map(perm => (
-                                    <div key={perm} className="permission-item">
-                                        <span>{perm}</span>
-                                        <input type="checkbox" checked readOnly />
-                                    </div>
-                                    ))}
-                                </div>
-                            </section>
-                        </React.Fragment>}
-                    </main>
-
-                    {/* 3. Left Side: Password & Notifications */}
-                    <aside className="sidebar-form-content">
-                        <section className="form-card">
-                        <h3>تفضيلات التنبيهات</h3>
-                        <label className="checkbox-item">
-                            <input type="checkbox" name="email" checked={profileForm.notifications?.includes("email")} onChange={handleChangeInput} disabled={!editMode}/>
-                            البريد الإلكتروني
-                        </label>
-                        <label className="checkbox-item">
-                            <input type="checkbox" name="push" checked={profileForm.notifications?.includes("push")} onChange={handleChangeInput}  disabled={!editMode}/>
-                            تنبيهات التطبيق
-                        </label>
-                        <label className="checkbox-item">
-                            <input type="checkbox" name="sms" checked={profileForm.notifications?.includes("sms")} onChange={handleChangeInput}  disabled={!editMode}/>
-                            الرسائل النصية SMS
-                        </label>
-                        </section>
-
-                        <div className="controllers">
-                            {/* {formMessage.message && <p className="status-msg">{formMessage.message}</p>} */}
-                            {editMode && <><button type="submit" className="btn-primary">حفظ التغييرات</button>
-                            <button type="button" className="btn-secondary" onClick={()=>{loadUserData(); setEditMode(false);}}>إلغاء</button></>}
-
-                            {!editMode && <><button className="btn-primary" onClick= {()=> {setEditMode(true);  setShowPasswordForm(false);}}>تعديل البيانات</button>
-                            <button type="button" className="btn-danger" onClick={handleDeleteProfile}>حذف الحساب</button></>}
-                        </div>
-                    </aside>
-                </div>
-            </form>
-
-            <form className="password-form form-card" onClick={()=>setShowPasswordForm(true)}>
-                <h3>تغيير كلمة المرور</h3>
-                { showPasswordForm && <React.Fragment>
-                <input type="password" name="currentPassword" value={passwordForm.currentPassword} placeholder="كلمة المرور الحالية" onChange={handleChangeInput} />
-                <input type="password" name="newPassword" value={passwordForm.newPassword} placeholder="كلمة المرور الجديدة" onChange={handleChangeInput} />
-                <input type="password" name="confirmPassword" value={passwordForm.confirmPassword} placeholder="تأكيد كلمة المرور" onChange={handleChangeInput} />
-                <button type="submit" onClick= {handleChangePassword}>تغيير</button>
-                </React.Fragment>}
-            </form>
+  if (!isUserLogged()) {
+    return (
+      <div className="profile-page-wrapper" dir="rtl">
+        <div className="notAuth-message">
+          <p className="error-message">انتهت جلستك، الرجاء تسجيل الدخول مرة أخرى</p>
         </div>
+      </div>
     );
-}
+  }
+
+  if (loading) {
+    return (
+      <div className="profile-page-wrapper" dir="rtl">
+        <div className="loading">جاري تحميل البيانات...</div>
+      </div>
+    );
+  }
+
+  if (!profileForm) {
+    return (
+      <div className="profile-page-wrapper" dir="rtl">
+        <div className="notAuth-message">
+          <p className="error-message">
+            {formMessage.message || "تعذر تحميل بيانات الملف الشخصي"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="profile-page-wrapper" dir="rtl">
+        {/* Header Section */}
+        <section className="profile-header-card">
+          <div className="user-main-info">
+            {editMode ? (
+              <div className="avatar-upload-wrapper">
+                <div className="profile-avatar">
+                  <img src={getAvatarSrc()} alt="Profile" />
+                </div>
+                <label className="avatar-upload-label">
+                  <span>تغيير الصورة</span>
+                  <input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                    className="avatar-input-hidden"
+                    onChange={handleChangeInput}
+                  />
+                </label>
+              </div>
+            ) : (
+              <div className="profile-avatar">
+                <img src={getAvatarSrc()} alt="Profile" />
+              </div>
+            )}
+
+            <div className="user-text">
+              {(profileForm.firstName || profileForm.lastName) && (
+                <h2>
+                  {`${profileForm.firstName || ""} ${profileForm.lastName || ""}`.trim()}
+                </h2>
+              )}
+              <div className="status-badges">
+                {profileForm.isEmailVerified ? (
+                  <span className="badge-green">الإيميل مفعل</span>
+                ) : (
+                  <button className="badge-red" onClick= {getEmailVerificationToken} disabled={editMode}>الإيميل غير مفعل</button>
+                )}
+                {profileForm.isPhoneVerified ? (
+                  <span className="badge-green">رقم الهاتف مفعل</span>
+                ) : (
+                  <span className="badge-red">رقم الهاتف غير مفعل</span>
+                )}
+              </div>
+              {profileForm.role === "admin" && (
+                <p className="last-seen">آخر تواجد: {profileForm.lastActivity}</p>
+              )}
+            </div>
+          </div>
+          
+          {profileForm.role === "client" && (
+            <div className="quick-stats">
+              <div className="stat">
+                <span>الطلبات</span>
+                <strong>{profileForm.totalOrders || 0}</strong>
+              </div>
+              <div className="stat">
+                <span>إجمالي المشتريات</span>
+                <strong>{profileForm.totalSpent || 0} EGP</strong>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {formMessage.message && (
+          <div className={formMessage.success ? "success-message" : "error-message"}>
+            {formMessage.message}
+          </div>
+        )}
+
+        <div className="profile-content-grid">
+          {/* Main Content - Form */}
+          <main className="main-form-content">
+            <form id="profile-form" onSubmit={handleEditProfile} ref={profileFormRef}>
+              <section className="form-card">
+                <h3>المعلومات الشخصية</h3>
+                <div className="inputs-grid">
+                  {((profileForm.firstName && !editMode) || editMode) && (
+                    <div className="input-field">
+                      <label>الاسم الاول</label>
+                      <input
+                        name="firstName"
+                        value={profileForm.firstName || ""}
+                        onChange={handleChangeInput}
+                        readOnly={!editMode}
+                      />
+                    </div>
+                  )}
+
+                  {((profileForm.lastName && !editMode) || editMode) && (
+                    <div className="input-field">
+                      <label>اسم العائلة</label>
+                      <input
+                        name="lastName"
+                        value={profileForm.lastName || ""}
+                        onChange={handleChangeInput}
+                        readOnly={!editMode}
+                      />
+                    </div>
+                  )}
+
+                  <div className="input-field">
+                    <label>اسم المستخدم</label>
+                    <input
+                      name="username"
+                      value={profileForm.username || ""}
+                      onChange={handleChangeInput}
+                      readOnly={!editMode}
+                    />
+                  </div>
+
+                  <div className="input-field">
+                    <label>البريد الإلكتروني</label>
+                    <input
+                      name="email"
+                      value={profileForm.email || ""}
+                      onChange={handleChangeInput}
+                      readOnly={!editMode}
+                    />
+                  </div>
+
+                  {((profileForm.phone && !editMode) || editMode) && (
+                    <div className="input-field">
+                      <label>رقم الهاتف</label>
+                      <input
+                        name="phone"
+                        value={profileForm.phone || ""}
+                        onChange={handleChangeInput}
+                        readOnly={!editMode}
+                      />
+                    </div>
+                  )}
+
+                  {((profileForm.birthdate && !editMode) || editMode) && (
+                    <div className="input-field">
+                      <label>تاريخ الميلاد</label>
+                      <input
+                        name="birthdate"
+                        type="date"
+                        value={formatDateForInput(profileForm.birthdate)}
+                        onChange={handleChangeInput}
+                        readOnly={!editMode}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {((profileForm.gender && !editMode) || editMode) && (
+                  <div className="gender-toggle">
+                    <p>الجنس</p>
+                    <button
+                      type="button"
+                      className={profileForm.gender === "female" ? "active" : ""}
+                      disabled={!editMode}
+                      onClick={() => handleSelection("gender", "female")}
+                    >
+                      أنثى
+                    </button>
+                    <button
+                      type="button"
+                      className={profileForm.gender === "male" ? "active" : ""}
+                      disabled={!editMode}
+                      onClick={() => handleSelection("gender", "male")}
+                    >
+                      ذكر
+                    </button>
+                  </div>
+                )}
+
+                {((profileForm.address && Object.keys(profileForm.address).length > 0) || editMode) && (
+                  <div className="address-fields">
+                    <h3>العنوان</h3>
+                    <div className="address-inputs">
+                      <div className="input-field">
+                        <label>المدينة</label>
+                        <input
+                          name="address.city"
+                          value={profileForm.address?.city || ""}
+                          onChange={handleChangeInput}
+                          readOnly={!editMode}
+                        />
+                      </div>
+                      <div className="input-field">
+                        <label>المنطقة</label>
+                        <input
+                          name="address.district"
+                          value={profileForm.address?.district || ""}
+                          onChange={handleChangeInput}
+                          readOnly={!editMode}
+                        />
+                      </div>
+                      <div className="input-field">
+                        <label>الشارع</label>
+                        <input
+                          name="address.street"
+                          value={profileForm.address?.street || ""}
+                          onChange={handleChangeInput}
+                          readOnly={!editMode}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {profileForm.role === "client" && (
+                <section className="form-card skincare-section">
+                  <h3>ملف العناية بالبشرة</h3>
+                  <div className="skin-types">
+                    <p>نوع البشرة</p>
+                    {["جافة", "دهنية", "مختلطة", "حساسة", "عادية"].map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        className={profileForm.skinType === type ? "chip active" : "chip"}
+                        onClick={() => handleSelection("skinType", type)}
+                        disabled={!editMode}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="skin-interests">
+                    <p>الاهتمامات</p>
+                    {["حب الشباب", "تجاعيد", "جفاف", "تصبغات", "هالات سوداء"].map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => handleSelection("skinConcerns", item)}
+                        className={profileForm.skinConcerns?.includes(item) ? "chip active" : "chip"}
+                        disabled={!editMode}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {profileForm.role === "store_owner" && (
+                <section className="form-card">
+                  <h3>بيانات المتجر</h3>
+                  <div className="input-field">
+                    <label>اسم المتجر</label>
+                    <input
+                      name="store_name"
+                      value={profileForm.store_name || ""}
+                      onChange={handleChangeInput}
+                      readOnly={!editMode}
+                    />
+                  </div>
+                  <div className="input-field">
+                    <label>بريد المتجر</label>
+                    <input
+                      name="store_email"
+                      value={profileForm.store_email || ""}
+                      onChange={handleChangeInput}
+                      readOnly={!editMode}
+                    />
+                  </div>
+                  <div className="input-field">
+                    <label>رقم هاتف المتجر</label>
+                    <input
+                      name="store_phone"
+                      value={profileForm.store_phone || ""}
+                      onChange={handleChangeInput}
+                      readOnly={!editMode}
+                    />
+                  </div>
+                  <div className="store_address">
+                    <p>عنوان المتجر</p>
+                    <div className="address-inputs">
+                      <div className="input-field">
+                        <label>المدينة</label>
+                        <input
+                          name="store_address.city"
+                          value={profileForm.store_address?.city || ""}
+                          onChange={handleChangeInput}
+                          readOnly={!editMode}
+                        />
+                      </div>
+                      <div className="input-field">
+                        <label>المنطقة</label>
+                        <input
+                          name="store_address.district"
+                          value={profileForm.store_address?.district || ""}
+                          onChange={handleChangeInput}
+                          readOnly={!editMode}
+                        />
+                      </div>
+                      <div className="input-field">
+                        <label>الشارع</label>
+                        <input
+                          name="store_address.street"
+                          value={profileForm.store_address?.street || ""}
+                          onChange={handleChangeInput}
+                          readOnly={!editMode}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+            </form>
+          </main>
+
+          {/* Sidebar - Outside Form */}
+          <aside className="sidebar-form-content">
+            <section className="form-card">
+              <h3>تفضيلات التنبيهات</h3>
+              <label className="checkbox-item">
+                <input
+                  type="checkbox"
+                  name="email"
+                  checked={profileForm.notifications?.includes("email") || false}
+                  onChange={handleChangeInput}
+                  disabled={!editMode}
+                />
+                <span>البريد الإلكتروني</span>
+              </label>
+              <label className="checkbox-item">
+                <input
+                  type="checkbox"
+                  name="push"
+                  checked={profileForm.notifications?.includes("push") || false}
+                  onChange={handleChangeInput}
+                  disabled={!editMode}
+                />
+                <span>تنبيهات التطبيق</span>
+              </label>
+              <label className="checkbox-item">
+                <input
+                  type="checkbox"
+                  name="sms"
+                  checked={profileForm.notifications?.includes("sms") || false}
+                  onChange={handleChangeInput}
+                  disabled={!editMode}
+                />
+                <span>الرسائل النصية SMS</span>
+              </label>
+            </section>
+
+            {/* Password Section */}
+            <div className="form-card password-section">
+              <h3>تغيير كلمة المرور</h3>
+              {!editMode ? (
+                <>
+                  <div 
+                    className="password-toggle"
+                    onClick={() => setShowPasswordForm(!showPasswordForm)}
+                  >
+                    <span>انقر لتغيير كلمة المرور</span>
+                    <i className={`fas fa-chevron-${showPasswordForm ? 'up' : 'down'}`}></i>
+                  </div>
+                  {showPasswordForm && (
+                    <div className="password-change-form">
+                      <input
+                        type="password"
+                        name="currentPassword"
+                        value={passwordForm.currentPassword}
+                        placeholder="كلمة المرور الحالية"
+                        onChange={handleChangeInput}
+                      />
+                      <input
+                        type="password"
+                        name="newPassword"
+                        value={passwordForm.newPassword}
+                        placeholder="كلمة المرور الجديدة"
+                        onChange={handleChangeInput}
+                      />
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={passwordForm.confirmPassword}
+                        placeholder="تأكيد كلمة المرور"
+                        onChange={handleChangeInput}
+                      />
+                      <button 
+                        type="button" 
+                        onClick={handleChangePassword}
+                        className="password-submit-btn"
+                      >
+                        تغيير كلمة المرور
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="password-disabled-message">
+                  الرجاء إنهاء تعديل البيانات أولاً لتغيير كلمة المرور
+                </p>
+              )}
+            </div>
+          </aside>
+        </div>
+
+        {/* Buttons Container - Outside Form */}
+        <div className="controllers">
+          {editMode ? (
+            <>
+              <button 
+                type="button" 
+                className="btn-primary" 
+                onClick={() => {
+                  if (profileFormRef.current) {
+                    profileFormRef.current.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                  }
+                }}
+              >
+                حفظ التغييرات
+              </button>
+              <button type="button" className="btn-secondary" onClick={cancelEdit}>
+                إلغاء
+              </button>
+            </>
+          ) : (
+            <>
+              <button type="button" className="btn-primary" onClick={enterEditMode}>
+                تعديل البيانات
+              </button>
+              <button type="button" className="btn-danger" onClick={handleDeleteProfile}>
+                حذف الحساب
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      <Footer />
+    </>
+  );
+};
 
 export default Profile;
