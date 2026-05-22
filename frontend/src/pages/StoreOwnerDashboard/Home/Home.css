@@ -5,30 +5,14 @@
   color: var(--نص-رئيسي);
 }
 @media (max-width: 768px) {
-  .StoreOwnerHome-page {
-    padding: 16px;
-  }
+  .StoreOwnerHome-page { padding: 16px; }
 }
 
 /* ══ الكروت ══ */
-.store-stats {
-  padding: 8px 0 28px;
-}
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-@media (max-width: 1100px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 600px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
+.store-stats { padding: 8px 0 28px; }
+.stats-grid  { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+@media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 600px)  { .stats-grid { grid-template-columns: 1fr; } }
 
 .stat-card {
   background: var(--خلفية-البطاقة);
@@ -36,581 +20,255 @@
   border-radius: 14px;
   padding: 20px 20px 18px;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition:
-    transform 0.18s,
-    box-shadow 0.18s;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: transform .18s, box-shadow .18s;
   box-shadow: var(--ظل-البطاقة);
+  cursor: pointer;
 }
-.stat-card:hover {
-  transform: translateY(-2px);
-}
+.stat-card:hover { transform: translateY(-2px); }
 
 .stat-badge {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 99px;
+  display: inline-flex; align-items: center;
+  width: fit-content; font-size: 11px; font-weight: 500;
+  padding: 3px 10px; border-radius: 99px;
 }
-.badge-info {
-  background: rgba(96, 165, 250, 0.15);
-  color: #60a5fa;
-}
-.badge-warning {
-  background: rgba(251, 146, 60, 0.15);
-  color: #fb923c;
-}
-.badge-success {
-  background: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
-}
-.badge-danger {
-  background: rgba(248, 113, 113, 0.15);
-  color: #f87171;
-}
+.badge-info    { background: rgba(96,165,250,.15);  color: #60a5fa; }
+.badge-warning { background: rgba(251,146,60,.15);  color: #fb923c; }
+.badge-success { background: rgba(74,222,128,.15);  color: #4ade80; }
+.badge-danger  { background: rgba(248,113,113,.15); color: #f87171; }
 
-.stat-icon-wrap {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  color: var(--بنفسجي);
-  opacity: 0.85;
-}
-.stat-value {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--نص-رئيسي);
-  line-height: 1.1;
-  margin-top: 4px;
-}
-.stat-label {
-  font-size: 12px;
-  color: var(--نص-خافت);
-}
+.stat-icon-wrap { position: absolute; top: 18px; left: 18px; color: var(--بنفسجي); opacity: .85; }
+.stat-value     { font-size: 32px; font-weight: 700; color: var(--نص-رئيسي); line-height: 1.1; margin-top: 4px; }
+.stat-label     { font-size: 12px; color: var(--نص-خافت); }
 
 .stats-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 48px 0;
-  color: var(--نص-خافت);
-  font-size: 14px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 48px 0; color: var(--نص-خافت); font-size: 14px;
 }
 .stats-spinner {
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   border: 3px solid var(--بنفسجي-خافت);
   border-top-color: var(--بنفسجي);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  border-radius: 50%; animation: spin .8s linear infinite;
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ══ تحليلات الأداء ══ */
-.performance-section {
-  padding: 8px 0 24px;
-}
+.performance-section { padding: 8px 0 24px; }
 
 .perf-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  gap: 16px;
-  flex-wrap: wrap;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
 }
-.perf-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--نص-رئيسي);
-  margin-bottom: 4px;
-}
-.perf-subtitle {
-  font-size: 13px;
-  color: var(--نص-خافت);
-}
+.perf-title    { font-size: 28px; font-weight: 700; color: var(--نص-رئيسي); margin-bottom: 4px; }
+.perf-subtitle { font-size: 13px; color: var(--نص-خافت); }
 
-.perf-filters {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+.perf-filters { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .filter-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--خلفية-البطاقة);
-  border: 1.5px solid var(--حد-واضح);
-  color: var(--نص-خافت);
-  padding: 8px 16px;
-  border-radius: 99px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--خلفية-البطاقة); border: 1.5px solid var(--حد-واضح);
+  color: var(--نص-خافت); padding: 8px 16px;
+  border-radius: 99px; font-size: 13px; cursor: pointer;
+  transition: all .2s; font-family: inherit;
 }
-.filter-btn:hover {
-  border-color: var(--بنفسجي);
-  color: var(--بنفسجي);
-}
-.filter-btn.active {
-  background: var(--بنفسجي-خافت);
-  border-color: var(--بنفسجي);
-  color: var(--بنفسجي);
-}
+.filter-btn:hover  { border-color: var(--بنفسجي); color: var(--بنفسجي); }
+.filter-btn.active { background: var(--بنفسجي-خافت); border-color: var(--بنفسجي); color: var(--بنفسجي); }
 
 .chart-card {
-  background: var(--خلفية-البطاقة);
-  border: 1px solid var(--حد-واضح);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: var(--ظل-البطاقة);
+  background: var(--خلفية-البطاقة); border: 1px solid var(--حد-واضح);
+  border-radius: 16px; padding: 24px; box-shadow: var(--ظل-البطاقة);
 }
 .card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  gap: 16px;
-  flex-wrap: wrap;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
 }
-.card-label {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--نص-رئيسي);
-  display: block;
-  margin-bottom: 4px;
-}
-.card-sublabel {
-  font-size: 12px;
-  color: var(--نص-خافت);
-}
-.card-total {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--بنفسجي);
-  margin-bottom: 4px;
-}
-.card-growth {
-  font-size: 12px;
-  color: #4ade80;
-}
+.card-label    { font-size: 15px; font-weight: 600; color: var(--نص-رئيسي); display: block; margin-bottom: 4px; }
+.card-sublabel { font-size: 12px; color: var(--نص-خافت); }
+.card-total    { font-size: 28px; font-weight: 700; color: var(--بنفسجي); margin-bottom: 4px; }
+.card-growth   { font-size: 12px; color: #4ade80; }
 
 /* ══ SVG Chart ══ */
-.svg-chart-wrap {
-  position: relative;
-  width: 100%;
-}
-.svg-chart {
-  width: 100%;
-  height: 220px;
-  display: block;
-  overflow: visible;
-}
+.svg-chart-wrap { position: relative; width: 100%; }
+.svg-chart { width: 100%; height: 220px; display: block; overflow: visible; }
 
 .svg-tooltip {
-  position: absolute;
-  transform: translate(-50%, -110%);
-  background: var(--خلفية-البطاقة);
-  border: 1px solid var(--حد-واضح);
-  border-radius: 10px;
-  padding: 8px 14px;
-  text-align: center;
-  pointer-events: none;
-  white-space: nowrap;
-  box-shadow: var(--ظل-البطاقة);
-  z-index: 10;
+  position: absolute; transform: translate(-50%, -110%);
+  background: var(--خلفية-البطاقة); border: 1px solid var(--حد-واضح);
+  border-radius: 10px; padding: 8px 14px; text-align: center;
+  pointer-events: none; white-space: nowrap;
+  box-shadow: var(--ظل-البطاقة); z-index: 10;
 }
-.tooltip-day {
-  font-size: 11px;
-  color: var(--نص-خافت);
-  margin-bottom: 2px;
-}
-.tooltip-value {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--بنفسجي);
-}
+.tooltip-day   { font-size: 11px; color: var(--نص-خافت); margin-bottom: 2px; }
+.tooltip-value { font-size: 15px; font-weight: 700; color: var(--بنفسجي); }
 
 /* ══ أحدث الطلبات ══ */
-.orders-section {
-  padding: 8px 0 48px;
-  overflow: visible;
-}
+.orders-section { padding: 8px 0 48px; overflow: visible; }
 
 .orders-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  gap: 16px;
-  flex-wrap: wrap;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
 }
-.orders-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--نص-رئيسي);
-  margin-bottom: 4px;
-}
-.orders-subtitle {
-  font-size: 13px;
-  color: var(--نص-خافت);
-}
+.orders-title    { font-size: 28px; font-weight: 700; color: var(--نص-رئيسي); margin-bottom: 4px; }
+.orders-subtitle { font-size: 13px; color: var(--نص-خافت); }
 
 .btn-outline {
-  background: transparent;
-  border: 1.5px solid var(--حد-واضح);
-  color: var(--نص-خافت);
-  padding: 9px 20px;
-  border-radius: 99px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
+  background: transparent; border: 1.5px solid var(--حد-واضح);
+  color: var(--نص-خافت); padding: 9px 20px; border-radius: 99px;
+  font-size: 13px; cursor: pointer; transition: all .2s; font-family: inherit;
 }
-.btn-outline:hover {
-  border-color: var(--بنفسجي);
-  color: var(--بنفسجي);
-}
+.btn-outline:hover { border-color: var(--بنفسجي); color: var(--بنفسجي); }
 
 .orders-card {
-  background: var(--خلفية-البطاقة);
-  border: 1px solid var(--حد-واضح);
-  border-radius: 16px;
-  padding: 8px 24px 32px; 
-  overflow-x: auto;
-  overflow-y: visible;
-  box-shadow: var(--ظل-البطاقة);
-  position: relative;
+  background: var(--خلفية-البطاقة); border: 1px solid var(--حد-واضح);
+  border-radius: 16px; padding: 8px 24px 32px;
+  overflow-x: auto; overflow-y: visible;
+  box-shadow: var(--ظل-البطاقة); position: relative;
 }
 
-.orders-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
+.orders-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
 .orders-table thead th {
-  color: var(--نص-خافت);
-  font-weight: 500;
-  padding: 14px 8px;
-  text-align: right;
+  color: var(--نص-خافت); font-weight: 500;
+  padding: 14px 8px; text-align: right;
   border-bottom: 1px solid var(--حد-خافت);
 }
 
 .orders-table tbody tr {
   border-bottom: 1px solid var(--حد-خافت);
-  transition: background 0.15s;
-  position: relative;
+  transition: background .15s; position: relative;
 }
-.orders-table tbody tr:last-child {
-  border-bottom: none;
-}
-.orders-table tbody tr:hover {
-  background: var(--بنفسجي-خافت);
-}
+.orders-table tbody tr:last-child { border-bottom: none; }
+.orders-table tbody tr:hover { background: var(--بنفسجي-خافت); }
 
 .orders-table td {
-  padding: 14px 8px;
-  color: var(--نص-ثانوي);
-  vertical-align: middle;
-  position: relative;
+  padding: 14px 8px; color: var(--نص-ثانوي);
+  vertical-align: middle; position: relative;
 }
 
-.order-id {
-  color: var(--نص-رئيسي);
-  font-weight: 600;
-}
-.order-price {
-  color: var(--نص-رئيسي);
-  font-weight: 500;
-}
+.order-date  { color: var(--نص-خافت); font-size: 12px; }
+.order-id    { color: var(--نص-رئيسي); font-weight: 600; }
+.order-price { color: var(--نص-رئيسي); font-weight: 500; }
 
-.client-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.client-cell { display: flex; align-items: center; gap: 10px; }
 .client-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--بنفسجي-خافت);
-  color: var(--بنفسجي);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
-  flex-shrink: 0;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--بنفسجي-خافت); color: var(--بنفسجي);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; flex-shrink: 0;
 }
 
 /* ── Status Badge & Dropdown ── */
-.status-dropdown-wrap {
-  position: relative;
-  display: inline-block;
-}
+.status-dropdown-wrap { position: relative; display: inline-block; }
 
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 99px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: opacity 0.2s, transform 0.1s;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 99px;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  border: none; transition: opacity .2s, transform .1s;
   font-family: inherit;
-  background: var(--خلفية-2);
-  color: var(--نص-ثانوي);
+  background: var(--خلفية-2); color: var(--نص-ثانوي);
 }
+.status-badge:hover:not(:disabled):not(.loading) { transform: scale(1.02); filter: brightness(1.05); }
+.status-badge:disabled { cursor: not-allowed; opacity: .5; }
+.status-badge.loading  { opacity: .6; cursor: wait; }
+.status-badge .chevron { transition: transform .2s; width: 12px; height: 12px; }
+.status-badge .chevron.open { transform: rotate(180deg); }
 
-.status-badge:hover:not(:disabled):not(.loading) {
-  transform: scale(1.02);
-  filter: brightness(1.05);
-}
-
-.status-badge:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.status-badge.loading {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.status-badge .chevron {
-  transition: transform 0.2s;
-  width: 12px;
-  height: 12px;
-}
-
-.status-badge .chevron.open {
-  transform: rotate(180deg);
-}
-
-/* Status color variants */
-.st-wait {
-  background: rgba(251, 146, 60, 0.15);
-  color: #fb923c;
-}
-
-.st-prep {
-  background: rgba(96, 165, 250, 0.15);
-  color: #60a5fa;
-}
-
-.st-ready {
-  background: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
-}
-
-.st-done {
-  background: rgba(155, 109, 255, 0.15);
-  color: #c4a4ff;
-}
-
-.st-cancel {
-  background: rgba(248, 113, 113, 0.15);
-  color: #f87171;
-}
+.st-wait   { background: rgba(251,146,60,.15);  color: #fb923c; }
+.st-prep   { background: rgba(96,165,250,.15);   color: #60a5fa; }
+.st-ready  { background: rgba(74,222,128,.15);   color: #4ade80; }
+.st-done   { background: rgba(155,109,255,.15);  color: #c4a4ff; }
+.st-cancel { background: rgba(248,113,113,.15);  color: #f87171; }
 
 .status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  display: inline-block;
-  background: currentColor;
-  flex-shrink: 0;
+  width: 6px; height: 6px; border-radius: 50%;
+  display: inline-block; background: currentColor; flex-shrink: 0;
 }
 
-/* Dropdown menu - Default opens downward */
 .status-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  background: var(--خلفية-البطاقة);
-  border: 1px solid var(--حد-واضح);
-  border-radius: 12px;
-  padding: 10px 8px;
-  min-width: 170px;
-  z-index: 1000;
+  position: absolute; top: calc(100% + 8px); left: 0;
+  background: var(--خلفية-البطاقة); border: 1px solid var(--حد-واضح);
+  border-radius: 12px; padding: 10px 8px;
+  min-width: 170px; z-index: 1000;
   box-shadow: var(--ظل-البطاقة);
   backdrop-filter: blur(8px);
-  animation: dropdownFadeIn 0.15s ease-out;
+  animation: dropdownFadeIn .15s ease-out;
 }
-
-/* Opens upward for last rows */
 .status-menu.open-upward {
-  top: auto;
-  bottom: calc(100% + 8px);
-  animation: dropdownFadeUp 0.15s ease-out;
+  top: auto; bottom: calc(100% + 8px);
+  animation: dropdownFadeUp .15s ease-out;
 }
 
 .status-menu-title {
-  font-size: 11px;
-  color: var(--نص-خافت);
-  padding: 0 8px 8px;
-  border-bottom: 1px solid var(--حد-خافت);
-  margin-bottom: 6px;
-  font-weight: 500;
+  font-size: 11px; color: var(--نص-خافت);
+  padding: 0 8px 8px; border-bottom: 1px solid var(--حد-خافت);
+  margin-bottom: 6px; font-weight: 500;
 }
 
 .status-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  font-family: inherit;
-  color: var(--نص-ثانوي);
-  transition: background 0.15s;
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 10px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  background: transparent; border: none; font-family: inherit;
+  color: var(--نص-ثانوي); transition: background .15s;
 }
+.status-menu-item:hover:not(:disabled) { background: var(--بنفسجي-خافت); }
+.status-menu-item.current { background: var(--بنفسجي-خافت); color: var(--بنفسجي); }
+.status-menu-item:disabled { opacity: .4; cursor: not-allowed; }
 
-.status-menu-item:hover:not(:disabled) {
-  background: var(--بنفسجي-خافت);
-}
-
-.status-menu-item.current {
-  background: var(--بنفسجي-خافت);
-  color: var(--بنفسجي);
-}
-
-.status-menu-item:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* Tooltip for disabled buttons */
 .status-badge:disabled:hover::after {
   content: "لا يمكن تغيير الحالة";
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
+  position: absolute; bottom: 100%; left: 50%;
   transform: translateX(-50%);
-  background: var(--خلفية-البطاقة);
-  color: var(--أحمر-خطأ);
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  white-space: nowrap;
-  border: 1px solid var(--حد-واضح);
-  z-index: 1001;
-  pointer-events: none;
+  background: var(--خلفية-البطاقة); color: var(--أحمر-خطأ);
+  padding: 4px 8px; border-radius: 6px; font-size: 10px;
+  white-space: nowrap; border: 1px solid var(--حد-واضح);
+  z-index: 1001; pointer-events: none;
 }
 
-/* Details button */
 .btn-details {
-  background: transparent;
-  border: 1.5px solid var(--حد-خافت);
-  color: var(--نص-خافت);
-  padding: 6px 14px;
-  border-radius: 99px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
+  background: transparent; border: 1.5px solid var(--حد-خافت);
+  color: var(--نص-خافت); padding: 6px 14px; border-radius: 99px;
+  font-size: 12px; cursor: pointer; transition: all .2s; font-family: inherit;
 }
-
 .btn-details:hover {
-  border-color: var(--بنفسجي);
-  color: var(--بنفسجي);
+  border-color: var(--بنفسجي); color: var(--بنفسجي);
   background: var(--بنفسجي-خافت);
 }
 
-/* Animations */
+/* ── Animations ── */
 @keyframes dropdownFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes dropdownFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile responsive dropdowns */
+/* ── Mobile ── */
 @media (max-width: 768px) {
   .status-menu,
   .status-menu.open-upward {
-    position: fixed;
-    top: auto;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 280px;
-    max-width: 90vw;
-    z-index: 1050;
+    position: fixed; top: auto; bottom: 20px;
+    left: 50%; transform: translateX(-50%);
+    width: 280px; max-width: 90vw; z-index: 1050;
   }
-  
-  /* Backdrop for mobile dropdowns */
   .status-menu::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: -1;
-    backdrop-filter: blur(2px);
-    animation: fadeIn 0.2s ease-out;
+    content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.5); z-index: -1;
+    backdrop-filter: blur(2px); animation: fadeIn .2s ease-out;
   }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 }
 
 /* ══ Responsive ══ */
 @media (max-width: 600px) {
-  .perf-header {
-    flex-direction: column;
-  }
-  .perf-filters {
-    width: 100%;
-  }
-  .filter-btn {
-    flex: 1;
-    justify-content: center;
-  }
-  .card-top {
-    flex-direction: column-reverse;
-  }
-  .orders-header {
-    flex-direction: column;
-  }
+  .perf-header, .orders-header { flex-direction: column; }
+  .perf-filters { width: 100%; }
+  .filter-btn   { flex: 1; justify-content: center; }
+  .card-top     { flex-direction: column-reverse; }
 }
+
+.card-growth-negative { color: #f87171; }
