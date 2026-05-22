@@ -1,66 +1,13 @@
-<<<<<<< Updated upstream
-import React from 'react';
-
-const Home = () => {
-  return (
-    <div>
-      <h1>Home Page</h1>
-    </div>
-  );
-};
-=======
 import React, { useState, useEffect } from 'react';
 import './Home.css';
 import Footer from "../../components/Footer";
 import { useTheme } from '../../components/ThemeProvider';
 import { getSpecialProducts } from '../../services/product.js';
 
-
-import luxuryCreamImg from '../../../public/images/main-home/Luxury Cream.png';
-import premiumLipsticksImg from '../../../public/images/main-home/Premium Lipsticks.png';
-import skinSerumImg from '../../../public/images/main-home/Skin Serum.png';
-import beautyProductsImg from '../../../public/images/main-home/Beauty Products.png';
-import overlayShadowDarkImg from '../../../public/images/main-home/Overlay+ShadowDark.png';
-import overlayShadowImg from '../../../public/images/main-home/Overlay+Shadow.png';
-
 function Home() {
     const [activeSection, setActiveSection] = useState('home');
-    const { theme } = useTheme();
-    const [recentProducts, setRecentProducts] = useState([]);
-    const [frequentlySoldProducts, setFrequentlySoldProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const {theme, setTheme} = useTheme();
 
-   
-    useEffect(() => {
-        const fetchSpecialProducts = async () => {
-            try {
-                setLoading(true);
-                const response = await getSpecialProducts({ limit: 4 });
-                
-                if (response.success) {
-                    setRecentProducts(response.recentProducts || []);
-                    setFrequentlySoldProducts(response.frequentlySoldProducts || []);
-                } else {
-                    throw new Error(response.message || 'فشل في جلب المنتجات');
-                }
-                
-                setError(null);
-            } catch (err) {
-                console.error("Error fetching special products:", err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchSpecialProducts();
-    }, []);
-
- 
-    const displayProducts = [...frequentlySoldProducts, ...recentProducts].slice(0, 4);
-
-  
     useEffect(() => {
         const sections = document.querySelectorAll('section[id]');
         const observer = new IntersectionObserver((entries) => {
@@ -81,43 +28,6 @@ function Home() {
             section.scrollIntoView({ behavior: 'smooth' });
         }
     };
-
-    const getProductImage = (productId) => {
-        return `/api/products/${productId}/image`;
-    };
-
-    const getBadgeInfo = (product, index) => {
-        const isFrequentlySold = frequentlySoldProducts.some(p => p.product_id === product.product_id);
-        
-        if (isFrequentlySold && index === 0) {
-            return { type: 'bestseller', text: 'الأكثر مبيعاً' };
-        } else if (index === 1) {
-            return { type: 'discount', text: 'خصم 20%' };
-        } else if (index === 2) {
-            return { type: 'new', text: 'جديد' };
-        }
-        return null;
-    };
-
-    const formatPrice = (price) => {
-        return `${Math.round(price)} ج.م`;
-    };
-
-    const formatRating = (rating) => {
-        if (!rating || rating === 0) return 'جديد';
-        return `${rating.toFixed(1)} ★`;
-    };
-
-    if (error) {
-        return (
-            <div className="page-container">
-                <div className="error-message">
-                    <p>عذراً، حدث خطأ في تحميل المنتجات: {error}</p>
-                    <button onClick={() => window.location.reload()}>إعادة المحاولة</button>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="page-container">
@@ -162,19 +72,25 @@ function Home() {
                 <div className="hero-images">
                     <div className="glow"></div>
                     <div className="product-card card-1">
-                        <img src={luxuryCreamImg} alt="كريم ترطيب عميق" className="product-img" />
+                        <div className="product-img-1"></div>
                         <div className="product-category">عناية فاخرة</div>
                         <div className="product-title">كريم ترطيب عميق</div>
                         <div className="product-rating">4.9 ★</div>
                     </div>
                     <div className="product-card card-2">
-                        <img src={premiumLipsticksImg} alt="مجموعة أحمر شفاه" className="product-img" />
+                        <div className="product-img-2"></div>
                         <div className="product-category">مكياج</div>
                         <div className="product-title">مجموعة أحمر شفاه</div>
                         <div className="product-price">١٢٠ ج.م</div>
                     </div>
+                    {/* <div className="product-card card-3">
+                        <div className="product-img-3"></div>
+                        <div className="product-category">زيوت طبيعية</div>
+                        <div className="product-title">زيت الأركان النقي</div>
+                        <div className="badge-best">الأكثر مبيعاً</div>
+                    </div> */}
                     <div className="product-card card-4">
-                        <img src={skinSerumImg} alt="سيروم فيتامين C" className="product-img" />
+                        <div className="product-img-4"></div>
                         <div className="product-category">سيروم</div>
                         <div className="product-title">سيروم فيتامين C</div>
                         <div className="card-4-footer">
@@ -254,7 +170,7 @@ function Home() {
             <section className="delivery-section">
                 <div className="delivery-container">
                     <div className="delivery-image">
-                        <img src={beautyProductsImg} alt="توصيل سريع" />
+                        <img src="/images/main-home/Beauty Products.png" alt="توصيل سريع" />
                     </div>
                     <div className="delivery-content">
                         <h3 className="delivery-title">توصيل سريع لعناية لا تنتظر</h3>
@@ -331,7 +247,7 @@ function Home() {
                     </div>
                     <div className="feature-card">
                         <div className="feature-icon"><i className="fas fa-lock"></i></div>
-                        <h3 className="feature-title">دفع آمن ومضمون</h3>
+                        <h3 className="feature-title">دفع أمن ومضمون</h3>
                         <p className="feature-desc">خيارات دفع متعددة مع حماية كاملة لبياناتك الشخصية.</p>
                     </div>
                     <div className="feature-card">
@@ -346,62 +262,81 @@ function Home() {
             <section id="products" className="products-section">
                 <div className="products-container">
                     <div className="products-header">
-                        <h2 className="products-title">المنتجات <span>المميزة</span></h2>
-                        <p className="products-description">اختيارات مدروسة تناسب جميع أنواع البشرة والأذواق</p>
+                        <h2 className="products-title">منتجات <span>مميزة</span></h2>
+                        <p className="products-description">اكتشفي أفضل منتجات التجميل من محلات قنا</p>
                     </div>
 
-                    {loading ? (
-                        <div className="loading-spinner">
-                            <div className="spinner"></div>
-                            <p>جاري تحميل المنتجات...</p>
-                        </div>
-                    ) : displayProducts.length > 0 ? (
-                        <div className="products-grid">
-                            {displayProducts.map((product, index) => {
-                                const badgeInfo = getBadgeInfo(product, index);
-                                return (
-                                    <div className="product-card" key={product.product_id}>
-                                        {badgeInfo && (
-                                            <div className={`product-badge ${badgeInfo.type}`}>
-                                                {badgeInfo.text}
-                                            </div>
-                                        )}
-                                        <div 
-                                            className="product-image" 
-                                            style={{ 
-                                                backgroundImage: `url(${getProductImage(product.product_id)})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center'
-                                            }}
-                                        ></div>
-                                        <div className="add-btn" onClick={() => {
-                                            console.log('Add to cart:', product);
-                                        }}>+</div>
-                                        <div className="product-content">
-                                            <div className="product-store-name">{product.store_name || 'متجر موثوق'}</div>
-                                            <h3 className="product-name">{product.name}</h3>
-                                            <p className="product-desc">{product.description || 'منتج مميز للعناية بالبشرة'}</p>
-                                            <div className="product-footer">
-                                                <div>
-                                                    <span className="product-price-new">{formatPrice(product.price)}</span>
-                                                </div>
-                                                <span className="product-rating">{formatRating(product.average_rating)}</span>
-                                            </div>
-                                        </div>
+                    <div className="products-grid">
+                        {/* product 1 */}
+                        <div className="product-card">
+                            <div className="product-badge discount">خصم %20</div>
+                            <div className="product-image product-image-1"></div>
+                            <div className="add-btn">+</div>
+                            <div className="product-content">
+                                <div className="product-store-name">محل نور للتجميل</div>
+                                <h3 className="product-name">سيروم فيتامين C</h3>
+                                <p className="product-desc">تفتيح وتوحيد لون البشرة</p>
+                                <div className="product-footer">
+                                    <div>
+                                        <span className="product-price-new">150 ج</span>
+                                        <span className="product-price-old">185 ج</span>
                                     </div>
-                                );
-                            })}
+                                    <span className="product-rating">⭐ 4.5</span>
+                                </div>
+                            </div>
                         </div>
-                    ) : (
-                        <div className="no-products">
-                            <p>لا توجد منتجات مميزة حالياً</p>
+
+                        {/* product 2 */}
+                        <div className="product-card">
+                            <div className="product-badge discount">خصم %20</div>
+                            <div className="product-image product-image-2"></div>
+                            <div className="add-btn">+</div>
+                            <div className="product-content">
+                                <div className="product-store-name">محل نور للتجميل</div>
+                                <h3 className="product-name">هايلايتر ذهبي</h3>
+                                <p className="product-desc">لمسة إشراق طبيعية</p>
+                                <div className="product-footer">
+                                    <span className="product-price-new">95 ج</span>
+                                    <span className="product-rating">⭐ 5.0</span>
+                                </div>
+                            </div>
                         </div>
-                    )}
+
+                        {/* product 3 */}
+                        <div className="product-card">
+                            <div className="product-badge new">جديد</div>
+                            <div className="product-image product-image-3"></div>
+                            <div className="add-btn">+</div>
+                            <div className="product-content">
+                                <div className="product-store-name">محل نور للتجميل</div>
+                                <h3 className="product-name">كريم SPF 30</h3>
+                                <p className="product-desc">حماية وترطيب</p>
+                                <div className="product-footer">
+                                    <span className="product-price-new">120 ج</span>
+                                    <span className="product-rating">⭐ 4.5</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* product 4 */}
+                        <div className="product-card">
+                            <div className="product-badge bestseller">الأكثر مبيعاً</div>
+                            <div className="product-image product-image-4"></div>
+                            <div className="add-btn">+</div>
+                            <div className="product-content">
+                                <div className="product-store-name">محل نور للتجميل</div>
+                                <h3 className="product-name">روج مات</h3>
+                                <p className="product-desc">ثبات 12 ساعة</p>
+                                <div className="product-footer">
+                                    <span className="product-price-new">85 ج</span>
+                                    <span className="product-rating">⭐ 5.0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div className="view-all-btn">
-                        <button className="btn-view-all" onClick={() => window.location.href = '/products'}>
-                            عرض جميع المنتجات
-                        </button>
+                        <button className="btn-view-all">عرض جميع المنتجات</button>
                     </div>
                 </div>
             </section>
@@ -409,17 +344,17 @@ function Home() {
             {/* ========== Footer Section ========== */}
             <div className="footer-section">
                 <div className="footer-image">
-                    <img src={theme === "dark" ? overlayShadowDarkImg : overlayShadowImg} alt="Qena Glam" />
+                    <img src={theme === "dark" ? "/images/main-home/Overlay+ShadowDark.png" : "/images/main-home/Overlay+Shadow.png"} alt="Qena Glam" />
                     <div className="footer-image-content">
                         <h2>الجمال يبدأ من <span className="city">قنا</span></h2>
                         <p>اكتشفي أرقى منتجات التجميل المختارة بعناية من أفضل المتاجر<br />المحلية في قلب صعيد مصر.</p>
                     </div>
                 </div>
-                <Footer />
+
+                <Footer></Footer>
             </div>
         </div>
     );
 }
->>>>>>> Stashed changes
 
 export default Home;
