@@ -4,29 +4,30 @@ import "./ActiveClients.css";
 import { HiOutlineUser } from "react-icons/hi";
 import { Star } from "lucide-react"; 
 import { useTheme } from "../../../components/ThemeProvider";
+import { api } from "../../../services/authService";
 
 function StoreOwnerActiveClients() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const { theme } = useTheme();
 
   useEffect(() => {
     const getClients = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
 
-        const response = await axios.get(
-          "http://127.0.0.1:8080/users/active-clients",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const response = await api.get(
+          "http://127.0.0.1:8080/stores/me/active-clients",
         );
-
+        console.log("active clients => ", response.data.data);
         setClients(response.data.data);
+
       } catch (error) {
         console.log(error);
+        setErrorMessage(error.response.data.message || "خطأ فى جلب العملاء المتفاعلين");
+        setTimeout(() => {
+          setErrorMessage("");
+        }, 5000);
       } finally {
         setLoading(false);
       }
@@ -48,6 +49,8 @@ function StoreOwnerActiveClients() {
         <h1>العملاء المتفاعلين</h1>
         <p>العملاء الذين قاموا بطلبات من المتجر</p>
       </div>
+
+      {errorMessage && <p class={`response-message ${errorMessage ? "error-message" : ""}`}>{errorMessage}</p>}
 
       <div className="cards-container">
         {sortedClients.map((client) =>

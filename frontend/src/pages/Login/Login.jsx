@@ -22,13 +22,28 @@ const Login = () => {
     message: "",
   });
 
+  const {email=null, token=null} = new URLSearchParams(window.location.search);
+  let id= null, role= null;
+
+  try{
+    if(token){
+      console.log("Token received:", token.substring(0, 50) + "...");
+      const decodedToken = JSON.parse(atob(token.split(".")[1]));
+      role = decodedToken.role;
+      id = decodedToken.id;
+      console.log("Decoded token successfully:", { role, id });
+    }
+  }catch(e){
+    console.error("error decoding the activation token", e);
+  }
+
   let {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(loginSchema),
-    defaultValues: { usernameOrEmail: "", password: "", rememberMe: false},
+    defaultValues: { usernameOrEmail: "", password: "", activationCode:"", rememberMe: false},
     mode: "onChange",
   });
 
@@ -40,12 +55,19 @@ const Login = () => {
       password: formData.password,
       rememberMe: formData.rememberMe
     };
+
+    if(token && id){
+      if(!formData.activationCode)
+        return responseMessageSetter(false, "activation code is required", setSubmitMessage);
+      bodyData.activationCode = formData.activationCode;
+    }
+
     const session_id= getSessionId();
     bodyData["session_id"] = session_id;
     console.log("data to be sent to login-> ", bodyData);
 
     try {
-      const response = await login(bodyData);
+      const response = await login(bodyData, token);
       const data = await response.json();
 
       if (response.ok) {
@@ -60,9 +82,11 @@ const Login = () => {
         if(user.role === "store_owner") navigate("/dashboard/store_owner");
         else navigate("/"); //client usual home
       } else {
+        console.log("error logging in");
         responseMessageSetter(false, data.message, setSubmitMessage);
       }
     } catch (error) {
+      console.log("error logging in", error);
       responseMessageSetter(false, error.message, setSubmitMessage);
     }
   };
@@ -132,6 +156,23 @@ const Login = () => {
               <p className="field-error">{errors.password?.message}</p>
             )}
           </div>
+
+          {(token && id) &&
+          <div className="form-group">
+            <label>
+             كود التفعيل <span className="required-star">*</span>
+            </label>
+            <input
+              type="text"
+              name="activationCode"
+              className={errors.activationCode?.message ? "error" : ""}
+              placeholder="........"
+              {...register("activationCode")}
+            />
+            {errors.activationCode?.message && (
+              <p className="field-error">{errors.activationCode?.message}</p>
+            )}
+          </div>}
 
           <div className="form-options">
             <label className="remember-me">
