@@ -1,10 +1,11 @@
 /* ══════════════════════════════════════
-   WISHLIST PAGE — Wishlist.css
+   WISHLIST PAGE — Whishlist.css
+   (uses global CSS variables from colors.css)
 ══════════════════════════════════════ */
 
 .wl-page {
   min-height: 100vh;
-  background: #f7f7f9;
+  background: var(--خلفية-الصفحة);
   padding: 32px 20px 60px;
   font-family: "Cairo", "Segoe UI", sans-serif;
   direction: rtl;
@@ -19,19 +20,20 @@
 }
 
 .wl-back-btn {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
+  background: var(--خلفية-البطاقة);
+  border: 1px solid var(--حد-واضح);
+  border-radius: var(--راديوس-الحقل);
   padding: 8px 16px;
   font-size: 14px;
   cursor: pointer;
-  color: #444;
-  transition: background 0.2s;
+  color: var(--نص-ثانوي);
+  transition: background 0.2s, color 0.2s;
   white-space: nowrap;
 }
 
 .wl-back-btn:hover {
-  background: #f0f0f0;
+  background: var(--خلفية-2);
+  color: var(--نص-رئيسي);
 }
 
 .wl-header-text {
@@ -41,17 +43,19 @@
 .wl-title {
   font-size: 26px;
   font-weight: 800;
-  color: #1a1a2e;
+  color: var(--نص-رئيسي);
   margin: 0 0 4px;
+  display: inline-block;
+  text-align: center;
 }
 
 .wl-heart {
-  color: #e91e63;
+  color: var(--وردي);
 }
 
 .wl-subtitle {
   font-size: 14px;
-  color: #888;
+  color: var(--نص-خافت);
   margin: 0;
 }
 
@@ -71,24 +75,26 @@
 
 .wl-empty-text {
   font-size: 18px;
-  color: #888;
-  margin: 0;
+  color: var(--نص-خافت);
+  margin-top: 10px;
 }
 
 .wl-shop-btn {
-  background: #e91e63;
+  background: var(--تدرج-الأزرار);
   color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--راديوس-الزر);
   padding: 12px 28px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  box-shadow: var(--ظل-الزر);
+  transition: opacity 0.2s, transform 0.15s;
+  margin: 0 auto;
 }
 
 .wl-shop-btn:hover {
-  background: #c2185b;
+  opacity: 0.88;
   transform: translateY(-1px);
 }
 
@@ -103,19 +109,20 @@
 
 /* ── Card ── */
 .wl-card {
-  background: #fff;
+  background: var(--خلفية-البطاقة);
+  border: 1px solid var(--حد-واضح);
   border-radius: 16px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   position: relative;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--ظل-البطاقة);
   transition: box-shadow 0.2s, transform 0.2s;
 }
 
 .wl-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--ظل-الأيقونة);
   transform: translateY(-3px);
 }
 
@@ -129,13 +136,13 @@
   position: absolute;
   top: 12px;
   left: 12px;
-  background: #fff0f5;
+  background: var(--بنفسجي-خافت);
   border: none;
   border-radius: 50%;
   width: 34px;
   height: 34px;
   font-size: 16px;
-  color: #e91e63;
+  color: var(--وردي);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -145,8 +152,9 @@
 }
 
 .wl-card-heart:hover {
-  background: #fce4ec;
+  background: var(--بنفسجي-خافت);
   transform: scale(1.1);
+  color: var(--وردي-خافت);
 }
 
 /* Image */
@@ -156,8 +164,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f9f9f9;
-  border-radius: 10px;
+  background: var(--خلفية-2);
+  border-radius: var(--راديوس-الحقل);
   overflow: hidden;
 }
 
@@ -182,7 +190,7 @@
 .wl-card-name {
   font-size: 14px;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--نص-رئيسي);
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
@@ -200,7 +208,7 @@
 .wl-card-price {
   font-size: 15px;
   font-weight: 800;
-  color: #e91e63;
+  color: var(--بنفسجي);
   margin: 0;
 }
 
@@ -212,21 +220,21 @@
 }
 
 .wl-in-stock {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--أخضر-نجاح);
 }
 
 .wl-out-stock {
-  background: #fce4ec;
-  color: #c62828;
+  background: var(--أحمر-خافت);
+  color: var(--أحمر-خطأ);
 }
 
 /* Add to cart button */
 .wl-card-add-btn {
-  background: #1a1a2e;
+  background: var(--تدرج-الأزرار);
   color: #fff;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--راديوس-الزر);
   padding: 10px;
   font-size: 13px;
   font-weight: 700;
@@ -235,18 +243,20 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: background 0.2s, transform 0.15s;
+  box-shadow: var(--ظل-الزر);
+  transition: opacity 0.2s, transform 0.15s;
   width: 100%;
 }
 
 .wl-card-add-btn:hover:not(:disabled) {
-  background: #e91e63;
+  opacity: 0.88;
   transform: translateY(-1px);
 }
 
 .wl-card-add-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.35;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* ── Responsive ── */

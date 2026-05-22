@@ -276,7 +276,7 @@ export default function CartPage() {
           {/*<button className="cart-wishlist-more">
             <div className="cart-wishlist-more-icon">+</div>*/}
             {wishlist.length > 4 && (
-            <button className="cart-wishlist-more" onClick={() => navigate("/wishlist")}>
+            <button className="cart-wishlist-more" onClick={() => navigate("/Wishlist")}>
               <div className="cart-wishlist-more-icon">+</div>
               <span>عرض المزيد</span>
             </button>

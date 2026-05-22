@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Wishlist.css";
+import "./Whishlist.css";
 import { addToCart } from "../../services/cart";
 import {
   addToWishlist,
@@ -105,23 +105,24 @@ export default function WishlistPage() {
         <button className="wl-back-btn" onClick={() => navigate(-1)}>
           ← رجوع
         </button>
+        </div>
         <div className="wl-header-text">
           <h1 className="wl-title">
             قائمة الرغبات <span className="wl-heart">♥</span>
           </h1>
-          <p className="wl-subtitle">
+         {/* <p className="wl-subtitle">
             {wishlist.length > 0
               ? `${wishlist.length} منتج محفوظ`
               : "قائمتك فاضية"}
-          </p>
+          </p>*/}
         </div>
-      </div>
+      
 
       {/* Empty State */}
       {wishlist.length === 0 ? (
         <div className="wl-empty">
           <div className="wl-empty-icon">🤍</div>
-          <p className="wl-empty-text">محدش في القائمة دي لسه!</p>
+          <p className="wl-empty-text">مفيش منتجات في القائمة دي لسه!</p>
           <button className="wl-shop-btn" onClick={() => navigate("/")}>
             تسوقي دلوقتي
           </button>

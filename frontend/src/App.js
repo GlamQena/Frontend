@@ -11,6 +11,7 @@ import ProductDetails from "./pages/ProductDetails/ProductDetails";
 
 // Shopping
 import Cart from "./pages/Cart/Cart";
+import Wishlist from "./pages/Whishlist/Whishlist";
 import ShippingInfo from "./pages/ShippingInfo/ShippingInfo";
 import Orders from "./pages/Orders/Orders";
 import OrderDetails from "./pages/OrderDetails/OrderDetails";
@@ -50,7 +51,7 @@ function App() {
         {/* ── Shopping ── */}
         <Route path="/cart" element={<Cart />} />
         <Route path="/shipping/info" element={<ShippingInfo />} />
-        {/* <Route path="/wishlist"      element={<Wishlist />} /> */}
+        <Route path="/Wishlist"      element={<Wishlist />} /> 
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:id" element={<OrderDetails />} />
 
