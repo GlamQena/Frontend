@@ -155,7 +155,9 @@ export const registerUser = async (data) => {
 
 export const login = async (bodyData, activationToken) => {
   try {
-    const response = await fetch(`${BASE_URL}/login?token=${activationToken ?? ""}`, {
+    console.log("login fetch entry...");
+
+    const response = await fetch(`${BASE_URL}/login${activationToken ?`token=${activationToken}`: ""}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -163,6 +165,7 @@ export const login = async (bodyData, activationToken) => {
       body: JSON.stringify(bodyData),
     });
 
+    console.log("login response => ", response);
     return response;
   } catch (error) {
     throw error; //throw instead of just return for the error to be handled with try-catch
@@ -322,7 +325,19 @@ export const loginSchema = yup.object({
       }
     }),
   password: passwordField,
-  activationCode: yup.string().min(6).max(6).matches(/^\d+$/, "activation code must contain digits only"),
+  activationCode: yup.string().when([], {
+      is: () => {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        return !!token;
+      },
+      then: (schema) => schema
+        .required("activation code is required")
+        .min(6, "activation code must be exactly 6 digits")
+        .max(6, "activation code must be exactly 6 digits")
+        .matches(/^\d+$/, "activation code must contain digits only"),
+      otherwise: (schema) => schema.notRequired()
+    }),
   rememberMe: yup.boolean(),
 });
 

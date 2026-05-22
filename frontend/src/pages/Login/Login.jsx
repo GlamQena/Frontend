@@ -22,7 +22,8 @@ const Login = () => {
     message: "",
   });
 
-  const {email=null, token=null} = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
   let id= null, role= null;
 
   try{
@@ -79,7 +80,9 @@ const Login = () => {
         localStorage.setItem("refreshToken", data.refreshToken);
         responseMessageSetter(true, data.message, setSubmitMessage);
 
-        if(user.role === "store_owner") navigate("/dashboard/store_owner");
+        if(token && id)
+          navigate("/reset-password");
+        else if(user.role === "store_owner") navigate("/dashboard/store_owner");
         else navigate("/"); //client usual home
       } else {
         console.log("error logging in");
