@@ -8,8 +8,9 @@ import { responseMessageSetter } from "../../services/authService";
 export default function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [responseMessage, setResponseMessage] = useState({success: false, message: ""});
-
+const [loading, setLoading] = useState(true);
   const fetchOrders = async () => {
+    setLoading(true);
     try {
       const resData = await getOrdersHistory();
       console.log("fetchecd orders history => ",resData.data);
@@ -17,6 +18,8 @@ export default function MyOrders() {
     } catch (err) {
       console.error(err);
       responseMessageSetter(false, err.message || "خطأ في جلب سجل الطلبات", setResponseMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,7 +45,7 @@ export default function MyOrders() {
       <OrdersList
         orders={orders}
         onStatusChange={handleStatusChange}
-
+        loading={loading}
         headerTitle="📦 طلباتي"
         onCancelSuccess={(orderId) => {
           if (orderId) {
@@ -53,10 +56,11 @@ export default function MyOrders() {
               )
             );
           } else {
-            // reorder — re-fetch all orders ✅
+            // reorder — re-fetch all orders 
             fetchOrders();
           }
         }}
+        
       />
     </>
   );

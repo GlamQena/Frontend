@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Home.css';
 import Footer from "../../components/Footer";
 import { useTheme } from '../../components/ThemeProvider';
+import { getSpecialProducts } from '../../services/product.js';
 
 function Home() {
     const [activeSection, setActiveSection] = useState('home');
@@ -26,6 +27,10 @@ function Home() {
         if (section) {
             section.scrollIntoView({ behavior: 'smooth' });
         }
+        
+    };
+    const handleViewAllProducts = () => {
+        window.location.href = '/products?filter=special';
     };
 
     return (
@@ -70,25 +75,25 @@ function Home() {
                 </div>
                 <div className="hero-images">
                     <div className="glow"></div>
-                    <div className="product-card card-1">
+                    <div className="hero-product-card card-1">
                         <div className="product-img-1"></div>
                         <div className="product-category">عناية فاخرة</div>
                         <div className="product-title">كريم ترطيب عميق</div>
                         <div className="product-rating">4.9 ★</div>
                     </div>
-                    <div className="product-card card-2">
+                    <div className="hero-product-card card-2">
                         <div className="product-img-2"></div>
                         <div className="product-category">مكياج</div>
                         <div className="product-title">مجموعة أحمر شفاه</div>
                         <div className="product-price">١٢٠ ج.م</div>
                     </div>
-                    {/* <div className="product-card card-3">
+                    <div className="hero-product-card card-3">
                         <div className="product-img-3"></div>
                         <div className="product-category">زيوت طبيعية</div>
                         <div className="product-title">زيت الأركان النقي</div>
                         <div className="badge-best">الأكثر مبيعاً</div>
-                    </div> */}
-                    <div className="product-card card-4">
+                    </div>
+                    <div className="hero-product-card card-4">
                         <div className="product-img-4"></div>
                         <div className="product-category">سيروم</div>
                         <div className="product-title">سيروم فيتامين C</div>
@@ -335,7 +340,7 @@ function Home() {
                     </div>
 
                     <div className="view-all-btn">
-                        <button className="btn-view-all">عرض جميع المنتجات</button>
+                       <button className="btn-view-all" onClick={handleViewAllProducts}>عرض جميع المنتجات</button>
                     </div>
                 </div>
             </section>

@@ -62,7 +62,7 @@ function StoreOwnerActiveClients() {
                 <div>
                   <h2>{client.fullName}</h2>
                   {/* شـرط الـ VIP: يظهر فقط لو المشتريات أكبر من 1000 جنيه */}
-                  {client.totalSpent > 1000 && (
+                  {(client.isVIP || client.totalSpent > 1000) && (
                     <span className="vip-badge">
                       <Star size={14} />
                       <span>عميل VIP</span>
