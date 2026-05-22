@@ -6,7 +6,7 @@ import { addToCart, getCart, removeFromCart } from "../../services/cart";
 import { getSessionId, isUserLogged, responseMessageSetter } from "../../services/authService";
 import { addToWishlist, getCurrentUser, isClient, removeFromWishlist } from "../../services/users";
 import { placeOrder } from "../../services/order";
-import { Heart } from 'lucide-react';
+import { Heart ,Trash2} from 'lucide-react';
 
 const BASE_URL = "http://127.0.0.1:8080";
 
@@ -336,8 +336,8 @@ function CartItem({ item, store_id, onIncrease, onDecrease, onRemove }) {
         </button>
       </div>
 
-      <button className="cart-delete-btn" onClick={(e) => {e.stopPropagation(); onRemove()}}>
-        🗑️
+      <button className="cart-delete-btn" onClick={(e) => { e.stopPropagation(); onRemove(); }}>
+        <Trash2 size={18} className="text-red-500 hover:text-red-700 transition-colors" />
       </button>
     </div>
   );
