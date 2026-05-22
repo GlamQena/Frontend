@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Home.css';
 import Footer from "../../components/Footer";
 import { useTheme } from '../../components/ThemeProvider';
+import { getSpecialProducts } from '../../services/product.js';
 
 function Home() {
     const [activeSection, setActiveSection] = useState('home');
@@ -26,6 +27,10 @@ function Home() {
         if (section) {
             section.scrollIntoView({ behavior: 'smooth' });
         }
+        
+    };
+    const handleViewAllProducts = () => {
+        window.location.href = '/products?filter=special';
     };
 
     return (
@@ -335,7 +340,7 @@ function Home() {
                     </div>
 
                     <div className="view-all-btn">
-                        <button className="btn-view-all">عرض جميع المنتجات</button>
+                       <button className="btn-view-all" onClick={handleViewAllProducts}>عرض جميع المنتجات</button>
                     </div>
                 </div>
             </section>
