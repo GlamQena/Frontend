@@ -126,7 +126,7 @@ export const sid_AuthHeader = async (setResponseMessage) => {
 }
 
 export function responseMessageSetter(success, message, setResponseMessage) {
-   if (success, message, setResponseMessage){
+   if (setResponseMessage){
     setResponseMessage({ success, message });
 
     setTimeout(() => {
@@ -153,14 +153,14 @@ export const registerUser = async (data) => {
   }
 };
 
-export const login = async (data) => {
+export const login = async (bodyData, activationToken) => {
   try {
-    const response = await fetch(`${BASE_URL}/login`, {
+    const response = await fetch(`${BASE_URL}/login?token=${activationToken ?? ""}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(bodyData),
     });
 
     return response;
@@ -322,6 +322,7 @@ export const loginSchema = yup.object({
       }
     }),
   password: passwordField,
+  activationCode: yup.string().min(6).max(6).matches(/^\d+$/, "activation code must contain digits only"),
   rememberMe: yup.boolean(),
 });
 
