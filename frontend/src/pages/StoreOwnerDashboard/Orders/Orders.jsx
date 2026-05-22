@@ -9,15 +9,18 @@ const BASE_URL = "http://localhost:8080";
 
 export default function StoreOwnerOrders() {
   const [orders, setOrders] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchOrders = async () => {
       try {
+        setLoading(true);
        const res = await api.get(`${BASE_URL}/order/`);
 console.log("Orders fetched:", res.data);
 setOrders(res.data.orders || []); 
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchOrders();
@@ -34,5 +37,6 @@ setOrders(res.data.orders || []);
 
   return <OrdersList orders={orders} 
    onStatusChange={handleStatusChange}
+    loading={loading}
   headerTitle="الطلبات" />;
 }
