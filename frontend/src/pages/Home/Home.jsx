@@ -4,17 +4,8 @@ import Footer from "../../components/Footer";
 import { useTheme } from '../../components/ThemeProvider';
 
 function Home() {
-    // const [isLightMode, setIsLightMode] = useState(false);
     const [activeSection, setActiveSection] = useState('home');
     const {theme, setTheme} = useTheme();
-
-    // useEffect(() => {
-    //     if (isLightMode) {
-    //         document.body.classList.add('light-mode');
-    //     } else {
-    //         document.body.classList.remove('light-mode');
-    //     }
-    // }, [isLightMode]);
 
     useEffect(() => {
         const sections = document.querySelectorAll('section[id]');
@@ -29,10 +20,6 @@ function Home() {
         sections.forEach(section => observer.observe(section));
         return () => sections.forEach(section => observer.unobserve(section));
     }, []);
-
-    // const toggleTheme = () => {
-    //     setIsLightMode(!isLightMode);
-    // };
 
     const scrollToSection = (sectionId) => {
         const section = document.getElementById(sectionId);
@@ -365,11 +352,6 @@ function Home() {
 
                 <Footer></Footer>
             </div>
-
-            {/* Floating Chat Icon
-            <div className="chat-float" onClick={() => alert('مرحباً! كيف يمكننا مساعدتك؟')}>
-                <i className="fas fa-comment-dots"></i>
-            </div> */}
         </div>
     );
 }

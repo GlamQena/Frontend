@@ -5,6 +5,7 @@ import { addToCart } from "../../services/cart";
 import { isUserLogged, responseMessageSetter } from "../../services/authService";
 import { getStoreProducts } from "../../services/stores";
 import { addToWishlist, removeFromWishlist } from "../../services/users";
+import { buildImgSrc } from "../../services/imageUtils";
 
 const Store = () => {
   const navigate = useNavigate();
@@ -85,11 +86,7 @@ const Store = () => {
       return "https://via.placeholder.com/300?text=No+Image";
     }
     else{
-      let fixedPath = imgArray[0];
-      if(fixedPath.includes("uploads"))
-        return fixedPath.replace(/\\/g, "/").replace("uploads", "http://127.0.0.1:8080");
-      else
-      return imgArray[0];
+      return buildImgSrc(imgArray[0]);
     }
   };
 

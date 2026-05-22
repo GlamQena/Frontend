@@ -34,7 +34,7 @@ export default function ProductDetails() {
         if (data.success) {
           const product = data.data.product;
           setProduct(product);
-          setQuantity(cart[product._id] || 0);
+          setQuantity(cart[product._id] || 1);
           setReviews(data.reviews);
         } else {
           console.log("error fetching product details or the success property isn't the response data");
