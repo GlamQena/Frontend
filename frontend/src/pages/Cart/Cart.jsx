@@ -6,6 +6,7 @@ import { addToCart, getCart, removeFromCart } from "../../services/cart";
 import { getSessionId, isUserLogged, responseMessageSetter } from "../../services/authService";
 import { addToWishlist, getCurrentUser, isClient, removeFromWishlist } from "../../services/users";
 import { placeOrder } from "../../services/order";
+import { Heart } from 'lucide-react';
 
 const BASE_URL = "http://127.0.0.1:8080";
 
@@ -351,8 +352,8 @@ function WishlistCard({ item, onAdd, onRemove }) {
     <div className="cart-wishlist-card">
       <div className="cart-wishlist-image-wrapper">
         <img src={formattedImage(item.image)} className="cart-wishlist-image" alt={item.productName}/>
-        <button className="cart-wishlist-heart-btn" onClick={onRemove}>
-          ♥
+       <button className="cart-wishlist-heart-btn" onClick={onRemove}>
+          <Heart size={20} fill="currentColor" />
         </button>
       </div>
       <div className="cart-wishlist-info">

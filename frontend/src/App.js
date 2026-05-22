@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CartProvider } from './pages/ProductDetails/CartContext';
 import Navbar from "./components/Navbar";
 
 // Public pages
@@ -32,6 +33,12 @@ import StoreOwnerActiveClients from "./pages/StoreOwnerDashboard/ActiveClients/A
 // 404
 import NotFound from "./pages/NotFound/NotFound";
 
+function cartWrapper ({children}) {
+  return <CartProvider>
+          {children}
+        </CartProvider>
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -43,10 +50,8 @@ function App() {
         {/* ── Store & Products ── */}
         <Route path="/stores" element={<Stores />} />
         <Route path="/stores/:storeId/products" element={<StoreProducts />} />
-        <Route
-          path="/stores/:storeId/products/:productId"
-          element={<ProductDetails />}
-        />
+        <Route path="/stores/:storeId/products/:productId" 
+          element={<cartWrapper> <ProductDetails /> </cartWrapper>} />
 
         {/* ── Shopping ── */}
         <Route path="/cart" element={<Cart />} />

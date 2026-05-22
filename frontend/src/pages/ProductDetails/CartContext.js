@@ -21,7 +21,7 @@ export const CartProvider = ({ children }) => {
           const Cart = {};
           resData.data?.products?.forEach(store => {
             store.products.forEach(product => {
-              Cart[product.product_id] = product.quantity || 0;
+              Cart[product.product_id] = product.quantity || 1;
             });
           });
           setCart(Cart);
