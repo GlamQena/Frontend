@@ -58,13 +58,26 @@
   padding: 80px 48px;
   gap: 60px;
   min-height: 700px;
+  display: flex;
+  padding: 80px 48px;
+  gap: 60px;
+  min-height: 700px;
 }
 
 .hero-content {
   flex: 1;
+  flex: 1;
 }
 
 .hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--خلفية-2);
+  border: 1px solid var(--حد-واضح);
+  border-radius: 9999px;
+  padding: 8px 16px;
+  margin-bottom: 32px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -80,9 +93,17 @@
   font-weight: 700;
   font-size: 14px;
   color: var(--نص-رئيسي);
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--نص-رئيسي);
 }
 
 .hero-badge .star {
+  width: 12px;
+  height: 12px;
+  background: var(--ذهبي);
+  border-radius: 2px;
   width: 12px;
   height: 12px;
   background: var(--ذهبي);
@@ -95,14 +116,26 @@
   font-size: 64px;
   line-height: 1.1;
   margin-bottom: 24px;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700;
+  font-size: 64px;
+  line-height: 1.1;
+  margin-bottom: 24px;
 }
 
 .hero h1 .white {
   color: var(--نص-رئيسي);
   display: block;
+  color: var(--نص-رئيسي);
+  display: block;
 }
 
 .hero h1 .gradient {
+  background: var(--تدرج-الأزرار);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  display: block;
   background: var(--تدرج-الأزرار);
   background-clip: text;
   -webkit-background-clip: text;
@@ -117,9 +150,18 @@
   color: var(--نص-خافت);
   max-width: 560px;
   margin-bottom: 32px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--نص-خافت);
+  max-width: 560px;
+  margin-bottom: 32px;
 }
 
 .hero-buttons {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 48px;
   display: flex;
   gap: 24px;
   margin-bottom: 48px;
@@ -851,8 +893,8 @@
   position: relative;
   border-radius: 28px;
   overflow: visible;
-  background: linear-gradient(180deg, rgba(20, 10, 35, 0.4), var(--خلفية-3));
-  border: 1px solid var(--حد-خافت);
+background: #FFFFFF;
+border: 1px solid var(--حد-خافت);
   transition: 0.3s;
 }
 
