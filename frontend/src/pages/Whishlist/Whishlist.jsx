@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Whishlist.css";
 import { addToCart } from "../../services/cart";
+import { Heart } from "lucide-react";
 import {
   addToWishlist,
   getCurrentUser,

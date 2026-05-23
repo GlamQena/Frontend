@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Home.css';
 import Footer from "../../components/Footer";
 import { useTheme } from '../../components/ThemeProvider';
-import { getSpecialProducts } from '../../services/product.js';
+import { getSpecialProducts } from '../../services/products.js';
 
 function Home() {
     const [activeSection, setActiveSection] = useState('home');
