@@ -468,7 +468,15 @@ export default function OrdersList({
             const total = order.total_price || order.store_subtotal || 0;
             const paymentMethod = order.payment?.method;
 
-            const paymentStatusKey = normalizePaymentStatus(order.payment, key);
+            const paymentStatusKey = storeMode
+              ? normalizePaymentStatus(
+                  {
+                    status: order.payment_status,
+                    method: order.payment_method,
+                  },
+                  key,
+                )
+              : normalizePaymentStatus(order.payment, key);
             const paymentCfg =
               PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
               PAYMENT_STATUS_CONFIG.pending;

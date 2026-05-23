@@ -451,7 +451,7 @@ function ClientOrderView({
         <div className="od-steps">
           {TRACKING_STEPS.filter((step) => {
             if (!isCancelled) return true;
-            const ORDER = ["pending", "preparing", "shipping", "delivered"];
+            const ORDER = ["pending", "preparing","ready", "shipping", "delivered"];
             return (
               ORDER.indexOf(step.key) <= getCompletedStepsBeforeCancel(order)
             );

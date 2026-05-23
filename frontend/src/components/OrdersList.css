@@ -204,6 +204,8 @@
 .ol-status--cancelled .ol-dot { background: var(--أحمر-خطأ); }
 
 /* Payment badge - compact */
+
+
 .ol-payment-badge {
   display: inline-flex;
   align-items: center;
@@ -214,10 +216,14 @@
   border-radius: 9999px;
 }
 
+
 .ol-payment--pending {
   background: rgba(245, 158, 11, 0.1);
   color: #f59e0b;
   border: 1px solid #f59e0b;
+}
+.ol-payment--pending .bedge-svg path {
+  fill: #f59e0b;
 }
 
 .ol-payment--processing {
@@ -225,11 +231,17 @@
   color: #3b82f6;
   border: 1px solid #3b82f6;
 }
+.ol-payment--processing .bedge-svg path {
+  fill: #3b82f6;
+}
 
 .ol-payment--completed {
   background: rgba(34, 197, 94, 0.1);
   color: #22c55e;
   border: 1px solid #22c55e;
+}
+.ol-payment--completed .bedge-svg path {
+  fill: #22c55e;
 }
 
 .ol-payment--failed {
@@ -237,11 +249,18 @@
   color: #ef4444;
   border: 1px solid #ef4444;
 }
+.ol-payment--failed .bedge-svg path {
+  fill: #ef4444;
+}
 
 .ol-payment--refunded {
   background: rgba(168, 85, 247, 0.1);
   color: #a855f7;
   border: 1px solid #a855f7;
+}
+
+.ol-payment--refunded .bedge-svg path {
+  fill: #a855f7;
 }
 
 /* Order ID + date */
