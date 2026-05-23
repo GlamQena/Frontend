@@ -5,7 +5,8 @@ import { addToCart } from "../../services/cart";
 import { isUserLogged, responseMessageSetter } from "../../services/authService";
 import { getStoreProducts } from "../../services/stores";
 import { addToWishlist, removeFromWishlist } from "../../services/users";
-import { buildImgSrc } from "../../services/imageUtils";
+import { FaSearch } from "react-icons/fa"; 
+import {buildImgSrc} from "../../services/imageUtils";
 
 const Store = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Store = () => {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("الكل");
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); 
   const [responseMessage, setResponseMessage] = useState({
     success: false,
     message: "",
@@ -67,26 +69,35 @@ const Store = () => {
     fetchData();
   }, [storeId]);
 
-  // Filter products by category
   useEffect(() => {
-    if (activeCategory === "الكل") {
-      setFilteredProducts(products);
-    } else {
-      // This is a simple filter - adjust based on your actual category structure
-      const filtered = products.filter(product => 
+    let result = products;
+
+    if (activeCategory !== "الكل") {
+      result = result.filter(product => 
         product.category_id?.name === activeCategory ||
         product.category_name === activeCategory
       );
-      setFilteredProducts(filtered);
     }
-  }, [activeCategory, products]);
+
+    if (searchTerm.trim() !== "") {
+      result = result.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredProducts(result);
+  }, [activeCategory, searchTerm, products]);
 
   const getProductImage = (imgArray) => {
     if (!imgArray || imgArray.length === 0) {
       return "https://via.placeholder.com/300?text=No+Image";
     }
     else{
-      return buildImgSrc(imgArray[0]);
+      let fixedPath = imgArray[0];
+      if(fixedPath.includes("uploads"))
+        return fixedPath.replace(/\\/g, "/").replace("uploads", "http://127.0.0.1:8080");
+      else
+      return imgArray[0];
     }
   };
 
@@ -181,7 +192,13 @@ const Store = () => {
   return (
     <div className="store-page">
       {/* Store Banner */}
-      <div className="store-banner">
+      <div className="store-banner" 
+        style={{
+          backgroundImage: store?.image 
+            ? `url(${buildImgSrc(store.image)})` 
+            : 'url("/images/store/store_background.png")',
+          backgroundRepeat: "repeat-x"
+        }}>
         <div className="banner-overlay">
           <h2>{store?.store_name || "المتجر"}</h2>
           <p>⭐ {store?.average_rating || 0} • {products.length || 0} منتج</p>
@@ -197,65 +214,129 @@ const Store = () => {
         </div>
       )}
 
-      {/* Category Filter */}
       <div className="category-filter">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            className={activeCategory === cat ? "active" : ""}
-            onClick={() => setActiveCategory(cat)}
-          >
-            {cat}
-          </button>
-        ))}
+        
+        <div style={{ display: "flex", gap: "12px", overflowX: "auto", flex: "1" }}>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              className={activeCategory === cat ? "active" : ""}
+              onClick={() => setActiveCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ position: "relative", minWidth: "250px" }}>
+          <input
+          className="searchbox"
+            type="text"
+            placeholder="بحث عن منتج ..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "11px 40px 11px 15px",
+              borderRadius: "var(--راديوس-الزر)",
+              border: "1px solid var(--حد-واضح)",
+              background: "var(--خلفية-2)",
+              color: "var(--نص-رئيسي)",
+              fontSize: "0.9rem",
+              fontFamily: "inherit",
+              outline: "none",
+              boxSizing: "border-box",
+              transition: "border-color 0.3s"
+            }}
+            onFocus={(e) => e.target.style.borderColor = "var(--بنفسجي)"}
+            onBlur={(e) => e.target.style.borderColor = "var(--حد-واضح)"}
+          />
+          <FaSearch style={{
+            position: "absolute",
+            top: "50%",
+            right: "15px",
+            transform: "translateY(-50%)",
+            fontSize: "1rem",
+            color: "var(--نص-ثانوي)",
+            opacity: "0.7",
+            pointerEvents: "none"
+          }} />
+        </div>
+
       </div>
 
       {/* Products Grid */}
       <div className="products-grid">
         {filteredProducts.length > 0 ? (
-          filteredProducts.map((product, index) => (
-            <div key={product._id} className="product-card" onClick={() => navigate(`/stores/${storeId}/products/${product._id}`)}>
-              <div className="image-wrapper">
-                <img
-                  src={getProductImage(product.images)}
-                  alt={product.name}
-                  onError={(e) => {
-                    if (!e.target.dataset.errorHandled) {
-                      e.target.dataset.errorHandled = "true";
-                      e.target.src = "https://via.placeholder.com/300?text=Image+Error";
-                    }
-                  }}
-                />
-                <button 
-                  className="wishlist-btn" 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isUserLogged()) {
-                      responseMessageSetter(false, "يرجى تسجيل الدخول أولاً", setResponseMessage);
-                      return;
-                    }
-                    product.addedToWishlist 
-                      ? removeFromWishlistHandler(index, product._id) 
-                      : addToWishlistHandler(index, product._id);
-                  }}
-                >
-                  {!isUserLogged() ? "🩶" : (product.addedToWishlist ? "❤️" : "🤍")}
-                </button>
-              </div>
+          filteredProducts.map((product, index) => {
+            const isProductActive = product.isActive !== false;
 
-              <div className="product-info">
-                <h4>{product.name}</h4>
-                <p className="price">{product.price.toLocaleString()} ج.م</p>
-                <button className="add-to-cart-btn" onClick={(e) => { e.stopPropagation(); handleAddToCart(product._id);}}>
-                  🛒 أضف للسلة
-                </button>
+            return (
+              <div key={product._id} className="product-card" onClick={() => navigate(`/products/${product._id}`)}>
+                <div className="image-wrapper">
+                  
+                  <span className={`discount-badge ${isProductActive ? "in-stock" : "out-of-stock"}`}>
+                    {isProductActive ? "متوفر" : "نفذ"}
+                  </span>
+
+                  <img
+                    src={getProductImage(product.images)}
+                    alt={product.name}
+                    onError={(e) => {
+                      if (!e.target.dataset.errorHandled) {
+                        e.target.dataset.errorHandled = "true";
+                        e.target.src = "https://via.placeholder.com/300?text=Image+Error";
+                      }
+                    }}
+                  />
+                  <button 
+                    className="wishlist-btn" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isUserLogged()) {
+                        responseMessageSetter(false, "يرجى تسجيل الدخول أولاً", setResponseMessage);
+                        return;
+                      }
+                      product.addedToWishlist 
+                        ? removeFromWishlistHandler(index, product._id) 
+                        : addToWishlistHandler(index, product._id);
+                    }}
+                  >
+                    {!isUserLogged() ? "🩶" : (product.addedToWishlist ? "❤️" : "🤍")}
+                  </button>
+                </div>
+
+                <div className="product-info">
+                  <h4>{product.name}</h4>
+                  
+                  {/* قسم الـ stock-status الأصلي من الـ CSS الخاص بكِ */}
+                  {/* <div className="stock-status">
+                    <span className={isProductActive ? "in-stock" : "out-of-stock"}>
+                      {isProductActive ? "● متوفر" : "● نفذت الكمية"}
+                    </span>
+                  </div> */}
+                  <div className="stats" style= {{"display": "flex", "alignItems":"center", "gap": "0.12em"}}>
+                    <p className="rate">{product.average_rating ? Number(product.average_rating).toFixed(2) : '0.00'} ⭐</p>
+                    <p className="price">{product.price.toLocaleString()} ج.م</p>
+                  </div>
+                  
+                  <button 
+                    className="add-to-cart-btn" 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      handleAddToCart(product._id);
+                    }}
+                  >
+                    🛒 أضف للسلة
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="no-data">
             <div className="no-data-icon">🛍️</div>
-            <p>لا توجد منتجات في هذا التصنيف</p>
+            <p>لا توجد منتجات تطابق خيارات البحث الحالية</p>
           </div>
         )}
       </div>

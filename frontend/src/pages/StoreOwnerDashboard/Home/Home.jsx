@@ -200,7 +200,7 @@ export default function StoreOwnerHome() {
   const getChartData= useCallback(async (period) => {
     try{
       const headers = await getAuthHeaders();
-      let chartRes = await fetch(`${BASE_URL}/stores/me/salesChart?period=${period}`, {headers});
+      let chartRes = await fetch(`${BASE_URL}/stores/me/sales-chart?period=${period}`, {headers});
       let chartResData;
 
       if(chartRes.ok){

@@ -255,7 +255,7 @@ export default function CartPage() {
         </section>
       </div>
 
-      {/* ════ WISHLIST ════ */}
+     {/* ════ WISHLIST ════ */}
       {(wishlist && wishlist.length !== 0) && <div className="cart-wishlist-section">
         <div className="cart-wishlist-header">
           <h2 className="cart-wishlist-title">قائمة الرغبات</h2>
@@ -263,7 +263,7 @@ export default function CartPage() {
         </div>
 
          <div className="cart-wishlist-grid">
-          {wishlist.map((w, index) => (
+         {wishlist.slice(0, 4).map((w, index)  => (
             <WishlistCard
               key={`${w.productId}-${index}`}
               item={w}
@@ -273,11 +273,14 @@ export default function CartPage() {
             />
           ))}
 
-          <button className="cart-wishlist-more">
-            <div className="cart-wishlist-more-icon">+</div>
-            <span>عرض المزيد</span>
-          </button>
-          {/*TODO => go to the whishlist page*/}
+          {/*<button className="cart-wishlist-more">
+            <div className="cart-wishlist-more-icon">+</div>*/}
+            {wishlist.length > 4 && (
+            <button className="cart-wishlist-more" onClick={() => navigate("/Wishlist")}>
+              <div className="cart-wishlist-more-icon">+</div>
+              <span>عرض المزيد</span>
+            </button>
+                    )}
         </div>
       </div>}
     </div>
@@ -296,7 +299,7 @@ const formattedImage = (image) => {
 function CartItem({ item, store_id, onIncrease, onDecrease, onRemove }) {
   const navigate= useNavigate();
   return (
-    <div className="cart-item" onClick={() => navigate(`/stores/${store_id}/products/${item.product_id}`)}>
+    <div className="cart-item" onClick={() => navigate(`/products/${item.product_id}`)}>
       <div className="cart-item-image">
         {item.image ? (
           <img

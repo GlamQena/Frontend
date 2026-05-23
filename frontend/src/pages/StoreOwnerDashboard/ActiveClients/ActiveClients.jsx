@@ -53,10 +53,8 @@ function StoreOwnerActiveClients() {
       {errorMessage && <p class={`response-message ${errorMessage ? "error-message" : ""}`}>{errorMessage}</p>}
 
       <div className="cards-container">
-        {sortedClients.map((client) =>
-          //لوب للكرار الكلاينت للتيست
-          Array.from({ length: 9 }).map((_, index) => (
-            <div className="client-card" key={`${client._id}-${index}`}>
+        {sortedClients.map((client) => (
+            <div className="client-card" key={`${client._id}`}>
               
               <div className="top">
                 <div>
@@ -99,7 +97,7 @@ function StoreOwnerActiveClients() {
               </div>
 
             </div>
-          ))
+          )
         )}
       </div>
     </div>

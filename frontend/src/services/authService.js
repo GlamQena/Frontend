@@ -1,5 +1,7 @@
 import axios from "axios";
 import * as yup from "yup";
+import { getCurrentUser } from "./users";
+import { getProfile } from "./profileService";
 
 const BASE_URL = "http://localhost:8080/auth";
 
@@ -30,12 +32,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export const isUserLogged = () => {
-  const userStr = localStorage.getItem("user");
-  if (!userStr || userStr === "undefined" || userStr === "null") return false;
+export const isUserLogged = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+
+  if (!refreshToken || refreshToken === "undefined" || refreshToken === "null") return false;
   
   try {
-    const user = JSON.parse(userStr);
+    const user = getCurrentUser() || await getProfile(() => {});
+    if(!user)
+      return false;
     return user && Object.keys(user).length > 0;
   } catch {
     return false;

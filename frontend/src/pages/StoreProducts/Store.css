@@ -18,14 +18,17 @@
   margin: 20px;
   padding: 50px 40px;
   border-radius: var(--راديوس-البطاقة);
-  background: var(--تدرج-الأزرار);
+  background-image: url("../../../public/images/store/store_background.png"); 
+  /* background-repeat: repeat-x;
+  /* background-color: var(--تدرج-الازرار); */
   color: white;
   position: relative;
   overflow: hidden;
+  height: 230px;
   box-shadow: var(--ظل-البطاقة);
 }
 
-.store-banner::before {
+/* .store-banner::before {
   content: "✨";
   position: absolute;
   font-size: 120px;
@@ -33,9 +36,9 @@
   bottom: -20px;
   left: -20px;
   transform: rotate(-15deg);
-}
+} */
 
-.store-banner::after {
+/* .store-banner::after {
   content: "🛍️";
   position: absolute;
   font-size: 80px;
@@ -43,7 +46,7 @@
   top: -10px;
   right: -10px;
   transform: rotate(15deg);
-}
+} */
 
 .banner-overlay {
   position: relative;
@@ -55,6 +58,7 @@
   margin-bottom: 10px;
   font-weight: 700;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  line-height: normal;
 }
 
 .banner-overlay p {
@@ -152,13 +156,15 @@
 .image-wrapper {
   position: relative;
   overflow: hidden;
-  background: var(--خلفية-2);
+  /* background: var(--خلفية-2); */
+  display: flex;
+  justify-content: center;
   aspect-ratio: 1;
 }
 
 .product-card img {
-  width: 100%;
-  height: 100%;
+  width: 70%;
+  /* height: 100%; */
   object-fit: cover;
   transition: transform 0.5s ease;
 }
@@ -418,7 +424,7 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  background: var(--أحمر-خطأ);
+  /* background: var(--أحمر-خطأ); */
   color: white;
   padding: 4px 8px;
   border-radius: var(--راديوس-الزر);

@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import './Home.css';
 import Footer from "../../components/Footer";
 import { useTheme } from '../../components/ThemeProvider';
-import { getSpecialProducts } from '../../services/product.js';
+import { getSpecialProducts } from '../../services/products.js';
+import { buildImgSrc } from '../../services/imageUtils.js';
 
 function Home() {
     const [activeSection, setActiveSection] = useState('home');
     const {theme, setTheme} = useTheme();
+    const [specialProducts, setSpecialProducts] = useState([]);
+    const [isLoadingProducts, setIsLoadingProducts] = useState(false);
 
     useEffect(() => {
         const sections = document.querySelectorAll('section[id]');
@@ -29,8 +32,24 @@ function Home() {
         }
         
     };
-    const handleViewAllProducts = () => {
-        window.location.href = '/products?filter=special';
+
+    const handleViewAllProducts = async () => {
+        try {
+            setIsLoadingProducts(true);
+            const products = await getSpecialProducts();
+
+            console.log("special products response =>", products);
+            setSpecialProducts(products.recentProducts);
+            
+            const productsSection = document.getElementById('products');
+            if (productsSection) {
+                productsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        } finally {
+            setIsLoadingProducts(false);
+        }
     };
 
     return (
@@ -337,10 +356,31 @@ function Home() {
                                 </div>
                             </div>
                         </div>
+
+                        {specialProducts.map((product, index) => (
+                            <div className="product-card" key={product.id || index}>
+                                <div className="product-image" style={{ backgroundImage: `url(${buildImgSrc(product.images[0]) || '/images/default-product.png'})` }}></div>
+                                <div className="add-btn">+</div>
+                                <div className="product-content">
+                                    <div className="product-store-name">{product.storeName || 'متجر تجميل'}</div>
+                                    <h3 className="product-name">{product.name}</h3>
+                                    <p className="product-desc">{product.description}</p>
+                                    <div className="product-footer">
+                                        <div>
+                                            <span className="product-price-new">{product.price} ج</span>
+                                            {product.oldPrice && <span className="product-price-old">{product.oldPrice} ج</span>}
+                                        </div>
+                                        <span className="product-rating">⭐ {product.rating || '4.5'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
                     <div className="view-all-btn">
-                       <button className="btn-view-all" onClick={handleViewAllProducts}>عرض جميع المنتجات</button>
+                       <button className="btn-view-all" onClick={handleViewAllProducts} disabled={isLoadingProducts}>
+                            {isLoadingProducts ? 'جاري التحميل...' : 'عرض جميع المنتجات'}
+                        </button>
                     </div>
                 </div>
             </section>
