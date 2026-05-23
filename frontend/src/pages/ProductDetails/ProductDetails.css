@@ -33,7 +33,9 @@
   max-width: 540px;
   height: auto;
   aspect-ratio: 1 / 1;
-  object-fit: cover;
+  object-fit: contain; 
+  background-color: var(--خلفية-البطاقة); 
+  padding: 20px; 
   border-radius: 32px;
   box-shadow: var(--ظل-البطاقة);
   transition: transform 0.3s ease;
@@ -118,6 +120,13 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  direction: rtl !important; 
+  text-align: right !important; 
+}
+
+.info.title{
+    direction: rtl ; 
+
 }
 
 .breadcrumb {
@@ -150,8 +159,8 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  justify-content: flex-start;
 }
-
 .rating .stars {
   display: flex;
   gap: 6px;
@@ -182,6 +191,15 @@
   border-bottom: 1px solid var(--حد-خافت);
 }
 
+.price {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; 
+  padding: 16px 0;
+  font-size: 36px;
+  font-weight: bold;
+}
+
 .current-price {
   font-size: 48px;
   font-weight: 800;
@@ -205,7 +223,6 @@
 }
 
 /* ---------------- DESCRIPTION ---------------- */
-
 .desc {
   background: var(--خلفية-البطاقة);
   border: 1px solid var(--حد-واضح);
@@ -215,6 +232,8 @@
   color: var(--نص-ثانوي);
   backdrop-filter: blur(14px);
   transition: all 0.3s ease;
+  direction: rtl;
+  text-align: right;
 }
 
 .desc:hover {
@@ -274,6 +293,7 @@
   align-items: center;
   gap: 16px;
   margin-top: 8px;
+  justify-content: flex-start; 
 }
 
 /* quantity selector */

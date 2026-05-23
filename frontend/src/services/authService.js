@@ -17,14 +17,14 @@ api.interceptors.request.use(
   async (config) => {
     try {
       const token = await getAccessToken(() => {});
-
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-
       return config;
     } catch (err) {
-      return Promise.reject(err);
+      // Don't block the request if token retrieval fails (e.g. not logged in)
+      console.warn("Token retrieval failed, proceeding without auth:", err.message);
+      return config;
     }
   },
   (error) => Promise.reject(error)
@@ -54,6 +54,7 @@ export const getSessionId = () => {
 export const getAccessToken = async (setResponseMessage) => {
   try {
     let accessToken = localStorage.getItem("accessToken");
+    if (!accessToken || accessToken === "null" || accessToken === "undefined") return null;
     const decodedAccessToken = JSON.parse(atob(accessToken.split(".")[1]));
     //atob is a global javaScript method for decoding (ASCII to binary)
     const accessTokenEXP = decodedAccessToken.exp * 1000;
@@ -157,7 +158,7 @@ export const login = async (bodyData, activationToken) => {
   try {
     console.log("login fetch entry...");
 
-    const response = await fetch(`${BASE_URL}/login${activationToken ?`token=${activationToken}`: ""}`, {
+    const response = await fetch(`${BASE_URL}/login${activationToken ? `?token=${activationToken}` : ""}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

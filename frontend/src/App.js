@@ -32,7 +32,7 @@ import StoreOwnerActiveClients from "./pages/StoreOwnerDashboard/ActiveClients/A
 // 404
 import NotFound from "./pages/NotFound/NotFound";
 
-function cartWrapper ({children}) {
+function CartWrapper ({children}) {
   return <CartProvider>
           {children}
         </CartProvider>
@@ -50,7 +50,7 @@ function App() {
         <Route path="/stores" element={<Stores />} />
         <Route path="/stores/:storeId/products" element={<StoreProducts />} />
         <Route path="/stores/:storeId/products/:productId" 
-          element={<cartWrapper> <ProductDetails /> </cartWrapper>} />
+          element={<CartWrapper> <ProductDetails /> </CartWrapper>} />
 
         {/* ── Shopping ── */}
         <Route path="/cart" element={<Cart />} />

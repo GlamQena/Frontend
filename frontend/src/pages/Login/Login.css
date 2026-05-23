@@ -1,15 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
-.container  {
-  max-width: var(--عرض-البطاقة);
-  transition: all 0.4s ease;
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; 
+  padding: 20px;
   direction: rtl;
-  background: var(--خلفية-البطاقة);
-  border-radius: 0 0 28px 28px;
-  color: var(--نص-رئيسي);
-  overflow: hidden;
-  margin: var(--مارجن-البطاقة);
-  
+  background: var(--خلفية-الصفحة); 
 }
 
 .login-header { 
@@ -111,3 +110,31 @@
 }
 
  /* ..... */
+/* Loading spinner inside submit button */
+.submit-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.login-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spinner-dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  display: inline-block;
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+.spinner-dot:nth-child(2) { animation-delay: 0.2s; }
+.spinner-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+  0%, 100% { transform: scale(0.6); opacity: 0.4; }
+  50% { transform: scale(1); opacity: 1; }
+}

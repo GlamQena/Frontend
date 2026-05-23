@@ -13,10 +13,8 @@ import {
 
 const Login = () => {
   const navigate = useNavigate();
-
-  // إظهإر او اخفاء الباسورد
   const [showPassword, setShowPassword] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState({
     success: false,
     message: "",
@@ -24,55 +22,55 @@ const Login = () => {
 
   const params = new URLSearchParams(window.location.search);
   const token = params.get("token");
-  let id= null, role= null;
+  let id = null, role = null;
 
-  try{
-    if(token){
-      console.log("Token received:", token.substring(0, 50) + "...");
+  try {
+    if (token) {
       const decodedToken = JSON.parse(atob(token.split(".")[1]));
       role = decodedToken.role;
       id = decodedToken.id;
-      console.log("Decoded token successfully:", { role, id });
     }
-  }catch(e){
+  } catch (e) {
     console.error("error decoding the activation token", e);
   }
 
-  let {
+  const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(loginSchema),
-    defaultValues: { usernameOrEmail: "", password: "", activationCode:"", rememberMe: false},
-    mode: "onChange",
+    defaultValues: { usernameOrEmail: "", password: "", activationCode: "", rememberMe: false },
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
   });
 
   const onSubmit = async (formData) => {
-    console.log("form data-> ", formData);
+    setIsLoading(true);
+    setSubmitMessage({ success: false, message: "" });
 
     const bodyData = {
       usernameOrEmail: formData.usernameOrEmail,
       password: formData.password,
-      rememberMe: formData.rememberMe
+      rememberMe: formData.rememberMe,
     };
 
-    if(token && id){
-      if(!formData.activationCode)
-        return responseMessageSetter(false, "activation code is required", setSubmitMessage);
+    if (token && id) {
+      if (!formData.activationCode) {
+        setIsLoading(false);
+        return responseMessageSetter(false, "كود التفعيل مطلوب", setSubmitMessage);
+      }
       bodyData.activationCode = formData.activationCode;
     }
 
-    const session_id= getSessionId();
+    const session_id = getSessionId();
     bodyData["session_id"] = session_id;
-    console.log("data to be sent to login-> ", bodyData);
 
     try {
       const response = await login(bodyData, token);
       const data = await response.json();
 
       if (response.ok) {
-        console.log(data);
         const user = data.user;
         localStorage.removeItem("session_id");
         localStorage.setItem("user", JSON.stringify(user));
@@ -80,17 +78,23 @@ const Login = () => {
         localStorage.setItem("refreshToken", data.refreshToken);
         responseMessageSetter(true, data.message, setSubmitMessage);
 
-        if(token && id)
-          navigate("/reset-password");
-        else if(user.role === "store_owner") navigate("/dashboard/store_owner");
-        else navigate("/"); //client usual home
+        if (token && id) navigate("/reset-password");
+        else if (user.role === "store_owner") navigate("/dashboard/store_owner");
+        else navigate("/");
       } else {
-        console.log("error logging in");
-        responseMessageSetter(false, data.message, setSubmitMessage);
+        responseMessageSetter(false, data.message || "خطأ في تسجيل الدخول", setSubmitMessage);
       }
     } catch (error) {
-      console.log("error logging in", error);
-      responseMessageSetter(false, error.message, setSubmitMessage);
+      responseMessageSetter(false, error.message || "تعذر الاتصال بالخادم", setSubmitMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onError = (validationErrors) => {
+    const firstError = Object.values(validationErrors)[0];
+    if (firstError?.message) {
+      setSubmitMessage({ success: false, message: firstError.message });
     }
   };
 
@@ -101,7 +105,6 @@ const Login = () => {
         <p className="hint">سجل دخولك أو أنشئ حساب جديد</p>
       </div>
       <div className="login-card">
-        {/* أزرار التبديل بين دخول وحساب جديد */}
         <div className="tabs-container">
           <button className="tab-btn active">تسجيل دخول</button>
           <button className="tab-btn" onClick={() => navigate("/register")}>
@@ -109,29 +112,25 @@ const Login = () => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="login-form">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="login-form">
           {submitMessage.message && (
-            <p
-              className={`submit-message ${submitMessage.success ? "success-message" : "error-message"}`}
-            >
+            <p className={`submit-message ${submitMessage.success ? "success-message" : "error-message"}`}>
               {submitMessage.message}
             </p>
           )}
 
           <div className="form-group">
             <label>
-              اسم المستخدم أو البريد الإلكتروني{" "}
-              <span className="required-star">*</span>
+              اسم المستخدم أو البريد الإلكتروني <span className="required-star">*</span>
             </label>
             <input
               type="text"
-              name="usernameOrEmail"
               className={errors.usernameOrEmail?.message ? "error" : ""}
               placeholder="اسم المستخدم أو البريد الإلكتروني"
               {...register("usernameOrEmail")}
             />
             {errors.usernameOrEmail?.message && (
-              <p className="field-error">{errors.usernameOrEmail?.message}</p>
+              <p className="field-error">{errors.usernameOrEmail.message}</p>
             )}
           </div>
 
@@ -142,7 +141,6 @@ const Login = () => {
             <div className="password-input-wrapper">
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
                 className={errors.password?.message ? "error" : ""}
                 placeholder="........"
                 {...register("password")}
@@ -156,48 +154,47 @@ const Login = () => {
               </button>
             </div>
             {errors.password?.message && (
-              <p className="field-error">{errors.password?.message}</p>
+              <p className="field-error">{errors.password.message}</p>
             )}
           </div>
 
-          {(token && id) &&
-          <div className="form-group">
-            <label>
-             كود التفعيل <span className="required-star">*</span>
-            </label>
-            <input
-              type="text"
-              name="activationCode"
-              className={errors.activationCode?.message ? "error" : ""}
-              placeholder="........"
-              {...register("activationCode")}
-            />
-            {errors.activationCode?.message && (
-              <p className="field-error">{errors.activationCode?.message}</p>
-            )}
-          </div>}
+          {(token && id) && (
+            <div className="form-group">
+              <label>
+                كود التفعيل <span className="required-star">*</span>
+              </label>
+              <input
+                type="text"
+                className={errors.activationCode?.message ? "error" : ""}
+                placeholder="أدخل الكود المكون من 6 أرقام"
+                {...register("activationCode")}
+              />
+              {errors.activationCode?.message && (
+                <p className="field-error">{errors.activationCode.message}</p>
+              )}
+            </div>
+          )}
 
           <div className="form-options">
             <label className="remember-me">
-              <input
-                type="checkbox"
-                name="rememberMe"
-                {...register("rememberMe")}
-              />
+              <input type="checkbox" {...register("rememberMe")} />
               تذكرني (لمدة 30 يوماً)
             </label>
-            {/* اللينك اللى بيربط ب الريسيت  */}
-            <Link
-              to="/reset-password"
-              name="reset-password-link"
-              className="forgot-password"
-            >
+            <Link to="/reset-password" className="forgot-password">
               نسيت كلمة المرور؟
             </Link>
           </div>
 
-          <button type="submit" className="submit-btn">
-            تسجيل الدخول &larr; {/* html character for left arrow icon*/}
+          <button type="submit" className="submit-btn" disabled={isLoading}>
+            {isLoading ? (
+              <span className="login-loading">
+                <span className="spinner-dot"></span>
+                <span className="spinner-dot"></span>
+                <span className="spinner-dot"></span>
+              </span>
+            ) : (
+              <>تسجيل الدخول ←</>
+            )}
           </button>
         </form>
       </div>

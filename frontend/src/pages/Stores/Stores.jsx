@@ -22,14 +22,14 @@ const Stores = () => {
       if(!res.ok || !json.success)
         responseMessageSetter(false, json.message || "خطأ فى جلب المتاجر المتاحة", setResponseMessage);
 
-      const preparedStores= json.data.map(store => ({
-        _id: store._id,
-        name: store.store_name,
-        products: `${store.total_products} | منتج`,
-        img: store.image,
-        rating: `${store.total_rates} | تقييم`,
-        stars: `${store.average_rating} ★`
-      }));
+const preparedStores = json.data.map(store => ({
+  _id: store._id,
+  name: store.store_name || 'متجر بدون اسم',
+  products: `${store.total_products || 0} | منتج`,
+  img: store.image,
+  rating: `${store.total_rates || 0} | تقييم`,
+  stars: `${parseFloat(store.average_rating || 0).toFixed(2)} `
+}));
 
       setStores(preparedStores);
       console.log("stores => ", preparedStores);
@@ -50,7 +50,7 @@ const Stores = () => {
   };
 
   const formattedImage = (imgPath) => {
-    if(!imgPath) return null;
+    if(!imgPath) return "/images/store/eyeshadow.jpg";
     return imgPath.replace(/\\/g, "//").replace("uploads", "http://127.0.0.1:8080");
   }
 
@@ -66,7 +66,7 @@ const Stores = () => {
       <div className="grid">
         {firstFourStores?.map((store, index) => (
           <div key={index} className="card" onClick={() => handleCardClick(store._id)}>
-            <img src={formattedImage(store.img)} alt={store.name} />
+            <img src={formattedImage(store.img)} alt={store.name} onError={(e) => { e.target.src = "/images/store/eyeshadow.jpg"; }} />
             <div className="card-body">
               <div className="card-title">{store.name}</div>
               <div className="card-row">
@@ -83,7 +83,7 @@ const Stores = () => {
 
         {moreVisible && hiddenStores?.map((store, index) => (
           <div key={index} className="card" onClick={() => handleCardClick(store.name)}>
-            <img src={store.img} alt={store.name} />
+            <img src={store.img || "/images/store/eyeshadow.jpg"} alt={store.name} onError={(e) => { e.target.src = "/images/store/eyeshadow.jpg"; }} />
             <div className="card-body">
               <div className="card-title">{store.name}</div>
               <div className="card-row">

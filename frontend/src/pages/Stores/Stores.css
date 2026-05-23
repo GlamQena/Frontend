@@ -22,7 +22,8 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  margin-bottom: 12px;
+  margin: 0;
+  padding: 10px;
 }
 
 .header-main h1::after {
@@ -57,6 +58,7 @@
   cursor: pointer;
   position: relative;
   backdrop-filter: blur(4px);
+
 }
 
 .card::before {

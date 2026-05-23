@@ -1,6 +1,6 @@
 import { Moon, Sun, LogIn, LogOut, User, ShoppingCart } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
-import { useLocation, NavLink } from "react-router-dom";
+import { useLocation, NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import { isUserLogged, logout } from "../services/authService";
 import { getUserRole, isClient, isStoreOwner } from "../services/users";
@@ -8,6 +8,7 @@ import { getUserRole, isClient, isStoreOwner } from "../services/users";
 function Navbar() {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const loggedIn = isUserLogged();
   const userRole = getUserRole();
 
@@ -87,11 +88,19 @@ function Navbar() {
           )}
 
         
-          {(
+          {/* {(
             <NavLink to="/cart" title="السلة" className="nav-icon">
               <ShoppingCart size={20} />
             </NavLink>
-          )}
+          )} */}
+{/* ===== تعديل زر السلة ===== */}
+          <button 
+            title="السلة" 
+            className="nav-icon" 
+           onClick={() => !loggedIn ? navigate("/login") : navigate("/cart")}
+>
+  <ShoppingCart size={20} />
+</button>
 
          
           {loggedIn && (
@@ -115,6 +124,7 @@ function Navbar() {
           >
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+          
         </div>
       </nav>
     </div>

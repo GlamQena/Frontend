@@ -41,7 +41,7 @@ export default function ProductDetails() {
         }
       })
       .catch((err) => console.log("Fetch error:", err));
-  }, [productId, cart]);
+  }, [productId]);
 
   const addToWishlistHandler = async () => {
     try {
@@ -81,8 +81,7 @@ export default function ProductDetails() {
       </div>
     );
 
-  const images = product.images?.map((img) => img.replace("/\\/g", "//").replace("uploads", "http://127.0.0.1:8080"));
-     
+const images = product.images?.map((img) => img.replace(/\\/g, "/").replace("uploads", "http://127.0.0.1:8080"));     
   return (
     <div className="page" dir="rtl">
       <div className="details-container">
@@ -143,7 +142,7 @@ export default function ProductDetails() {
 
           <span className="breadcrumb"> {product.store_name}</span>
 
-          <h1 className="title ltr">{product.name}</h1>
+          <h1 className="title ">{product.name}</h1>
 
           <div className="rating">
             <div className="stars">
