@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CartProvider } from './pages/ProductDetails/CartContext';
 import Navbar from "./components/Navbar";
 
 // Public pages
@@ -12,6 +11,7 @@ import ProductDetails from "./pages/ProductDetails/ProductDetails";
 
 // Shopping
 import Cart from "./pages/Cart/Cart";
+import WishlistPage from "./pages/Wishlist/Wishlist";
 import ShippingInfo from "./pages/ShippingInfo/ShippingInfo";
 import Orders from "./pages/Orders/Orders";
 import OrderDetails from "./pages/OrderDetails/OrderDetails";
@@ -32,12 +32,6 @@ import StoreOwnerActiveClients from "./pages/StoreOwnerDashboard/ActiveClients/A
 // 404
 import NotFound from "./pages/NotFound/NotFound";
 
-function cartWrapper ({children}) {
-  return <CartProvider>
-          {children}
-        </CartProvider>
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -49,13 +43,13 @@ function App() {
         {/* ── Store & Products ── */}
         <Route path="/stores" element={<Stores />} />
         <Route path="/stores/:storeId/products" element={<StoreProducts />} />
-        <Route path="/stores/:storeId/products/:productId" 
-          element={<cartWrapper> <ProductDetails /> </cartWrapper>} />
+        <Route path="/products/:productId" 
+          element={<ProductDetails />} />
 
         {/* ── Shopping ── */}
         <Route path="/cart" element={<Cart />} />
         <Route path="/shipping/info" element={<ShippingInfo />} />
-        {/* <Route path="/wishlist"      element={<Wishlist />} /> */}
+        <Route path="/wishlist"      element={<WishlistPage />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:id" element={<OrderDetails />} />
 

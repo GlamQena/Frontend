@@ -308,11 +308,13 @@ const Profile = () => {
       return profileForm.imagePreview;
     }
     if (profileForm.image) {
-      return encodeURI(
-        profileForm.image
-          .replace(/\\/g, "//")
-          .replace("uploads", "http://127.0.0.1:8080")
-      );
+      if(profileForm.image.includes("uploads"))
+        return encodeURI(
+          profileForm.image
+            .replace(/\\/g, "//")
+            .replace("uploads", "http://127.0.0.1:8080")
+        );
+      else return profileForm.image;
     }
     return theme === "light" ? "/images/profile/Avatar Light.png" : "/images/profile/Avatar.png";
   };
@@ -400,7 +402,7 @@ const Profile = () => {
                 {profileForm.isEmailVerified ? (
                   <span className="badge-green">الإيميل مفعل</span>
                 ) : (
-                  <button className="badge-red" onClick= {getEmailVerificationToken} disabled={editMode}>الإيميل غير مفعل</button>
+                  <button className="badge-red" onClick={getEmailVerificationToken} disabled={editMode}>الإيميل غير مفعل</button>
                 )}
                 {profileForm.isPhoneVerified ? (
                   <span className="badge-green">رقم الهاتف مفعل</span>
@@ -757,38 +759,39 @@ const Profile = () => {
                 </p>
               )}
             </div>
-          </aside>
-        </div>
 
-        {/* Buttons Container - Outside Form */}
-        <div className="controllers">
-          {editMode ? (
-            <>
-              <button 
-                type="button" 
-                className="btn-primary" 
-                onClick={() => {
-                  if (profileFormRef.current) {
-                    profileFormRef.current.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                  }
-                }}
-              >
-                حفظ التغييرات
-              </button>
-              <button type="button" className="btn-secondary" onClick={cancelEdit}>
-                إلغاء
-              </button>
-            </>
-          ) : (
-            <>
-              <button type="button" className="btn-primary" onClick={enterEditMode}>
-                تعديل البيانات
-              </button>
-              <button type="button" className="btn-danger" onClick={handleDeleteProfile}>
-                حذف الحساب
-              </button>
-            </>
-          )}
+            {/* Action Buttons - Moved to Sidebar */}
+            <div className="form-card sidebar-actions">
+              <h3>إدارة الحساب</h3>
+              {editMode ? (
+                <>
+                  <button 
+                    type="button" 
+                    className="btn-primary" 
+                    onClick={() => {
+                      if (profileFormRef.current) {
+                        profileFormRef.current.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                      }
+                    }}
+                  >
+                    حفظ التغييرات
+                  </button>
+                  <button type="button" className="btn-secondary" onClick={cancelEdit}>
+                    إلغاء
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="btn-primary" onClick={enterEditMode}>
+                    تعديل البيانات
+                  </button>
+                  <button type="button" className="btn-danger" onClick={handleDeleteProfile}>
+                    حذف الحساب
+                  </button>
+                </>
+              )}
+            </div>
+          </aside>
         </div>
       </div>
       <Footer />

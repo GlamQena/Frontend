@@ -33,9 +33,11 @@ export default function ProductDetails() {
       .then((data) => {
         if (data.success) {
           const product = data.data.product;
+          console.log("fetched product data=> ", data);
+          console.log("fetched product => ", product);
           setProduct(product);
           setQuantity(cart[product._id] || 1);
-          setReviews(data.reviews);
+          setReviews(data.data.reviews);
         } else {
           console.log("error fetching product details or the success property isn't the response data");
         }
@@ -147,7 +149,7 @@ export default function ProductDetails() {
 
           <div className="rating">
             <div className="stars">
-              <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
+              {rateStars(Number(product.average_rating))}
             </div>
             <span>{product.average_rating}</span>
             <span className="rtl">{product.total_rates} reviews</span>
@@ -210,39 +212,53 @@ export default function ProductDetails() {
       <br />
       <br />
       <div className="break"></div>
-      {/* Reviews */}
-      <div className="reviews">
+      
+      {responseMessage.message && (
+          <p className={`response-message ${responseMessage.success ? "success-message" : "error-message"}`}>
+            {responseMessage.message}
+          </p>
+        )}
 
+      {product.hasReviewed && (
+      <div className="reviews">
         <div className="reviews-header">
           <h3>تقييمات العملاء</h3>
           <span className="view-all">عرض الكل</span>
         </div>
 
-        {product.hasReviewed && <div className="reviews-grid">
-          {reviews?.map((review) => (
-            <div className="review-card">
-              <div className="review-top">
-                <div className="user">
-                  <div>
-                  <div className="avatar">ن</div>
-                    <h4>{(review.client_id.firstName || "") + " " + (review.client_id.lastName || "") }</h4>
-                    <span>منذ شهر</span>
-                  </div>
-                  <div className="stars">
-                    {rateStars(review.rate)}
+        <div className="reviews-grid">
+          {reviews?.map((review) => {
+            // Get first letters for avatar
+            const firstNameInitial = review.client_id?.firstName?.[0] || '';
+            const lastNameInitial = review.client_id?.lastName?.[0] || '';
+            const avatarLetter = firstNameInitial || lastNameInitial || 'ع';
+            
+            // Get full name
+            const firstName = review.client_id?.firstName || '';
+            const lastName = review.client_id?.lastName || '';
+            const fullName = `${firstName} ${lastName}`.trim() || 'عميل';
+            
+            return (
+              <div className="review-card" key={review._id}>
+                <div className="review-top">
+                  <div className="user">
+                    <div>
+                      <div className="avatar">{avatarLetter}</div>
+                      <h4>{fullName}</h4>
+                      <span>منذ شهر</span>
+                    </div>
+                    <div className="stars">
+                      {rateStars(review.rate)}
+                    </div>
                   </div>
                 </div>
+                <p>{review.comment}</p>
               </div>
-
-              <p>
-                {review.comment}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
-        }
-          {responseMessage.message && <p className= {`response-message ${responseMessage.success ? "success-message" : "error-message"}`}>{responseMessage.message}</p>}
       </div>
+      )}
     </div>
   );
 }

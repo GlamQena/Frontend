@@ -23,6 +23,7 @@
   background-clip: text;
   color: transparent;
   margin-bottom: 12px;
+  line-height: normal;
 }
 
 .header-main h1::after {
