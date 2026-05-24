@@ -4,7 +4,7 @@ import "./Store.css";
 import { addToCart } from "../../services/cart";
 import { isUserLogged, responseMessageSetter } from "../../services/authService";
 import { getStoreProducts } from "../../services/stores";
-import { addToWishlist, removeFromWishlist } from "../../services/users";
+import { addToWishlist, getCurrentUser, removeFromWishlist } from "../../services/users";
 import { FaSearch } from "react-icons/fa"; 
 import {buildImgSrc} from "../../services/imageUtils";
 
@@ -37,6 +37,8 @@ const Store = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log("store", storeId);
+        const loggedUser = getCurrentUser();
         const res = await getStoreProducts(storeId);
         const json = await res.json();
         console.log("getStoreProducts data => ", json);
@@ -49,14 +51,14 @@ const Store = () => {
         if (json.success) {
           setStore(json.data.store || null);
           if (json.data.products) {
-            setProducts(json.data.products.map((product) => ({
-              ...product,
-              addedToWishlist: false
-            })));
-            setFilteredProducts(json.data.products.map((product) => ({
-              ...product,
-              addedToWishlist: false
-            })));
+            setProducts(json.data.products.map((product) => {
+              const addedToWishlist = loggedUser.wishlist.find(w => w.productId === product._id.toString());
+              return {...product, addedToWishlist}
+            }));
+            setFilteredProducts(json.data.products.map((product) => {
+              const addedToWishlist = loggedUser.wishlist.find(w => w.productId === product._id.toString());
+              return {...product, addedToWishlist}
+            }));
           }
         }
       } catch (err) {
@@ -110,7 +112,7 @@ const Store = () => {
         return responseMessageSetter(false, data.message || "خطأ فى الإضافة لقائمة الرغبات", setResponseMessage);
       }
 
-      localStorage.setItem("user", JSON.stringify(data.updatedClientData));
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       setProducts((prev) => {
         const newProducts = [...prev];
@@ -140,7 +142,7 @@ const Store = () => {
         return responseMessageSetter(false, data.message || "خطأ فى الإزالة من قائمة الرغبات", setResponseMessage);
       }
 
-      localStorage.setItem("user", JSON.stringify(data.updatedClientData));
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       setProducts((prev) => {
         const newProducts = [...prev];
@@ -302,7 +304,7 @@ const Store = () => {
                         : addToWishlistHandler(index, product._id);
                     }}
                   >
-                    {!isUserLogged() ? "🩶" : (product.addedToWishlist ? "❤️" : "🤍")}
+                    {isUserLogged() && product.addedToWishlist ? "❤️" : "🤍"}
                   </button>
                 </div>
 
