@@ -32,13 +32,13 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export const isUserLogged = async () => {
+export const isUserLogged = () => {
   const refreshToken = localStorage.getItem("refreshToken");
 
   if (!refreshToken || refreshToken === "undefined" || refreshToken === "null") return false;
   
   try {
-    const user = getCurrentUser() || await getProfile(() => {});
+    const user = getCurrentUser();
     if(!user)
       return false;
     return user && Object.keys(user).length > 0;

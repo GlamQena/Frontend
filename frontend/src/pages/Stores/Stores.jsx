@@ -83,7 +83,7 @@ const Stores = () => {
         ))}
 
         {moreVisible && hiddenStores?.map((store, index) => (
-          <div key={index} className="card" onClick={() => handleCardClick(store.name)}>
+          <div key={index} className="card" onClick={() => handleCardClick(store._id)}>
             <img src={store.img} alt={store.name} />
             <div className="card-body">
               <div className="card-title">{store.name}</div>
