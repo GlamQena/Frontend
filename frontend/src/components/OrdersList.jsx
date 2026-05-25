@@ -422,7 +422,7 @@ export default function OrdersList({
   }
 
   return (
-    <div className="ol-root" dir="rtl">
+    <div className="ol-root" dir="rtl" >
       <div className="Page-Header">
         <h1>{headerTitle}</h1>
         <div className="so-search-wrap">
@@ -548,19 +548,22 @@ export default function OrdersList({
                     <div className="ol-items">
                       {order.products
                         ?.flatMap(
-                          (
-                            store, // flatten all stores into one array
-                          ) =>
+                          (store) =>
                             store.products?.map((item) => ({
                               ...item,
                               storeName: store.owner_store_id?.store_name,
                             })) || [],
                         )
-                        .slice(0, 3) // take only first 3 from ALL stores
+                        .slice(0, 3)
                         .map((item, j) => {
                           const src = formattedImage(item.prod_id?.images?.[0]);
+                          const productId =  item.prod_id?._id ;
                           return (
-                            <div className="ol-item" key={j}>
+                            <div
+                              className="ol-item"
+                              key={j}
+                              onClick={() => navigate(`/products/${productId}`)} 
+                            >
                               <div className="ol-item-img">
                                 {src ? (
                                   <img
@@ -649,7 +652,16 @@ export default function OrdersList({
                 <div className="ol-card-footer">
                   <div className="ol-foot-btns">
                     {clientMode && (
-                      <>
+                      <> 
+                      
+                      <Link
+                          to={`/orders/${id}`}
+                          className="ol-btn ol-btn--details"
+                        >
+                          التفاصيل
+                        </Link>
+
+
                         {isCancelled && (
                           <button
                             className="ol-btn ol-btn--reorder"
@@ -658,14 +670,6 @@ export default function OrdersList({
                             إعادة طلب
                           </button>
                         )}
-
-                        <Link
-                          to={`/orders/${id}`}
-                          className="ol-btn ol-btn--details"
-                        >
-                          التفاصيل
-                        </Link>
-
                         {canCompletePayment && (
                           <button
                             className="ol-btn ol-btn--reorder"
