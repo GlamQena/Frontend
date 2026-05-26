@@ -329,11 +329,11 @@
 
 }
 .ol-item:hover {
- background: var(--خلفية-الهيدر);
+ /* background: var(--خلفية-الهيدر); */
   transform: translateY(-2px);
   transform: translateX(-2px);
   box-shadow: var(--ظل-الأيقونة);
-  scale: 1.04;
+  scale: 1.02;
   cursor: pointer;
 }
 
