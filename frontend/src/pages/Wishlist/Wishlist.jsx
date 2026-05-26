@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Wishlist.css";
 import { addToCart } from "../../services/cart";
@@ -18,17 +18,24 @@ const formattedImage = (image) => {
   return null;
 };
 
-const initialWishlist = () => {
-  const user = getCurrentUser();
-  if (!user || !isClient()) return [];
-  return user.wishlist || [];
-};
-
 export default function WishlistPage() {
   const navigate = useNavigate();
-  const [wishlist, setWishlist] = useState(initialWishlist);
+  const [user, setUser] = useState(null);
+  const [wishlist, setWishlist] = useState([]);
   const [actionMsg, setActionMsg] = useState({ success: false, message: "" });
   const [loadingId, setLoadingId] = useState(null);
+
+  const fetchUserWishlist= useCallback(() => {
+    setUser(getCurrentUser());
+    if (!user || !isClient())
+      setWishlist([]);
+
+    setWishlist(user?.wishlist);
+  }, []);
+
+  useEffect(() => {
+    fetchUserWishlist();
+  }, [fetchUserWishlist]);
 
   /* ════ REMOVE FROM WISHLIST ════ */
   const handleRemove = async (prod_id) => {
@@ -44,9 +51,9 @@ export default function WishlistPage() {
           setActionMsg
         );
 
-      const updatedWishlist = json.foundClient.wishlist;
+      const updatedWishlist = json.user?.wishlist;
       setWishlist(updatedWishlist);
-      localStorage.setItem("user", JSON.stringify(json.foundClient));
+      localStorage.setItem("user", JSON.stringify(json.user));
       responseMessageSetter(true, json.message || "تمت الإزالة بنجاح", setActionMsg);
     } catch (err) {
       responseMessageSetter(
@@ -111,15 +118,15 @@ export default function WishlistPage() {
             قائمة الرغبات <span className="wl-heart">♥</span>
           </h1>
          {/* <p className="wl-subtitle">
-            {wishlist.length > 0
-              ? `${wishlist.length} منتج محفوظ`
+            {wishlist?.length > 0
+              ? `${wishlist?.length} منتج محفوظ`
               : "قائمتك فاضية"}
           </p>*/}
         </div>
       
 
       {/* Empty State */}
-      {wishlist.length === 0 ? (
+      {wishlist?.length === 0 ? (
         <div className="wl-empty">
           <div className="wl-empty-icon">🤍</div>
           <p className="wl-empty-text">مفيش منتجات في القائمة دي لسه!</p>
@@ -130,7 +137,7 @@ export default function WishlistPage() {
       ) : (
         /* Grid */
         <div className="wl-grid">
-          {wishlist.map((item, index) => (
+          {wishlist?.map((item, index) => (
             <WishlistCard
               key={`${item.productId}-${index}`}
               item={item}
@@ -155,7 +162,7 @@ function WishlistCard({ item, isLoading, onRemove, onAddToCart }) {
       {/* Remove button */}
       <button
         className="wl-card-heart"
-        onClick={onRemove}
+        onClick={(e) => {e.stopPropagation(); onRemove();}}
         disabled={isLoading}
         title="إزالة من قائمة الرغبات"
       >
@@ -193,7 +200,7 @@ function WishlistCard({ item, isLoading, onRemove, onAddToCart }) {
       {/* Add to cart */}
       <button
         className="wl-card-add-btn"
-        onClick={onAddToCart}
+        onClick={(e) => {e.stopPropagation(); onAddToCart();}}
         disabled={isLoading || !item.inStock}
       >
         {isLoading ? "..." : <><span>🛒</span> أضف للسلة</>}
