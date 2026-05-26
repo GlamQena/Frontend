@@ -2,6 +2,7 @@
    OrdersList.css - Compact & Clean
    ══════════════════════════════════════════ */
 
+
 .ol-root {
   display: flex;
   flex-direction: column;
@@ -10,6 +11,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
+
 }
 
 /* ── Page Header ─────────────────────────── */
@@ -20,6 +22,7 @@
   padding: 16px 0 8px;
   flex-wrap: wrap;
   gap: 12px;
+
 }
 
 .Page-Header h1 {
@@ -91,12 +94,17 @@
   font-weight: 500;
   transition: all 0.2s ease;
   white-space: nowrap;
+  font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-filter-btn:hover {
   background: var(--بنفسجي-خافت);
   color: var(--بنفسجي);
   border-color: var(--بنفسجي);
+   box-shadow: 0 2px 8px var(--ظل-الأيقونة);
+  scale: 1.1;
+  transform: translateY(-2px);
 }
 
 .ol-filter-btn--active {
@@ -116,12 +124,16 @@
 
 /* ── Card ────────────────────────────────── */
 .ol-card {
-  border-radius: 16px;
+  border-radius: 30px;
   background: var(--خلفية-البطاقة);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--حد-خافت);
   overflow: hidden;
   transition: box-shadow 0.2s;
+      display: flex;
+    flex-direction: column;
+    gap: 20px;
+  
 }
 
 .ol-card:hover {
@@ -138,6 +150,8 @@
   border-bottom: 1px solid var(--حد-خافت);
   gap: 8px;
   flex-wrap: wrap;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 /* Status badge - compact */
@@ -151,6 +165,9 @@
   font-weight: 600;
   border: 1px solid transparent;
   white-space: nowrap;
+  max-width: 150px;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-dot {
@@ -204,6 +221,8 @@
 .ol-status--cancelled .ol-dot { background: var(--أحمر-خطأ); }
 
 /* Payment badge - compact */
+
+
 .ol-payment-badge {
   display: inline-flex;
   align-items: center;
@@ -212,12 +231,18 @@
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 9999px;
+    font-weight: 800;
+  font-size: 14px;
 }
+
 
 .ol-payment--pending {
   background: rgba(245, 158, 11, 0.1);
   color: #f59e0b;
   border: 1px solid #f59e0b;
+}
+.ol-payment--pending .bedge-svg path {
+  fill: #f59e0b;
 }
 
 .ol-payment--processing {
@@ -225,17 +250,26 @@
   color: #3b82f6;
   border: 1px solid #3b82f6;
 }
+.ol-payment--processing .bedge-svg path {
+  fill: #3b82f6;
+}
 
 .ol-payment--completed {
   background: rgba(34, 197, 94, 0.1);
   color: #22c55e;
   border: 1px solid #22c55e;
 }
+.ol-payment--completed .bedge-svg path {
+  fill: #22c55e;
+}
 
 .ol-payment--failed {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
   border: 1px solid #ef4444;
+}
+.ol-payment--failed .bedge-svg path {
+  fill: #ef4444;
 }
 
 .ol-payment--refunded {
@@ -244,23 +278,30 @@
   border: 1px solid #a855f7;
 }
 
+.ol-payment--refunded .bedge-svg path {
+  fill: #a855f7;
+}
+
 /* Order ID + date */
 .ol-order-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 0;
+  
 }
 
 .ol-order-id {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 15px;
   color: var(--بنفسجي);
+  font-weight: 800;
 }
 
 .ol-order-date {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--نص-خافت);
+  font-weight: 800;
 }
 
 /* ── Card Body ───────────────────────────── */
@@ -270,17 +311,30 @@
 
 /* CLIENT: items - compact */
 .ol-items {
-  display: flex;
-  flex-direction: column;
-  padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 8px;
 }
 
 .ol-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 30px;
   padding: 10px 0;
   border-bottom: 1px solid var(--حد-خافت);
+  transition: all 0.2s ease;
+  padding: 10px 16px;
+  border-radius: 12px;
+
+
+}
+.ol-item:hover {
+ background: var(--خلفية-الهيدر);
+  transform: translateY(-2px);
+  transform: translateX(-2px);
+  box-shadow: var(--ظل-الأيقونة);
+  scale: 1.04;
+  cursor: pointer;
 }
 
 .ol-item:last-child {
@@ -288,22 +342,30 @@
 }
 
 .ol-item-img {
-  width: 56px;
-  height: 56px;
+  width: 86px;
+  height: 86px;
   border-radius: 12px;
-  background: var(--خلفية-2);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
+  transition: all 0.2s ease;
 }
+.ol-item-img:hover {
+  scale: 1.1;
+  transform: translateY(-2px);
+
+}
+
 
 .ol-item-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+
 }
+
 
 .ol-img-fb {
   font-size: 20px;
@@ -315,6 +377,8 @@
   flex-direction: column;
   gap: 1px;
   text-align: right;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-item-name {
@@ -322,6 +386,8 @@
   font-size: 14px;
   color: var(--نص-رئيسي);
   margin: 0;
+    font-weight: 800;
+  font-size: 16px;
 }
 
 .ol-item-store {
@@ -329,12 +395,16 @@
   color: var(--ذهبي);
   font-weight: 500;
   margin: 0;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-item-qty {
   font-size: 12px;
   color: var(--نص-خافت);
   margin: 0;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-item-price {
@@ -342,6 +412,8 @@
   font-size: 14px;
   color: var(--بنفسجي);
   flex-shrink: 0;
+    font-weight: 800;
+  font-size: 18px;
 }
 
 /* STORE: customer info - compact */
@@ -351,19 +423,26 @@
   flex-wrap: wrap;
   gap: 8px 16px;
   padding: 10px 16px;
-  background: whitesmoke;
+  background: var(--خلفية-البطاقة);
+  min-height: 100px;
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .ol-customer-row {
   display: flex;
   align-items: center;
   gap: 4px;
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .ol-customer-label {
   font-size: 12px;
   font-weight: 600;
   color: var(--نص-ثانوي);
+  font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-customer-val {
@@ -373,6 +452,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  font-weight: 800;
+  font-size: 16px;
 }
 
 /* ── Card Footer ─────────────────────────── */
@@ -385,6 +466,7 @@
   border-top: 1px solid var(--حد-خافت);
   gap: 8px;
   flex-wrap: wrap;
+  min-height: 60px;
 }
 
 /* Buttons - compact */
@@ -393,6 +475,7 @@
   gap: 6px;
   align-items: center;
   flex-wrap: wrap;
+  
 }
 
 .ol-btn {
@@ -409,10 +492,14 @@
   font-weight: 600;
   transition: all 0.2s ease;
   white-space: nowrap;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-btn:hover {
   transform: translateY(-1px);
+
+
 }
 
 .ol-btn--details {
@@ -425,6 +512,9 @@
   background: var(--بنفسجي-خافت);
   color: var(--بنفسجي);
   border-color: var(--بنفسجي);
+    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
+  scale: 1.1;
+  transform: translateY(-2px);
 }
 
 .ol-btn--cancel {
@@ -436,6 +526,9 @@
 .ol-btn--cancel:hover:not(:disabled) {
   background: var(--أحمر-خطأ);
   color: #fff;
+    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
+  scale: 1.1;
+  transform: translateY(-2px);
 }
 
 .ol-btn--cancel:disabled {
@@ -452,6 +545,9 @@
 .ol-btn--reorder:hover {
   background: var(--أخضر-نجاح);
   color: #fff;
+    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
+  scale: 1.1;
+  transform: translateY(-2px);
 }
 
 /* Total block - compact */
@@ -464,17 +560,23 @@
 .ol-prod-count {
   font-size: 11px;
   color: var(--نص-خافت);
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .ol-total-label {
   font-size: 11px;
   color: var(--نص-خافت);
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .ol-total-val {
   font-size: 16px;
   font-weight: 700;
   color: var(--نص-رئيسي);
+  font-weight: 800;
+  font-size: 20px;
 }
 
 /* ── Status Dropdown (compact) ────────────── */
@@ -493,7 +595,7 @@
   border-radius: 9999px;
   border: 1px solid;
   font-family: Tajawal, sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   background: transparent;
   transition: opacity 0.2s;
@@ -533,16 +635,17 @@
   flex-direction: column;
   gap: 2px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  
 }
 
 .sd-menu-title {
-  font-size: 11px;
-  font-weight: 400;
   color: var(--نص-خافت);
   text-align: right;
   padding: 2px 10px 6px;
   margin: 0;
   border-bottom: 1px solid var(--حد-خافت);
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .sd-option {
@@ -554,7 +657,7 @@
   padding: 6px 12px;
   border-radius: 8px;
   font-family: Tajawal, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   text-align: right;
   transition: background 0.15s;
@@ -604,9 +707,13 @@
   .ol-card-header {
     padding: 8px 12px;
   }
-  
-  .ol-items { padding: 0 12px; }
-  .ol-item { padding: 8px 0; }
+  .ol-item:hover {
+
+ scale: 1.05;
+
+
+}
+ 
   .ol-item-img { width: 44px; height: 44px; border-radius: 8px; }
   .ol-item-name { font-size: 12px; }
   

@@ -189,6 +189,7 @@ button {
     "od-header od-header od-header"
     "od-shipping  od-payment   od-tracking"
     "od-products  od-products  od-tracking";
+
   gap: 32px;
 }
 
@@ -320,6 +321,7 @@ button {
   box-shadow: 0px 0px 25px 0px #a855f726;
   display: flex;
   flex-direction: column;
+    align-self: start;
 }
 
 .od-tracking-card .od-section-title {
@@ -400,6 +402,7 @@ button {
 
   opacity: 0.3;
 }
+
 
 
 .od-step--pending .od-step-indicator::before, .od-step--cancelled .od-step-indicator::before {
@@ -571,16 +574,27 @@ button {
 .od-products-list {
   display: flex;
   flex-direction: column;
-  padding: 0 10px;
+  padding: 0 20px;
+  margin-bottom: 30px;
 }
 
 .od-product-item {
   border-top: 1px solid var(--حد-خافت);
   display: flex;
   margin-right: 20px;
-  padding: 20px 0 30px;
+  padding: 20px 0 20px;
   justify-content: space-between;
   gap: 16px;
+  border-radius: 32px;
+  transition: all 0.2s ease;
+}
+.od-product-item:hover {
+  background: var(--خلفية-الهيدر);
+  transform: translateY(-2px);
+  transform: translateX(10px);
+  box-shadow: var(--ظل-الأيقونة);
+  scale: 1.06;
+  cursor: pointer;
 }
 
 .od-product-left {
@@ -598,8 +612,13 @@ button {
   object-fit: contain;
   border-radius: 32px;
   flex-shrink: 0;
+  transition: all 0.2s ease;
 }
+.od-product-img img:hover {
+ scale: 1.2;
+  transform: translateY(-2px);
 
+}
 .od-img-placeholder {
   width: 96px;
   height: 96px;
