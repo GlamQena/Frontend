@@ -1,4 +1,4 @@
-import { Moon, Sun, LogIn, LogOut, User, ShoppingCart } from "lucide-react";
+import { Moon, Sun, LogIn, LogOut, User, ShoppingCart, HeartHandshake, HeartIcon } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { useLocation, NavLink } from "react-router-dom";
 import {useEffect} from "react";
@@ -94,6 +94,11 @@ function Navbar() {
             </NavLink>
           )}
 
+          {(
+            <NavLink to="/wishlist" title="قائمة الرغبات" className="nav-icon">
+              <HeartIcon size={20} />
+            </NavLink>
+          )}
          
           {loggedIn && (
             <NavLink to="/profile" title="الملف الشخصي" className="nav-icon">

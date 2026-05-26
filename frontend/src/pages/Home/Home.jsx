@@ -4,12 +4,19 @@ import Footer from "../../components/Footer";
 import { useTheme } from '../../components/ThemeProvider';
 import { getSpecialProducts } from '../../services/products.js';
 import { buildImgSrc } from '../../services/imageUtils.js';
+import { addToCart } from '../../services/cart.js';
+import { responseMessageSetter } from '../../services/authService.js';
+import { useNavigate } from 'react-router-dom';
 
 function Home() {
     const [activeSection, setActiveSection] = useState('home');
     const {theme, setTheme} = useTheme();
     const [specialProducts, setSpecialProducts] = useState([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+    const [responseMessage, setResponseMessage] = useState({success: false, message: ""});
+    const [showAllProducts, setShowAllProducts] = useState(false);
+
+    const navigate= useNavigate();
 
     useEffect(() => {
         const sections = document.querySelectorAll('section[id]');
@@ -33,25 +40,79 @@ function Home() {
         
     };
 
-    const handleViewAllProducts = async () => {
+    useEffect( () => {
+    const handleShowSpecialProducts = async () => {
         try {
             setIsLoadingProducts(true);
-            const products = await getSpecialProducts();
+            const response = await getSpecialProducts();
 
-            console.log("special products response =>", products);
-            setSpecialProducts(products.recentProducts);
+            console.log("special products response =>", response);
             
-            const productsSection = document.getElementById('products');
-            if (productsSection) {
-                productsSection.scrollIntoView({ behavior: 'smooth' });
-            }
+            // Transform the data to match frontend expectations
+            const recentWithBadge = response.recentProducts.map(product => ({
+                ...product,
+                id: product._id,
+                storeName: product.owner_store_id?.store_name || 'متجر تجميل',
+                rating: product.average_rating || 0,
+                isNew: true
+            }));
+            
+            const frequentWithBadge = response.frequentlySoldProducts.map(product => ({
+                ...product,
+                id: product._id,
+                storeName: product.store_name || 'متجر تجميل',
+                rating: product.average_rating || 0,
+                isBestseller: true
+            }));
+            
+            // Combine both arrays, with bestsellers first
+            const allProducts = [...frequentWithBadge, ...recentWithBadge];
+            
+            setSpecialProducts(allProducts); 
         } catch (error) {
             console.error("Error fetching products:", error);
         } finally {
             setIsLoadingProducts(false);
         }
+    }
+
+    handleShowSpecialProducts();
+    }, []);
+
+    const handleAddToCart = async (productId) => {
+        try {
+        const res = await addToCart(productId, setResponseMessage);
+        const json = await res.json();
+
+        if (!res.ok) {
+            console.error("addToCart error:", json.message);
+            return responseMessageSetter(false, json.message || "خطأ فى الإضافة للسلة", setResponseMessage);
+        }
+
+        responseMessageSetter(true, json.message || "تمت الإضافة بنجاح ✓", setResponseMessage);
+        
+        setTimeout(() => {
+            setResponseMessage({ success: false, message: "" });
+        }, 3000);
+        } catch (err) {
+        console.error("addToCart error:", err);
+        responseMessageSetter(false, err.message || "خطأ فى الإضافة للسلة", setResponseMessage);
+        }
+    };
+    
+    // Determine which products to display
+    const displayProducts = () => {
+        // If we have special products from API and we want to show all or just first 4
+        if (specialProducts.length > 0) {
+            return showAllProducts ? specialProducts : specialProducts.slice(0, 4);
+        }
+        // Otherwise show default static products (always show all 4)
+        return null;
     };
 
+    const productsToShow = displayProducts();
+    const hasSpecialProducts = specialProducts.length > 0;
+    
     return (
         <div className="page-container">
             {/* ========== Navbar ========== */}
@@ -68,6 +129,8 @@ function Home() {
                     <a href="#contact" className={activeSection === 'contact' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>تواصل معنا</a>
                 </div>
             </nav>
+
+            {responseMessage.message && <p className= {`response-message ${responseMessage.success ? "success-message" : "error-message"}`}>{responseMessage.message}</p>}
 
             {/* ========== Hero Section ========== */}
             <section id="home" className="hero">
@@ -290,98 +353,116 @@ function Home() {
                     </div>
 
                     <div className="products-grid">
-                        {/* product 1 */}
-                        <div className="product-card">
-                            <div className="product-badge discount">خصم %20</div>
-                            <div className="product-image product-image-1"></div>
-                            <div className="add-btn">+</div>
-                            <div className="product-content">
-                                <div className="product-store-name">محل نور للتجميل</div>
-                                <h3 className="product-name">سيروم فيتامين C</h3>
-                                <p className="product-desc">تفتيح وتوحيد لون البشرة</p>
-                                <div className="product-footer">
-                                    <div>
-                                        <span className="product-price-new">150 ج</span>
-                                        <span className="product-price-old">185 ج</span>
-                                    </div>
-                                    <span className="product-rating">⭐ 4.5</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* product 2 */}
-                        <div className="product-card">
-                            <div className="product-badge discount">خصم %20</div>
-                            <div className="product-image product-image-2"></div>
-                            <div className="add-btn">+</div>
-                            <div className="product-content">
-                                <div className="product-store-name">محل نور للتجميل</div>
-                                <h3 className="product-name">هايلايتر ذهبي</h3>
-                                <p className="product-desc">لمسة إشراق طبيعية</p>
-                                <div className="product-footer">
-                                    <span className="product-price-new">95 ج</span>
-                                    <span className="product-rating">⭐ 5.0</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* product 3 */}
-                        <div className="product-card">
-                            <div className="product-badge new">جديد</div>
-                            <div className="product-image product-image-3"></div>
-                            <div className="add-btn">+</div>
-                            <div className="product-content">
-                                <div className="product-store-name">محل نور للتجميل</div>
-                                <h3 className="product-name">كريم SPF 30</h3>
-                                <p className="product-desc">حماية وترطيب</p>
-                                <div className="product-footer">
-                                    <span className="product-price-new">120 ج</span>
-                                    <span className="product-rating">⭐ 4.5</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* product 4 */}
-                        <div className="product-card">
-                            <div className="product-badge bestseller">الأكثر مبيعاً</div>
-                            <div className="product-image product-image-4"></div>
-                            <div className="add-btn">+</div>
-                            <div className="product-content">
-                                <div className="product-store-name">محل نور للتجميل</div>
-                                <h3 className="product-name">روج مات</h3>
-                                <p className="product-desc">ثبات 12 ساعة</p>
-                                <div className="product-footer">
-                                    <span className="product-price-new">85 ج</span>
-                                    <span className="product-rating">⭐ 5.0</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {specialProducts.map((product, index) => (
-                            <div className="product-card" key={product.id || index}>
-                                <div className="product-image" style={{ backgroundImage: `url(${buildImgSrc(product.images[0]) || '/images/default-product.png'})` }}></div>
-                                <div className="add-btn">+</div>
-                                <div className="product-content">
-                                    <div className="product-store-name">{product.storeName || 'متجر تجميل'}</div>
-                                    <h3 className="product-name">{product.name}</h3>
-                                    <p className="product-desc">{product.description}</p>
-                                    <div className="product-footer">
-                                        <div>
-                                            <span className="product-price-new">{product.price} ج</span>
-                                            {product.oldPrice && <span className="product-price-old">{product.oldPrice} ج</span>}
+                        {productsToShow ? (
+                            productsToShow.map((product, index) => (
+                                <div className="product-card" onClick={() => navigate(`/products/${product.id}`)} key={product.id || index}>
+                                    <div 
+                                        className="product-image" 
+                                        style={{ 
+                                            backgroundImage: `url(${
+                                                (product.images && product.images[0]) 
+                                                    ? buildImgSrc(product.images[0]) 
+                                                    : '/images/default-product.png'
+                                            })` 
+                                        }}
+                                    ></div>
+                                    <div className="add-btn" onClick={async (e) => { e.stopPropagation(); await handleAddToCart(product.id);}}>+</div>
+                                    
+                                    {/* Badges */}
+                                    {product.isNew && <div className="product-badge new">جديد</div>}
+                                    {product.isBestseller && <div className="product-badge bestseller">الأكثر مبيعاً</div>}
+                                    
+                                    <div className="product-content">
+                                        <div className="product-store-name">{product.storeName || 'متجر تجميل'}</div>
+                                        <h3 className="product-name">{product.name}</h3>
+                                        <p className="product-desc">{product.description}</p>
+                                        <div className="product-footer">
+                                            <div>
+                                                <span className="product-price-new">{product.price} ج</span>
+                                                {product.oldPrice && <span className="product-price-old">{product.oldPrice} ج</span>}
+                                            </div>
+                                            <span className="product-rating">⭐ {product.rating || '0.0'}</span>
                                         </div>
-                                        <span className="product-rating">⭐ {product.rating || '4.5'}</span>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <>
+                                {/* Default static products */}
+                                <div className="product-card">
+                                    <div className="product-badge discount">خصم %20</div>
+                                    <div className="product-image product-image-1"></div>
+                                    <div className="add-btn" onClick={() => handleAddToCart('product1')}>+</div>
+                                    <div className="product-content">
+                                        <div className="product-store-name">محل نور للتجميل</div>
+                                        <h3 className="product-name">سيروم فيتامين C</h3>
+                                        <p className="product-desc">تفتيح وتوحيد لون البشرة</p>
+                                        <div className="product-footer">
+                                            <div>
+                                                <span className="product-price-new">150 ج</span>
+                                                <span className="product-price-old">185 ج</span>
+                                            </div>
+                                            <span className="product-rating">⭐ 4.5</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="product-card">
+                                    <div className="product-badge discount">خصم %20</div>
+                                    <div className="product-image product-image-2"></div>
+                                    <div className="add-btn" onClick={() => handleAddToCart('product2')}>+</div>
+                                    <div className="product-content">
+                                        <div className="product-store-name">محل نور للتجميل</div>
+                                        <h3 className="product-name">هايلايتر ذهبي</h3>
+                                        <p className="product-desc">لمسة إشراق طبيعية</p>
+                                        <div className="product-footer">
+                                            <span className="product-price-new">95 ج</span>
+                                            <span className="product-rating">⭐ 5.0</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="product-card">
+                                    <div className="product-badge new">جديد</div>
+                                    <div className="product-image product-image-3"></div>
+                                    <div className="add-btn" onClick={() => handleAddToCart('product3')}>+</div>
+                                    <div className="product-content">
+                                        <div className="product-store-name">محل نور للتجميل</div>
+                                        <h3 className="product-name">كريم SPF 30</h3>
+                                        <p className="product-desc">حماية وترطيب</p>
+                                        <div className="product-footer">
+                                            <span className="product-price-new">120 ج</span>
+                                            <span className="product-rating">⭐ 4.5</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="product-card">
+                                    <div className="product-badge bestseller">الأكثر مبيعاً</div>
+                                    <div className="product-image product-image-4"></div>
+                                    <div className="add-btn" onClick={() => handleAddToCart('product4')}>+</div>
+                                    <div className="product-content">
+                                        <div className="product-store-name">محل نور للتجميل</div>
+                                        <h3 className="product-name">روج مات</h3>
+                                        <p className="product-desc">ثبات 12 ساعة</p>
+                                        <div className="product-footer">
+                                            <span className="product-price-new">85 ج</span>
+                                            <span className="product-rating">⭐ 5.0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
 
-                    <div className="view-all-btn">
-                       <button className="btn-view-all" onClick={handleViewAllProducts} disabled={isLoadingProducts}>
-                            {isLoadingProducts ? 'جاري التحميل...' : 'عرض جميع المنتجات'}
-                        </button>
-                    </div>
+                    {/* Show "View All Products" button only when showing limited products */}
+                    {(hasSpecialProducts && !showAllProducts && specialProducts.length > 4) && (
+                        <div className="view-all-btn">
+                            <button className="btn-view-all" onClick={() => {setShowAllProducts(true);}} disabled={isLoadingProducts}>
+                                {isLoadingProducts ? 'جاري التحميل...' : 'عرض جميع المنتجات'}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -395,10 +476,10 @@ function Home() {
                     </div>
                 </div>
 
-                <Footer></Footer>
+                <Footer />
             </div>
         </div>
     );
 }
 
-export default Home;
+export default Home; // Only one export default

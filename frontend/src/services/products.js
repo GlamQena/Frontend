@@ -65,7 +65,7 @@ export const getCategories = async () => {
 // ─────────────────────────────────────────────
 export const getSpecialProducts = async (params = {}) => {
   try {
-    const { limit = 5, status = 'قيد الانتظار', start_date, end_date } = params;
+    const { limit = 4, status = 'قيد الانتظار', start_date, end_date } = params;
     
     // بناء query string
     const queryParams = new URLSearchParams();

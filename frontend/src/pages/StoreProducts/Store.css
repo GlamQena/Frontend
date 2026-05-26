@@ -19,7 +19,7 @@
   padding: 50px 40px;
   border-radius: var(--راديوس-البطاقة);
   background-image: url("../../../public/images/store/store_background.png"); 
-  /* background-repeat: repeat-x;
+  background-repeat: repeat-x;
   /* background-color: var(--تدرج-الازرار); */
   color: white;
   position: relative;
@@ -189,7 +189,7 @@
   justify-content: center;
   cursor: pointer;
   font-size: 1.5rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   z-index: 2;
 }
 

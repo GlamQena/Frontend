@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Store.css";
 import { addToCart } from "../../services/cart";
 import { isUserLogged, responseMessageSetter } from "../../services/authService";
 import { getStoreProducts } from "../../services/stores";
 import { addToWishlist, getCurrentUser, removeFromWishlist } from "../../services/users";
-import { FaSearch } from "react-icons/fa"; 
-import {buildImgSrc} from "../../services/imageUtils";
+import { FaSearch, FaHeart, FaRegHeart } from "react-icons/fa";
+import { buildImgSrc } from "../../services/imageUtils";
 
 const Store = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const Store = () => {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("الكل");
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); 
+  const [searchTerm, setSearchTerm] = useState("");
   const [responseMessage, setResponseMessage] = useState({
     success: false,
     message: "",
@@ -34,11 +34,32 @@ const Store = () => {
     "أخرى",
   ];
 
+  // Helper function to check if product is in wishlist
+  const isProductInWishlist = useCallback((productId, userWishlist) => {
+    if (!userWishlist || !Array.isArray(userWishlist)) return false;
+    
+    // Check different possible wishlist structures
+    return userWishlist.some(item => {
+      // If wishlist contains product objects with _id
+      if (item._id && item._id.toString() === productId.toString()) return true;
+      // If wishlist contains product IDs directly
+      if (item.toString && item.toString() === productId.toString()) return true;
+      // If wishlist contains objects with productId field
+      if (item.productId && item.productId.toString() === productId.toString()) return true;
+      return false;
+    });
+  }, []);
+
+  // Fetch store products
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log("store", storeId);
+        setLoading(true);
+        console.log("Fetching store:", storeId);
+        
         const loggedUser = getCurrentUser();
+        const userWishlist = loggedUser?.wishlist || [];
+        
         const res = await getStoreProducts(storeId);
         const json = await res.json();
         console.log("getStoreProducts data => ", json);
@@ -50,29 +71,33 @@ const Store = () => {
 
         if (json.success) {
           setStore(json.data.store || null);
+          
           if (json.data.products) {
-            setProducts(json.data.products.map((product) => {
-              const addedToWishlist = loggedUser.wishlist.find(w => w.productId === product._id.toString());
-              return {...product, addedToWishlist}
+            // Map products with wishlist status
+            const productsWithWishlist = json.data.products.map((product) => ({
+              ...product,
+              id: product._id,
+              addedToWishlist: isProductInWishlist(product._id, userWishlist)
             }));
-            setFilteredProducts(json.data.products.map((product) => {
-              const addedToWishlist = loggedUser.wishlist.find(w => w.productId === product._id.toString());
-              return {...product, addedToWishlist}
-            }));
+            
+            setProducts(productsWithWishlist);
+            setFilteredProducts(productsWithWishlist);
           }
         }
       } catch (err) {
         console.error("فشل في الاتصال بالبيانات:", err);
+        responseMessageSetter(false, "حدث خطأ في تحميل البيانات", setResponseMessage);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [storeId]);
+  }, [storeId, isProductInWishlist]);
 
+  // Filter products based on category and search
   useEffect(() => {
-    let result = products;
+    let result = [...products];
 
     if (activeCategory !== "الكل") {
       result = result.filter(product => 
@@ -94,81 +119,121 @@ const Store = () => {
     if (!imgArray || imgArray.length === 0) {
       return "https://via.placeholder.com/300?text=No+Image";
     }
-    else{
-      let fixedPath = imgArray[0];
-      if(fixedPath.includes("uploads"))
-        return fixedPath.replace(/\\/g, "/").replace("uploads", "http://127.0.0.1:8080");
-      else
-      return imgArray[0];
-    }
+    
+    let fixedPath = imgArray[0];
+    if (fixedPath.includes("uploads"))
+      return fixedPath.replace(/\\/g, "/").replace("uploads", "http://127.0.0.1:8080");
+    
+    return imgArray[0];
   };
 
-  const addToWishlistHandler = async (index, prod_id) => {
+  // Update product wishlist status in both state arrays
+  const updateProductWishlistStatus = useCallback((productId, status) => {
+    // Update products array
+    setProducts(prevProducts => 
+      prevProducts.map(product => 
+        product._id === productId || product.id === productId
+          ? { ...product, addedToWishlist: status }
+          : product
+      )
+    );
+    
+    // Update filteredProducts array
+    setFilteredProducts(prevFiltered => 
+      prevFiltered.map(product => 
+        product._id === productId || product.id === productId
+          ? { ...product, addedToWishlist: status }
+          : product
+      )
+    );
+  }, []);
+
+  const addToWishlistHandler = async (productId) => {
+    // Check if user is logged in
+    if (!isUserLogged()) {
+      responseMessageSetter(false, "يرجى تسجيل الدخول أولاً", setResponseMessage);
+      return false;
+    }
+
     try {
-      const res = await addToWishlist(prod_id, setResponseMessage);
+      const res = await addToWishlist(productId, setResponseMessage);
       const data = await res.json();
 
       if (!res.ok) {
-        return responseMessageSetter(false, data.message || "خطأ فى الإضافة لقائمة الرغبات", setResponseMessage);
+        responseMessageSetter(false, data.message || "خطأ فى الإضافة لقائمة الرغبات", setResponseMessage);
+        return false;
       }
 
+      // Update localStorage with new user data
       localStorage.setItem("user", JSON.stringify(data.user));
-
-      setProducts((prev) => {
-        const newProducts = [...prev];
-        if (newProducts[index]) newProducts[index].addedToWishlist = true;
-        return newProducts;
-      });
-
-      setFilteredProducts((prev) => {
-        const newProducts = [...prev];
-        if (newProducts[index]) newProducts[index].addedToWishlist = true;
-        return newProducts;
-      });
-
+      
+      // Update UI
+      updateProductWishlistStatus(productId, true);
+      
       responseMessageSetter(true, data.message || "تمت الإضافة إلى قائمة الرغبات بنجاح", setResponseMessage);
+      return true;
     } catch (err) {
-      console.log(err.message);
+      console.error("Add to wishlist error:", err);
       responseMessageSetter(false, "خطأ فى الإضافة لقائمة الرغبات", setResponseMessage);
+      return false;
     }
   };
-  
-  const removeFromWishlistHandler = async (index, prod_id) => {
+
+  const removeFromWishlistHandler = async (productId) => {
+    if (!isUserLogged()) {
+      responseMessageSetter(false, "يرجى تسجيل الدخول أولاً", setResponseMessage);
+      return false;
+    }
+
     try {
-      const res = await removeFromWishlist(prod_id, setResponseMessage);
+      const res = await removeFromWishlist(productId, setResponseMessage);
       const data = await res.json();
 
       if (!res.ok) {
-        return responseMessageSetter(false, data.message || "خطأ فى الإزالة من قائمة الرغبات", setResponseMessage);
+        responseMessageSetter(false, data.message || "خطأ فى الإزالة من قائمة الرغبات", setResponseMessage);
+        return false;
       }
 
+      // Update localStorage with new user data
       localStorage.setItem("user", JSON.stringify(data.user));
-
-      setProducts((prev) => {
-        const newProducts = [...prev];
-        if (newProducts[index]) newProducts[index].addedToWishlist = false;
-        return newProducts;
-      });
-      setFilteredProducts((prev) => {
-        const newProducts = [...prev];
-        if (newProducts[index]) newProducts[index].addedToWishlist = false;
-        return newProducts;
-      });
+      
+      // Update UI
+      updateProductWishlistStatus(productId, false);
+      
       responseMessageSetter(true, data.message || "تمت الإزالة من قائمة الرغبات بنجاح", setResponseMessage);
+      return true;
     } catch (err) {
-      console.log(err.message);
+      console.error("Remove from wishlist error:", err);
       responseMessageSetter(false, "خطأ فى الإزالة من قائمة الرغبات", setResponseMessage);
+      return false;
     }
   };
 
-  const handleAddToCart = async (productId) => {
+  const handleToggleWishlist = async (e, productId) => {
+    e.stopPropagation(); // Prevent card click
+    
+    // Find current product status
+    const product = products.find(p => p._id === productId || p.id === productId);
+    if (!product) return;
+
+    if (product.addedToWishlist) {
+      await removeFromWishlistHandler(productId);
+    } else {
+      await addToWishlistHandler(productId);
+    }
+  };
+
+  const handleAddToCart = async (e, productId) => {
+    e.stopPropagation(); // Prevent card click
+    
     try {
       const res = await addToCart(productId, setResponseMessage);
       const json = await res.json();
 
       if (!res.ok) {
         console.error("addToCart error:", json.message);
-        return responseMessageSetter(false, json.message || "خطأ فى الإضافة للكارت", setResponseMessage);
+        responseMessageSetter(false, json.message || "خطأ فى الإضافة للعربة", setResponseMessage);
+        return;
       }
 
       responseMessageSetter(true, json.message || "تمت الإضافة بنجاح ✓", setResponseMessage);
@@ -178,9 +243,19 @@ const Store = () => {
       }, 3000);
     } catch (err) {
       console.error("addToCart error:", err);
-      responseMessageSetter(false, err.message || "خطأ فى الإضافة للكارت", setResponseMessage);
+      responseMessageSetter(false, err.message || "خطأ فى الإضافة للعربة", setResponseMessage);
     }
   };
+
+  // Auto-clear response message after 3 seconds
+  useEffect(() => {
+    if (responseMessage.message) {
+      const timer = setTimeout(() => {
+        setResponseMessage({ success: false, message: "" });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [responseMessage.message]);
 
   if (loading) {
     return (
@@ -217,7 +292,6 @@ const Store = () => {
       )}
 
       <div className="category-filter">
-        
         <div style={{ display: "flex", gap: "12px", overflowX: "auto", flex: "1" }}>
           {categories.map((cat) => (
             <button
@@ -232,7 +306,7 @@ const Store = () => {
 
         <div style={{ position: "relative", minWidth: "250px" }}>
           <input
-          className="searchbox"
+            className="searchbox"
             type="text"
             placeholder="بحث عن منتج ..."
             value={searchTerm}
@@ -264,19 +338,18 @@ const Store = () => {
             pointerEvents: "none"
           }} />
         </div>
-
       </div>
 
       {/* Products Grid */}
       <div className="products-grid">
         {filteredProducts.length > 0 ? (
-          filteredProducts.map((product, index) => {
+          filteredProducts.map((product) => {
             const isProductActive = product.isActive !== false;
+            const productId = product._id || product.id;
 
             return (
-              <div key={product._id} className="product-card" onClick={() => navigate(`/products/${product._id}`)}>
+              <div key={productId} className="product-card" onClick={() => navigate(`/products/${productId}`)}>
                 <div className="image-wrapper">
-                  
                   <span className={`discount-badge ${isProductActive ? "in-stock" : "out-of-stock"}`}>
                     {isProductActive ? "متوفر" : "نفذ"}
                   </span>
@@ -291,18 +364,11 @@ const Store = () => {
                       }
                     }}
                   />
+                  
                   <button 
                     className="wishlist-btn" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!isUserLogged()) {
-                        responseMessageSetter(false, "يرجى تسجيل الدخول أولاً", setResponseMessage);
-                        return;
-                      }
-                      product.addedToWishlist 
-                        ? removeFromWishlistHandler(index, product._id) 
-                        : addToWishlistHandler(index, product._id);
-                    }}
+                    onClick={(e) => handleToggleWishlist(e, productId)}
+                    aria-label={product.addedToWishlist ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
                   >
                     {isUserLogged() && product.addedToWishlist ? "❤️" : "🤍"}
                   </button>
@@ -311,23 +377,15 @@ const Store = () => {
                 <div className="product-info">
                   <h4>{product.name}</h4>
                   
-                  {/* قسم الـ stock-status الأصلي من الـ CSS الخاص بكِ */}
-                  {/* <div className="stock-status">
-                    <span className={isProductActive ? "in-stock" : "out-of-stock"}>
-                      {isProductActive ? "● متوفر" : "● نفذت الكمية"}
-                    </span>
-                  </div> */}
-                  <div className="stats" style= {{"display": "flex", "alignItems":"center", "gap": "0.12em"}}>
+                  <div className="stats" style={{ display: "flex", alignItems: "center", gap: "0.5em", justifyContent: "space-between" }}>
                     <p className="rate">{product.average_rating ? Number(product.average_rating).toFixed(2) : '0.00'} ⭐</p>
                     <p className="price">{product.price.toLocaleString()} ج.م</p>
                   </div>
                   
                   <button 
                     className="add-to-cart-btn" 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      handleAddToCart(product._id);
-                    }}
+                    onClick={(e) => handleAddToCart(e, productId)}
+                    disabled={!isProductActive}
                   >
                     🛒 أضف للسلة
                   </button>
