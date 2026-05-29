@@ -191,7 +191,7 @@ const Register = () => {
   };
 
   return (
-    <div className="container">
+    <div className="register-container">
       <div className="role-selection">
         <button
           className={`role-btn client ${selectedRole === "client" ? "active" : ""}`}

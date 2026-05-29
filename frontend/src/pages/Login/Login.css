@@ -1,19 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
 
-.container  {
+.login-container  {
   max-width: var(--عرض-البطاقة);
   transition: all 0.4s ease;
   direction: rtl;
-  background: var(--خلفية-البطاقة);
+  /* background: var(--خلفية-البطاقة); */
   border-radius: 0 0 28px 28px;
   color: var(--نص-رئيسي);
   overflow: hidden;
   margin: var(--مارجن-البطاقة);
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .login-header { 
-  background: var(--خلفية-البطاقة);
+  /* background: var(--خلفية-البطاقة); */
   padding: 30px 25px;
   color: white;
   display: flex;

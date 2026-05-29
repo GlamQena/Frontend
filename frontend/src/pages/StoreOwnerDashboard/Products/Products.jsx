@@ -212,7 +212,7 @@ function ProductCard({ product, onEdit, onToggleStatus, onDelete, updating }) {
   const imageSrc = buildImgSrc(product.images?.[0]);
   
   return (
-    <div className="product-card" style={{ opacity: product.is_active === false ? 0.6 : 1 }}>
+    <div className="owner-product-card" style={{ opacity: product.is_active === false ? 0.6 : 1 }}>
       <div className="product-img">
         {imageSrc ? (
           <img src={imageSrc} alt={product.name} className="product-img-real" />
@@ -376,6 +376,17 @@ function AddProductForm({ categories, onAdd, submitting, onBack }) {
     }
     
     return true;
+  };
+
+  const removeImage = (indexToRemove) => {
+    setForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, idx) => idx !== indexToRemove)
+    }));
+    setPreviews(prev => {
+      URL.revokeObjectURL(prev[indexToRemove]);
+      return prev.filter((_, idx) => idx !== indexToRemove);
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -568,7 +579,18 @@ function AddProductForm({ categories, onAdd, submitting, onBack }) {
             <input ref={fileRef} type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleImages} />
             {previews.length > 0 && (
               <div className="image-preview">
-                {previews.map((src, i) => <img key={i} src={src} alt={`معاينة ${i + 1}`} />)}
+                {previews.map((src, i) => (
+                  <div key={i} className="preview-item">
+                    <img src={src} alt={`معاينة ${i + 1}`} />
+                    <button 
+                      type="button" 
+                      className="remove-image-btn" 
+                      onClick={() => removeImage(i)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -677,6 +699,18 @@ function EditProductForm({ selectedProduct, categories, onUpdate, onDelete, subm
       return false;
     }
     return true;
+  };
+
+  const removeImage = (indexToRemove) => {
+    setForm(prev => ({
+      ...prev,
+      images: prev.images.filter((_, idx) => idx !== indexToRemove)
+    }));
+    
+    setImagePreviews(prev => {
+      URL.revokeObjectURL(prev[indexToRemove]);
+      return prev.filter((_, idx) => idx !== indexToRemove);
+    });
   };
 
   const handleSubmit = async () => {
@@ -823,24 +857,21 @@ function EditProductForm({ selectedProduct, categories, onUpdate, onDelete, subm
         <input ref={fileRef} type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleImages} />
         
         <div className="images-grid">
-          {existingImages.length > 0 && (
-            <div className="images-section">
-              <p className="images-label">الصور الحالية ({existingImages.length}/7):</p>
-              <div className="image-preview">
-                {existingImages.map((img, i) => (
-                  <img key={i} src={buildImgSrc(img)} alt={`صورة ${i + 1}`} />
-                ))}
+          { imagePreviews.length > 0 && (
+          <div className="image-preview">
+            {imagePreviews.map((src, i) => (
+              <div key={i} className="preview-item">
+                <img src={src} alt={`معاينة ${i + 1}`} />
+                <button 
+                  type="button" 
+                  className="remove-image-btn" 
+                  onClick={() => removeImage(i)}
+                >
+                  ✕
+                </button>
               </div>
-            </div>
-          )}
-          
-          {imagePreviews.length > 0 && (
-            <div className="images-section">
-              <p className="images-label">الصور الجديدة ({imagePreviews.length}/7):</p>
-              <div className="image-preview">
-                {imagePreviews.map((src, i) => <img key={i} src={src} alt={`معاينة جديدة ${i + 1}`} />)}
-              </div>
-            </div>
+            ))}
+          </div>
           )}
         </div>
       </div>

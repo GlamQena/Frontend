@@ -1,170 +1,285 @@
 /* ══════════════════════════════════════════
-   OrdersList.css
-   All colors use CSS variables → auto dark/light
+   OrdersList.css - Compact & Clean
    ══════════════════════════════════════════ */
+
 
 .ol-root {
   display: flex;
   flex-direction: column;
   font-family: Tajawal, sans-serif;
   direction: rtl;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+
+}
+
+/* ── Page Header ─────────────────────────── */
+.Page-Header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+
+}
+
+.Page-Header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--نص-رئيسي);
+  margin: 0;
+}
+
+/* ── Search ──────────────────────────────── */
+.so-search-wrap {
+  position: relative;
+  width: 240px;
+}
+
+.so-search {
+  width: 100%;
+  padding: 8px 36px 8px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--حد-واضح);
+  background: var(--خلفية-2);
+  color: var(--نص-رئيسي);
+  font-family: Tajawal, sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.so-search::placeholder {
+  color: var(--نص-ثانوي);
+}
+
+.so-search:focus {
+  border-color: var(--بنفسجي);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  background: var(--خلفية-3);
+}
+
+.so-search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  pointer-events: none;
+  color: var(--نص-خافت);
 }
 
 /* ── Filters ─────────────────────────────── */
 .ol-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 32px;
-  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 4px 0;
 }
 
 .ol-filter-btn {
   all: unset;
   cursor: pointer;
-  height: 40px;
-  padding: 0 20px;
+  height: 32px;
+  padding: 0 14px;
   border-radius: 9999px;
-  border: 1px solid var(--حد-واضح);
+  border: 1px solid var(--حد-خافت);
   background: transparent;
   color: var(--نص-ثانوي);
   font-family: Tajawal, sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
-  transition:
-    background 0.22s ease,
-    color 0.22s ease,
-    border-color 0.22s ease,
-    transform 0.22s ease,
-    box-shadow 0.22s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-filter-btn:hover {
   background: var(--بنفسجي-خافت);
   color: var(--بنفسجي);
   border-color: var(--بنفسجي);
-  transform: scale(1.1);
-  box-shadow: var(--ظل-الزر);
+   box-shadow: 0 2px 8px var(--ظل-الأيقونة);
+  scale: 1.1;
+  transform: translateY(-2px);
 }
 
 .ol-filter-btn--active {
   background: var(--تدرج-الأزرار);
   color: #fff;
   border-color: transparent;
-  font-weight: 700;
-  box-shadow: var(--ظل-الزر);
-}
-
-.ol-filter-btn--active:hover {
-  background: var(--تدرج-الأزرار);
-  color: #fff;
-  border-color: transparent;
-  font-weight: 700;
-  box-shadow: var(--ظل-الزر);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.25);
 }
 
 /* ── List ────────────────────────────────── */
 .ol-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
 }
 
 /* ── Card ────────────────────────────────── */
 .ol-card {
-  border-radius: 48px;
+  border-radius: 30px;
   background: var(--خلفية-البطاقة);
-  box-shadow: var(--ظل-البطاقة);
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--حد-خافت);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+      display: flex;
+    flex-direction: column;
+    gap: 20px;
+  
 }
+
+.ol-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
 /* ── Card Header ─────────────────────────── */
 .ol-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--بنفسجي-خافت);
-  padding: 18px 28px;
-  border-bottom: none;
-  min-height: 72px;
-  border-radius: 48px;
-  margin: 10px 5px;
+  padding: 12px 16px;
+  background: var(--خلفية-2);
+  border-bottom: 1px solid var(--حد-خافت);
+  gap: 8px;
+  flex-wrap: wrap;
+    font-weight: 800;
+  font-size: 14px;
 }
 
-/* Status badge */
+/* Status badge - compact */
 .ol-status {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 6px 16px;
+  gap: 5px;
+  padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   border: 1px solid transparent;
   white-space: nowrap;
+  max-width: 150px;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-dot {
-  width: 7px;
-  height: 7px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
+/* Status colors */
 .ol-status--pending {
-  background: rgba(212, 175, 55, 0.12);
+  background: rgba(212, 175, 55, 0.1);
   border-color: var(--ذهبي);
   color: var(--ذهبي);
 }
-.ol-status--pending .ol-dot {
-  background: var(--ذهبي);
-}
+.ol-status--pending .ol-dot { background: var(--ذهبي); }
 
 .ol-status--preparing {
   background: rgba(168, 85, 247, 0.1);
   border-color: var(--بنفسجي);
   color: var(--بنفسجي);
 }
-.ol-status--preparing .ol-dot {
-  background: var(--بنفسجي);
-}
+.ol-status--preparing .ol-dot { background: var(--بنفسجي); }
 
 .ol-status--shipping {
   background: rgba(2, 132, 199, 0.1);
   border-color: #0284c7;
   color: #0284c7;
 }
-.ol-status--shipping .ol-dot {
-  background: #0284c7;
-}
+.ol-status--shipping .ol-dot { background: #0284c7; }
 
 .ol-status--ready {
-  background:  #e610c61a;
-  border-color:  #e610c6;
+  background: rgba(230, 16, 198, 0.1);
+  border-color: #e610c6;
   color: #e610c6;
 }
-.ol-status--ready .ol-dot {
-  background: #e610c6;
-}
+.ol-status--ready .ol-dot { background: #e610c6; }
 
 .ol-status--delivered {
   background: rgba(34, 197, 94, 0.1);
   border-color: var(--أخضر-نجاح);
   color: var(--أخضر-نجاح);
 }
-.ol-status--delivered .ol-dot {
-  background: var(--أخضر-نجاح);
-}
+.ol-status--delivered .ol-dot { background: var(--أخضر-نجاح); }
 
 .ol-status--cancelled {
   background: rgba(239, 68, 68, 0.1);
   border-color: var(--أحمر-خطأ);
   color: var(--أحمر-خطأ);
 }
-.ol-status--cancelled .ol-dot {
-  background: var(--أحمر-خطأ);
+.ol-status--cancelled .ol-dot { background: var(--أحمر-خطأ); }
+
+/* Payment badge - compact */
+
+
+.ol-payment-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+    font-weight: 800;
+  font-size: 14px;
+}
+
+
+.ol-payment--pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+}
+.ol-payment--pending .bedge-svg path {
+  fill: #f59e0b;
+}
+
+.ol-payment--processing {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+}
+.ol-payment--processing .bedge-svg path {
+  fill: #3b82f6;
+}
+
+.ol-payment--completed {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border: 1px solid #22c55e;
+}
+.ol-payment--completed .bedge-svg path {
+  fill: #22c55e;
+}
+
+.ol-payment--failed {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+.ol-payment--failed .bedge-svg path {
+  fill: #ef4444;
+}
+
+.ol-payment--refunded {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border: 1px solid #a855f7;
+}
+
+.ol-payment--refunded .bedge-svg path {
+  fill: #a855f7;
 }
 
 /* Order ID + date */
@@ -172,19 +287,21 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 0;
+  
 }
 
 .ol-order-id {
   font-weight: 700;
-  font-size: 18px;
+  font-size: 15px;
   color: var(--بنفسجي);
+  font-weight: 800;
 }
 
 .ol-order-date {
   font-size: 13px;
-  font-weight: 400;
   color: var(--نص-خافت);
+  font-weight: 800;
 }
 
 /* ── Card Body ───────────────────────────── */
@@ -192,19 +309,32 @@
   padding: 0;
 }
 
-/* CLIENT: items */
+/* CLIENT: items - compact */
 .ol-items {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 28px;
+    display: flex;
+    flex-direction: column;
+    padding: 0 8px;
 }
 
 .ol-item {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 18px 0;
+  gap: 30px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--حد-خافت);
+  transition: all 0.2s ease;
+  padding: 10px 16px;
+  border-radius: 12px;
+
+
+}
+.ol-item:hover {
+ /* background: var(--خلفية-الهيدر); */
+  transform: translateY(-2px);
+  transform: translateX(-2px);
+  box-shadow: var(--ظل-الأيقونة);
+  scale: 1.02;
+  cursor: pointer;
 }
 
 .ol-item:last-child {
@@ -212,94 +342,118 @@
 }
 
 .ol-item-img {
-  width: 96px;
-  height: 96px;
-  border-radius: 24px;
-  background: var(--خلفية-2);
+  width: 86px;
+  height: 86px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: visible;
   flex-shrink: 0;
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
+.ol-item-img:hover {
+  scale: 1.1;
+  transform: translateY(-2px);
+
+}
+
 
 .ol-item-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 18px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+
 }
 
+
 .ol-img-fb {
-  font-size: 28px;
+  font-size: 20px;
 }
 
 .ol-item-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
   text-align: right;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-item-name {
-  font-weight: 700;
-  font-size: 16px;
+  font-weight: 600;
+  font-size: 14px;
   color: var(--نص-رئيسي);
   margin: 0;
+    font-weight: 800;
+  font-size: 16px;
 }
+
 .ol-item-store {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--ذهبي);
   font-weight: 500;
   margin: 0;
-}
-.ol-item-qty {
+    font-weight: 800;
   font-size: 14px;
+}
+
+.ol-item-qty {
+  font-size: 12px;
   color: var(--نص-خافت);
-  font-weight: 400;
   margin: 0;
+    font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-item-price {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--بنفسجي);
   flex-shrink: 0;
+    font-weight: 800;
+  font-size: 18px;
 }
 
-/* STORE: customer info */
+/* STORE: customer info - compact */
 .ol-customer {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
-  padding: 20px 28px;
+  flex-direction:column;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 10px 16px;
+  background: var(--خلفية-البطاقة);
+  min-height: 100px;
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .ol-customer-row {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+  gap: 4px;
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .ol-customer-label {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--نص-ثانوي);
+  font-weight: 800;
+  font-size: 14px;
 }
 
 .ol-customer-val {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--نص-رئيسي);
   display: flex;
   align-items: center;
-  gap: 5px;
-}
-
-.ol-mono {
-  font-family: monospace;
+  gap: 4px;
+  font-weight: 800;
+  font-size: 16px;
 }
 
 /* ── Card Footer ─────────────────────────── */
@@ -307,49 +461,45 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--حد-واضح);
-  padding: 20px 28px;
+  padding: 10px 16px;
+  background: var(--خلفية-2);
   border-top: 1px solid var(--حد-خافت);
-  gap: 16px;
+  gap: 8px;
   flex-wrap: wrap;
-  min-height: 80px;
-  border-radius: 48px;
-  margin: 10px 5px;
+  min-height: 60px;
 }
 
-/* Buttons */
+/* Buttons - compact */
 .ol-foot-btns {
   display: flex;
-  gap: 12px;
+  gap: 6px;
   align-items: center;
   flex-wrap: wrap;
+  
 }
 
 .ol-btn {
   all: unset;
-  box-sizing: border-box;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  padding: 0 22px;
+  height: 30px;
+  padding: 0 14px;
   border-radius: 9999px;
   font-family: Tajawal, sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  transition:
-    background 0.22s ease,
-    color 0.22s ease,
-    border-color 0.22s ease,
-    transform 0.22s ease,
-    box-shadow 0.22s ease;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
   white-space: nowrap;
-  text-decoration: none;
+    font-weight: 800;
+  font-size: 14px;
 }
+
 .ol-btn:hover {
-  transform: scale(1.1);
-  box-shadow: var(--ظل-الزر);
+  transform: translateY(-1px);
+
+
 }
 
 .ol-btn--details {
@@ -362,19 +512,23 @@
   background: var(--بنفسجي-خافت);
   color: var(--بنفسجي);
   border-color: var(--بنفسجي);
+    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
+  scale: 1.1;
+  transform: translateY(-2px);
 }
 
 .ol-btn--cancel {
   background: rgba(239, 68, 68, 0.08);
   color: var(--أحمر-خطأ);
   border: 1px solid rgba(239, 68, 68, 0.2);
-  box-shadow: none;
 }
 
 .ol-btn--cancel:hover:not(:disabled) {
   background: var(--أحمر-خطأ);
   color: #fff;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); /* 👈 red glow */
+    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
+  scale: 1.1;
+  transform: translateY(-2px);
 }
 
 .ol-btn--cancel:disabled {
@@ -391,41 +545,41 @@
 .ol-btn--reorder:hover {
   background: var(--أخضر-نجاح);
   color: #fff;
-  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4); /* 👈 green glow */
+    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
+  scale: 1.1;
+  transform: translateY(-2px);
 }
-/* Total block */
+
+/* Total block - compact */
 .ol-total-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-.ol-prod-count {
-  font-size: 13px;
-  color: var(--نص-خافت);
-  font-weight: 400;
-}
-
-.ol-total-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.ol-total-label {
-  font-size: 14px;
+.ol-prod-count {
+  font-size: 11px;
   color: var(--نص-خافت);
-  font-weight: 400;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.ol-total-label {
+  font-size: 11px;
+  color: var(--نص-خافت);
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .ol-total-val {
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--نص-رئيسي);
+  font-weight: 800;
+  font-size: 20px;
 }
 
-/* ── Status Dropdown (store only) ────────── */
+/* ── Status Dropdown (compact) ────────────── */
 .sd-wrap {
   position: relative;
   display: inline-block;
@@ -436,22 +590,22 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px 8px 12px;
+  gap: 4px;
+  padding: 4px 10px 4px 8px;
   border-radius: 9999px;
   border: 1px solid;
   font-family: Tajawal, sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   background: transparent;
   transition: opacity 0.2s;
   white-space: nowrap;
-  /* color & borderColor set inline from JS */
 }
 
 .sd-trigger:hover {
   opacity: 0.8;
 }
+
 .sd-trigger--loading {
   opacity: 0.5;
   cursor: wait;
@@ -459,57 +613,39 @@
 
 .sd-trigger--locked {
   opacity: 0.8;
-  cursor:default;
+  cursor: default;
 }
 
-.sd-trigger--locked:hover {
-  filter: brightness(1.05);
-}
+.sd-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
 
-.sd-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.sd-arrow { transition: transform 0.2s; flex-shrink: 0; width: 10px; height: 10px; }
+.sd-arrow--open { transform: rotate(180deg); }
 
-.sd-arrow {
-  transition: transform 0.2s;
-  flex-shrink: 0;
-}
-
-.sd-arrow--open {
-  transform: rotate(180deg);
-}
 .sd-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 4px);
   right: 0;
   z-index: 100;
-
-  min-width: 200px;
-  max-height: 250px;
-  overflow: visible;
-
+  min-width: 160px;
   background: var(--خلفية-البطاقة);
   border: 1px solid var(--حد-واضح);
-  border-radius: 20px;
-  padding: 12px 8px;
-
+  border-radius: 12px;
+  padding: 8px 6px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  
 }
+
 .sd-menu-title {
-  font-family: Tajawal, sans-serif;
-  font-size: 13px;
-  font-weight: 400;
   color: var(--نص-خافت);
   text-align: right;
-  padding: 4px 12px 8px;
+  padding: 2px 10px 6px;
   margin: 0;
   border-bottom: 1px solid var(--حد-خافت);
-  margin-bottom: 4px;
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .sd-option {
@@ -517,206 +653,95 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px 10px 48px;
-  border-radius: 12px;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
   font-family: Tajawal, sans-serif;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: right;
   transition: background 0.15s;
-  direction: rtl;
 }
 
-.sd-option:hover {
-  background: var(--خلفية-2);
-}
+.sd-option:hover { background: var(--خلفية-2); }
+.sd-option--active { background: var(--بنفسجي-خافت); }
 
-.sd-option--active {
-  background: var(--بنفسجي-خافت);
-}
-
-/* ── Empty ───────────────────────────────── */
+/* ── Empty State ─────────────────────────── */
 .ol-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80px 24px;
+  padding: 40px 16px;
   color: var(--نص-خافت);
-  gap: 12px;
+  gap: 8px;
 }
 
-.ol-empty-icon {
-  font-size: 48px;
-}
-.ol-empty p {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
-}
-
-.so-search-wrap {
-  position: relative;
-  width: 320px;
-}
-
-.so-search::placeholder {
-  color: var(--نص-ثانوي);
-}
-
-.so-search:focus {
-  border-color: var(--بنفسجي);
-  box-shadow: var(--ظل-تركيز-الحقل);
-  background: var(--خلفية-3); /* ✅ darker on focus, works in both modes */
-}
-
-.so-search-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  pointer-events: none;
-  color: var(--نص-خافت);
-}
+.ol-empty-icon { font-size: 32px; }
+.ol-empty p { font-size: 14px; font-weight: 500; margin: 0; }
 
 /* ── Responsive ──────────────────────────── */
 @media (max-width: 768px) {
+  .ol-root { padding: 0 8px; }
+  
+  .Page-Header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .Page-Header h1 { font-size: 1.2rem; }
+  
+  .so-search-wrap { width: 100%; }
+  
   .ol-filters {
-    justify-content: flex-start;
+    gap: 4px;
+    padding: 2px 0;
   }
-
-  .so-search-wrap input.so-search {
-    max-width: 300px;
+  
+  .ol-filter-btn {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11px;
   }
-  .ol-card {
-    border-radius: 28px;
-  }
-
+  
   .ol-card-header {
-    padding: 14px 18px;
-    min-height: 60px;
+    padding: 8px 12px;
   }
+  .ol-item:hover {
+
+ scale: 1.05;
+
+
+}
+ 
+  .ol-item-img { width: 44px; height: 44px; border-radius: 8px; }
+  .ol-item-name { font-size: 12px; }
+  
+  .ol-customer { padding: 8px 12px; }
   .ol-card-footer {
-    padding: 14px 18px;
+    padding: 8px 12px;
     flex-direction: column;
     align-items: flex-start;
   }
-
-  .ol-items {
-    padding: 8px 18px;
-  }
-  .ol-customer {
-    padding: 14px 18px;
-  }
-
-  .ol-item {
-    gap: 12px;
-  }
-  .ol-item-img {
-    width: 72px;
-    height: 72px;
-    border-radius: 16px;
-  }
-
-  .ol-foot-btns {
-    width: 100%;
-  }
+  
+  .ol-foot-btns { width: 100%; }
   .ol-btn {
     flex: 1;
     justify-content: center;
+    height: 28px;
+    font-size: 11px;
+    padding: 0 10px;
   }
+  
   .ol-total-block {
-    align-items: flex-start;
-  }
-  .so-search-wrap {
     width: 100%;
+    justify-content: space-between;
   }
 }
-.ol-header-statuses {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+
+@media (max-width: 480px) {
+  .ol-root { padding: 0 4px; }
+  .ol-card { border-radius: 12px; }
+  .ol-card-header { flex-direction: column; align-items: stretch; gap: 4px; }
+  .ol-order-meta { align-items: flex-start; }
 }
-
-/* PAYMENT BADGES */
-
-.ol-payment--pending {
-  background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
-  border: 1px solid #f59e0b;
-    border-radius: 29px;
-    padding: 5px;
-}
-
-.ol-payment--pending .bedge-svg path {
-  fill: #f59e0b;
-}
-
-.ol-payment--processing {
-  background: rgba(59, 130, 246, 0.12);
-  color: #3b82f6;
-  border: 1px solid #3b82f6;
-    border-radius: 29px;
-    padding: 5px;
-}
-
-.ol-payment--processing .bedge-svg path {
-  fill: #3b82f6;
-}
-
-.ol-payment--completed {
-  background: rgba(34, 197, 94, 0.12);
-  color: #22c55e;
-  border: 1px solid #22c55e;
-    border-radius: 29px;
-    padding: 5px;
-}
-.ol-payment--completed .bedge-svg path {
-  fill: #22c55e;
-}
-
-.ol-payment--failed {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-  border: 1px solid #ef4444;
-    border-radius: 29px;
-    padding: 5px;
-}
-.ol-payment--failed .bedge-svg path {
-  fill: #ef4444;
-}
-
-.ol-payment--refunded {
-  background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
-  border: 1px solid #a855f7;
-    border-radius: 29px;
-    padding: 5px;
-}
-.ol-payment--refunded .bedge-svg path {
-  fill: #a855f7;
-}
-.ol-payment-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-}
-/* PAYMENT BUTTON */
-
-
-
-
-.ol-btn--pay {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: white;
-}
-
-.ol-btn--pay:hover {
-  transform: translateY(-1px);
-}
-
-

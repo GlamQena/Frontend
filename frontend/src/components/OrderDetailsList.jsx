@@ -83,10 +83,10 @@ const CheckCircleIcon = () => (
 );
 
 const MoneyIcon = () => (
-  <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+  <svg width="22" height="16" viewBox="0 0 22 16" className="" fill="none">
     <path
       d="M13 9C12.1667 9 11.4583 8.70833 10.875 8.125C10.2917 7.54167 10 6.83333 10 6C10 5.16667 10.2917 4.45833 10.875 3.875C11.4583 3.29167 12.1667 3 13 3C13.8333 3 14.5417 3.29167 15.125 3.875C15.7083 4.45833 16 5.16667 16 6C16 6.83333 15.7083 7.54167 15.125 8.125C14.5417 8.70833 13.8333 9 13 9ZM6 12C5.45 12 4.97917 11.8042 4.5875 11.4125C4.19583 11.0208 4 10.55 4 10V2C4 1.45 4.19583 0.979167 4.5875 0.5875C4.97917 0.195833 5.45 0 6 0H20C20.55 0 21.0208 0.195833 21.4125 0.5875C21.8042 0.979167 22 1.45 22 2V10C22 10.55 21.8042 11.0208 21.4125 11.4125C21.0208 11.8042 20.55 12 20 12H6ZM8 10H18C18 9.45 18.1958 8.97917 18.5875 8.5875C18.9792 8.19583 19.45 8 20 8V4C19.45 4 18.9792 3.80417 18.5875 3.4125C18.1958 3.02083 18 2.55 18 2H8C8 2.55 7.80417 3.02083 7.4125 3.4125C7.02083 3.80417 6.55 4 6 4V8C6.55 8 7.02083 8.19583 7.4125 8.5875C7.80417 8.97917 8 9.45 8 10ZM19 16H2C1.45 16 0.979167 15.8042 0.5875 15.4125C0.195833 15.0208 0 14.55 0 14V3H2V14H19V16ZM6 10V2V10Z"
-      fill="#A855F7"
+      fill="currentColor"
     />
   </svg>
 );
@@ -214,7 +214,6 @@ const RatingStar = ({ filled, onClick }) => (
 );
 
 function ReviewModal({ product, orderId, storeOwnerId, onClose, onSuccess }) {
-  
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
@@ -327,10 +326,55 @@ function ProductsList({
     if (!imgPath) return null;
     return imgPath.replace(/\\/g, "//").replace("uploads", api);
   };
-  const totalProducts = order.products.reduce(
-    (acc, s) => acc + s.products.length,
-    0,
-  );
+  const navigate = useNavigate();
+
+  // detect response type
+  const isStoreOrder = !!order.store_products;
+
+  // source arrays
+  const clientProducts = order.products || [];
+  const storeProducts = order.store_products || [];
+
+  // total count
+  const totalProducts = isStoreOrder
+    ? storeProducts.length
+    : clientProducts.reduce((acc, store) => acc + store.products.length, 0);
+
+  // normalize all products into ONE shape
+  const normalizedProducts = isStoreOrder
+    ? storeProducts.map((prod) => ({
+        id: prod.product_id?._id || prod.product_id,
+        name: prod.product_name,
+        quantity: prod.quantity,
+        price: prod.subtotal,
+        image: prod.images?.[0],
+        storeName: null,
+        raw: prod,
+        hasReviewed: prod.hasReviewed,
+        storeOwnerId: null,
+      }))
+    : clientProducts.flatMap((store) =>
+        store.products.map((prod) => {
+          const realProdId =
+            typeof prod.prod_id === "object" ? prod.prod_id._id : prod.prod_id;
+
+          return {
+            id: realProdId,
+            name: prod.name,
+            quantity: prod.quantity,
+            price: prod.subtotal_price,
+            image: prod.prod_id?.images?.[0],
+            storeName: store.owner_store_id?.store_name || "—",
+            raw: prod,
+
+            hasReviewed:
+              prod?.hasReviewed === true ||
+              ratedProducts?.includes(realProdId?.toString()),
+
+            storeOwnerId: store.owner_store_id?._id || store.owner_store_id,
+          };
+        }),
+      );
 
   return (
     <div className="od-products-card">
@@ -339,83 +383,73 @@ function ProductsList({
           المنتجات المشتراة ({totalProducts})
         </span>
       </div>
+
       <div className="od-products-list">
-        {order.products?.flatMap((store) =>
-          store.products.map((prod) => {
-            const imgSrc = buildImgSrc(prod.prod_id?.images?.[0]);
-            const isDelivered = normalizedStatus === "delivered";
-            const realProdId =
-              prod.prod_id && typeof prod.prod_id === "object"
-                ? prod.prod_id._id
-                : prod.prod_id;
+        {normalizedProducts.map((prod, idx) => {
+          const imgSrc = buildImgSrc(prod.image);
 
-            if (!realProdId) return null;
+          const isDelivered = normalizedStatus === "delivered";
 
-            const hasReviewed =
-              prod?.hasReviewed === true ||
-              ratedProducts.includes(realProdId.toString());
-
-            console.log(
-              "REAL PRODUCT ID =>",
-              realProdId.toString(),
-              "ratedProducts =>",
-              ratedProducts,
-              "hasReviewed =>",
-              hasReviewed,
-            );
-            return (
-              <div key={prod._id} className="od-product-item">
-                <div className="od-product-left">
-                  <div className="od-product-img">
-                    {imgSrc ? (
-                      <img
-                        src={imgSrc}
-                        alt={prod.name}
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.style.display = "none";
-                          e.target.parentElement.innerHTML =
-                            "<span class='od-img-placeholder'>🧴</span>";
-                        }}
-                      />
-                    ) : (
-                      <div className="od-img-placeholder">🛍️</div>
-                    )}
-                  </div>
-                  <div className="od-product-info">
-                    <p className="od-prod-name">{prod.name}</p>
-                    <p className="od-prod-store">
-                      {store.owner_store_id?.store_name || "—"}
-                    </p>
-                    <p className="od-prod-qty">الكمية: {prod.quantity}</p>
-                  </div>
-                </div>
-                <div className="od-product-right">
-                  <span className="od-prod-price">
-                    {prod.subtotal_price} ج.م
-                  </span>
-                  {isDelivered && (
-                    <button
-                      className={`od-review-btn ${hasReviewed ? "od-review-btn--done" : ""}`}
-                      onClick={() =>
-                        !hasReviewed &&
-                        setReview({
-                          prod,
-                          storeOwnerId:
-                            store.owner_store_id?._id || store.owner_store_id,
-                        })
-                      }
-                      disabled={hasReviewed}
-                    >
-                      <StarIcon />
-                      {hasReviewed ? "تم التقييم ✓" : "تقييم المنتج"}
-                    </button>
+          return (
+            <div
+              key={prod.id || idx}
+              className="od-product-item"
+              onClick={() => navigate(`/products/${prod.id}`)}
+            >
+              <div className="od-product-left">
+                <div className="od-product-img">
+                  {imgSrc ? (
+                    <img
+                      src={imgSrc}
+                      alt={prod.name}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.parentElement.innerHTML =
+                          "<span class='od-img-placeholder'>🧴</span>";
+                      }}
+                    />
+                  ) : (
+                    <div className="od-img-placeholder">🛍️</div>
                   )}
                 </div>
+
+                <div className="od-product-info">
+                  <p className="od-prod-name">{prod.name}</p>
+
+                  {prod.storeName && (
+                    <p className="od-prod-store">{prod.storeName}</p>
+                  )}
+
+                  <p className="od-prod-qty">الكمية: {prod.quantity}</p>
+                </div>
               </div>
-            );
-          }),
-        )}
+
+              <div className="od-product-right">
+                <span className="od-prod-price">{prod.price} ج.م</span>
+
+                {!isStoreOrder && isDelivered && showReviewBtn && (
+                  <button
+                    className={`od-review-btn ${prod.hasReviewed ? "od-review-btn--done" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      !prod.hasReviewed &&
+                        setReview?.({
+                          prod: prod.raw,
+                          storeOwnerId: prod.storeOwnerId,
+                        });
+                    }}
+                    disabled={prod.hasReviewed}
+                  >
+                    <StarIcon />
+
+                    {prod.hasReviewed ? "تم التقييم ✓" : "تقييم المنتج"}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -451,7 +485,13 @@ function ClientOrderView({
         <div className="od-steps">
           {TRACKING_STEPS.filter((step) => {
             if (!isCancelled) return true;
-            const ORDER = ["pending", "preparing", "shipping", "delivered"];
+            const ORDER = [
+              "pending",
+              "preparing",
+              "ready",
+              "shipping",
+              "delivered",
+            ];
             return (
               ORDER.indexOf(step.key) <= getCompletedStepsBeforeCancel(order)
             );
@@ -488,10 +528,7 @@ function ClientOrderView({
 
           {isCancelled && (
             <div className="od-step od-step--cancelled od-step--last">
-              <div
-                className="od-step-indicator"
-              
-              >
+              <div className="od-step-indicator">
                 <div className="od-step-circle circle--cancelled">
                   <XWhiteIcon />
                 </div>
@@ -680,45 +717,11 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
           </div>
         </div>
       </div>
-
-      <div className="od-products-card">
-        <div className="od-products-header">
-          <span className="od-products-id">
-            المنتجات المشتراة ({totalProducts})
-          </span>
-        </div>
-        <div className="od-products-list">
-          {products.map((prod) => {
-            const imgSrc = prod.images?.[0]
-              ?.replace(/\\/g, "//")
-              ?.replace("uploads", "http://127.0.0.1:8080");
-            return (
-              <div key={prod.product_id} className="od-product-item">
-                <div className="od-product-left">
-                  <div className="od-product-img">
-                    {imgSrc ? (
-                      <img
-                        src={imgSrc}
-                        alt={prod.product_name}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="od-img-placeholder">🛍️</div>
-                    )}
-                  </div>
-                  <div className="od-product-info">
-                    <p className="od-prod-name">{prod.product_name}</p>
-                    <p className="od-prod-qty">الكمية: {prod.quantity}</p>
-                  </div>
-                </div>
-                <div className="od-product-right">
-                  <span className="od-prod-price">{prod.subtotal} ج.م</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <ProductsList
+        order={order}
+        normalizedStatus={normalizedStatus}
+        showReviewBtn={true}
+      />
     </div>
   );
 }

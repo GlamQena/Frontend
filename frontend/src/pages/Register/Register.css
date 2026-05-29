@@ -1,7 +1,7 @@
 /* ============================================
    MAIN CONTAINER
    ============================================ */
-.container {
+.register-container {
   min-height: fit-content;
   background-color: var(--خلفية-الصفحة);
   padding: 2rem 1rem;

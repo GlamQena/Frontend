@@ -1,12 +1,9 @@
-// import React, { useState, useEffect } from "react";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTheme } from "../../components/ThemeProvider";
 import { useParams } from "react-router-dom";
-// import { FaSun, FaMoon, FaHeart, FaShoppingBag, FaStar } from "react-icons/fa";
 import { 
-  FaSun,
-  FaMoon,
   FaHeart,
+  FaRegHeart,
   FaShoppingBag,
   FaStar,
   FaChevronLeft,
@@ -15,73 +12,203 @@ import {
 import "./ProductDetails.css";
 import "../../components/Navbar"
 import { useCart } from "./CartContext";
-import { addToWishlist } from "../../services/users";
-import { responseMessageSetter } from "../../services/authService";
+import { addToWishlist, getCurrentUser, removeFromWishlist } from "../../services/users";
+import { isUserLogged, responseMessageSetter } from "../../services/authService";
 
 export default function ProductDetails() {
   const { productId } = useParams();
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [currentImage, setCurrentImage] = useState(0);
-  const {cart, addToCartHandler} = useCart();
-  const [responseMessage, setResponseMessage] = useState({success: false, message: ""});
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const { cart, addToCartHandler } = useCart();
+  const [responseMessage, setResponseMessage] = useState({ success: false, message: "" });
+
+  // Helper function to check if product is in wishlist
+  const checkWishlistStatus = useCallback((productId, user) => {
+    if (!user || !user.wishlist || !Array.isArray(user.wishlist)) return false;
+    
+    // Handle different possible wishlist structures
+    return user.wishlist.some(item => {
+      if (typeof item === 'object' && item.productId) {
+        return item.productId.toString() === productId.toString();
+      }
+      if (typeof item === 'object' && item._id) {
+        return item._id.toString() === productId.toString();
+      }
+      if (typeof item === 'string') {
+        return item.toString() === productId.toString();
+      }
+      return false;
+    });
+  }, []);
+
+  // Fetch product details
+  const fetchProductDetails = useCallback(async () => {
+    try {
+      const res = await fetch(`http://localhost:8080/products/${productId}`);
+      const data = await res.json();
+      
+      if (data.success) {
+        const fetchedProduct = data.data.product;
+        console.log("fetched product data=> ", data);
+        console.log("fetched product => ", fetchedProduct);
+
+        const user = getCurrentUser();
+        const inWishlist = checkWishlistStatus(fetchedProduct._id, user);
+        
+        setProduct({
+          ...fetchedProduct,
+          addedToWishlist: inWishlist
+        });
+        setQuantity(cart[fetchedProduct._id] || 1);
+        setReviews(data.data.reviews);
+      } else {
+        console.log("error fetching product details...", data.message);
+        responseMessageSetter(false, data.message || "خطأ فى تحميل تفاصيل المنتج", setResponseMessage);
+      }
+    } catch (err) {
+      console.log("Fetch error:", err);
+      responseMessageSetter(false, "خطأ في الاتصال بالخادم", setResponseMessage);
+    }
+  }, [productId, cart, checkWishlistStatus]);
 
   useEffect(() => {
-    fetch(`http://localhost:8080/products/${productId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          const product = data.data.product;
-          setProduct(product);
-          setQuantity(cart[product._id] || 1);
-          setReviews(data.reviews);
-        } else {
-          console.log("error fetching product details or the success property isn't the response data");
-        }
-      })
-      .catch((err) => console.log("Fetch error:", err));
-  }, [productId, cart]);
+    fetchProductDetails();
+  }, [fetchProductDetails]);
+
+  // Update wishlist status when user data changes (e.g., from other tabs)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'user' && product) {
+        const updatedUser = JSON.parse(e.newValue);
+        const inWishlist = checkWishlistStatus(product._id, updatedUser);
+        setProduct(prev => prev ? { ...prev, addedToWishlist: inWishlist } : prev);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [product, checkWishlistStatus]);
 
   const addToWishlistHandler = async () => {
+    if (!isUserLogged()) {
+      responseMessageSetter(false, "يرجى تسجيل الدخول أولاً", setResponseMessage);
+      return false;
+    }
+
+    setIsWishlistLoading(true);
     try {
       const res = await addToWishlist(productId, setResponseMessage);
       const data = await res.json();
 
       if (!res.ok) {
-        return responseMessageSetter(false, data.message || "خطأ فى الإضافة لقائمة الرغبات", setResponseMessage);
+        responseMessageSetter(false, data.message || "خطأ فى الإضافة لقائمة الرغبات", setResponseMessage);
+        return false;
       }
 
-      localStorage.setItem("user", JSON.stringify(data.updatedClientData));
-
+      // Update localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      
+      // Update product state
+      setProduct(prev => prev ? { ...prev, addedToWishlist: true } : prev);
+      
       responseMessageSetter(true, data.message || "تمت الإضافة إلى قائمة الرغبات بنجاح", setResponseMessage);
+      return true;
     } catch (err) {
       console.log(err.message);
       responseMessageSetter(false, "خطأ فى الإضافة لقائمة الرغبات", setResponseMessage);
+      return false;
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  };
+
+  const removeFromWishlistHandler = async () => {
+    if (!isUserLogged()) {
+      responseMessageSetter(false, "يرجى تسجيل الدخول أولاً", setResponseMessage);
+      return false;
+    }
+
+    setIsWishlistLoading(true);
+    try {
+      const res = await removeFromWishlist(productId, setResponseMessage);
+      const data = await res.json();
+
+      if (!res.ok) {
+        responseMessageSetter(false, data.message || "خطأ فى الإزالة من قائمة الرغبات", setResponseMessage);
+        return false;
+      }
+
+      // Update localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      
+      // Update product state
+      setProduct(prev => prev ? { ...prev, addedToWishlist: false } : prev);
+      
+      responseMessageSetter(true, data.message || "تمت الإزالة من قائمة الرغبات بنجاح", setResponseMessage);
+      return true;
+    } catch (err) {
+      console.log(err.message);
+      responseMessageSetter(false, "خطأ فى الإزالة من قائمة الرغبات", setResponseMessage);
+      return false;
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  };
+
+  const handleToggleWishlist = async (e) => {
+    e.stopPropagation(); // Prevent any parent event handlers
+    
+    if (!isUserLogged()) {
+      responseMessageSetter(false, "يرجى تسجيل الدخول أولاً لإضافة المنتجات إلى المفضلة", setResponseMessage);
+      return;
+    }
+
+    if (isWishlistLoading) return; // Prevent double clicks
+
+    if (product.addedToWishlist) {
+      await removeFromWishlistHandler();
+    } else {
+      await addToWishlistHandler();
     }
   };
 
   const rateStars = (rate) => {
-    const stars= [];
-
-    for(let i=1; i<=5; i++)
-      stars.push( i<=rate ? <FaStar key={i} color="#ffd700"/> : <FaStar key={i} color="#e4e5e9"/>);
-
+    const stars = [];
+    const numericRate = Number(rate) || 0;
+    
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        i <= numericRate ? 
+          <FaStar key={i} color="#ffd700" /> : 
+          <FaStar key={i} color="#e4e5e9" />
+      );
+    }
     return stars;
-  }
-
-  const canAddToCart = () => {
-    return product && quantity <= product.stock;
   };
 
-  if (!product)
+  const canAddToCart = () => {
+    return product && quantity <= product.stock && product.stock > 0;
+  };
+
+  if (!product) {
     return (
       <div style={{ textAlign: "center", padding: "50px" }}>
-        Loading...
+        {!responseMessage.message ? 
+          <div className="loading-spinner">Loading...</div> : 
+          <p className={`response-message ${responseMessage.success ? "success-message" : "error-message"}`}> 
+            {responseMessage.message}
+          </p>
+        }
       </div>
     );
+  }
 
-  const images = product.images?.map((img) => img.replace("/\\/g", "//").replace("uploads", "http://127.0.0.1:8080"));
+  const images = product.images?.map((img) => 
+    img.replace(/\\/g, "/").replace("uploads", "http://127.0.0.1:8080")
+  );
      
   return (
     <div className="page" dir="rtl">
@@ -119,19 +246,13 @@ export default function ProductDetails() {
             <FaChevronRight />
           </button>
 
-          {/* thumbnails */}
-
           <div className="thumbs">
             {images.map((img, index) => (
               <img
                 key={index}
                 src={img}
-                alt=""
-                className={
-                  currentImage === index
-                    ? "thumb active"
-                    : "thumb"
-                }
+                alt={`${product.name} thumbnail ${index + 1}`}
+                className={currentImage === index ? "thumb active" : "thumb"}
                 onClick={() => setCurrentImage(index)}
               />
             ))}
@@ -140,30 +261,28 @@ export default function ProductDetails() {
 
         {/* Info */}
         <div className="info">
-
-          <span className="breadcrumb"> {product.store_name}</span>
-
+          <span className="breadcrumb">{product.store_name}</span>
           <h1 className="title ltr">{product.name}</h1>
 
           <div className="rating">
             <div className="stars">
-              <FaStar /><FaStar /><FaStar /><FaStar /><FaStar />
+              {rateStars(Number(product.average_rating))}
             </div>
-            <span>{product.average_rating}</span>
-            <span className="rtl">{product.total_rates} reviews</span>
+            <span>{product.average_rating || '0.0'}</span>
+            <span className="rtl">{product.total_rates || 0} reviews</span>
           </div>   
 
           <div className="price">
-            <span>{product.price} </span>
+            <span>{product.price} ج.م</span>
           </div>
 
           <div className="stock-info">
-            <span>Available Stock: {product.stock}</span>
+            <span>المتاح: {product.stock}</span>
             {product.stock < 5 && product.stock > 0 && (
-              <span className="low-stock"> Only {product.stock} left!</span>
+              <span className="low-stock"> لم يتبقى سوى {product.stock}!</span>
             )}
             {product.stock === 0 && (
-              <span className="out-of-stock"> Out of stock</span>
+              <span className="out-of-stock"> غير متوفر</span>
             )}
           </div>
 
@@ -172,10 +291,10 @@ export default function ProductDetails() {
           </div>
 
           <div className="actions">
-          <div className="qty">
-             <button 
+            <div className="qty">
+              <button 
                 onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                disabled={quantity >= product.stock}
+                disabled={quantity >= product.stock || product.stock === 0}
               >
                 +
               </button>
@@ -186,63 +305,93 @@ export default function ProductDetails() {
               >
                 -
               </button>
-          </div>
-          <button className="add" onClick={
-            async ()=> {
-              if(canAddToCart())
-                await addToCartHandler(productId, Number(quantity), setResponseMessage)
-              else
-                responseMessageSetter(false, "يجب ان تكون الكمية المراد اضافتها اقل من المحزون");
-            }}>
-            إضافة للسلة <FaShoppingBag />
-          </button>
-          <button className="fav" onClick= {addToWishlistHandler}>
-              <FaHeart />
+            </div>
+            
+            <button 
+              className="add" 
+              onClick={async () => {
+                if (canAddToCart()) {
+                  await addToCartHandler(productId, Number(quantity), setResponseMessage);
+                } else {
+                  responseMessageSetter(false, "الكمية المطلوبة غير متوفرة في المخزون", setResponseMessage);
+                }
+              }}
+              disabled={product.stock === 0}
+            >
+              إضافة للسلة <FaShoppingBag />
+            </button>
+            
+            <button 
+              className="fav-btn" 
+              onClick={handleToggleWishlist}
+              aria-label={product.addedToWishlist ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
+              disabled={isWishlistLoading}
+            >
+              {isWishlistLoading ? (
+                <span className="loading-dots">...</span>
+              ) : (
+                isUserLogged() && product.addedToWishlist ? 
+                  <FaHeart color="#ec4899" size={20} /> : 
+                  <FaRegHeart size={20} />
+              )}
             </button>
           </div>
 
           <div className="desc">
             <h3>توصيل سريع</h3>
-            <span>يصلك خلاص 24 ساعة عمل من طلبك</span>
+            <span>يصلك خلال 24 ساعة عمل من طلبك</span>
           </div>
         </div>
       </div>
+      
       <br />
       <br />
       <div className="break"></div>
-      {/* Reviews */}
-      <div className="reviews">
+      
+      {responseMessage.message && (
+        <p className={`response-message ${responseMessage.success ? "success-message" : "error-message"}`}>
+          {responseMessage.message}
+        </p>
+      )}
 
-        <div className="reviews-header">
-          <h3>تقييمات العملاء</h3>
-          <span className="view-all">عرض الكل</span>
-        </div>
+      {product.hasReviewed && reviews && reviews.length > 0 && (
+        <div className="reviews">
+          <div className="reviews-header">
+            <h3>تقييمات العملاء</h3>
+            <span className="view-all">عرض الكل</span>
+          </div>
 
-        {product.hasReviewed && <div className="reviews-grid">
-          {reviews?.map((review) => (
-            <div className="review-card">
-              <div className="review-top">
-                <div className="user">
-                  <div>
-                  <div className="avatar">ن</div>
-                    <h4>{(review.client_id.firstName || "") + " " + (review.client_id.lastName || "") }</h4>
-                    <span>منذ شهر</span>
+          <div className="reviews-grid">
+            {reviews.map((review) => {
+              const firstNameInitial = review.client_id?.firstName?.[0] || '';
+              const lastNameInitial = review.client_id?.lastName?.[0] || '';
+              const avatarLetter = firstNameInitial || lastNameInitial || 'ع';
+              
+              const firstName = review.client_id?.firstName || '';
+              const lastName = review.client_id?.lastName || '';
+              const fullName = `${firstName} ${lastName}`.trim() || 'عميل';
+              
+              return (
+                <div className="review-card" key={review._id}>
+                  <div className="review-top">
+                    <div className="user">
+                      <div>
+                        <div className="avatar">{avatarLetter}</div>
+                        <h4>{fullName}</h4>
+                        <span>منذ شهر</span>
+                      </div>
+                      <div className="stars">
+                        {rateStars(review.rate)}
+                      </div>
+                    </div>
                   </div>
-                  <div className="stars">
-                    {rateStars(review.rate)}
-                  </div>
+                  <p>{review.comment}</p>
                 </div>
-              </div>
-
-              <p>
-                {review.comment}
-              </p>
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
-        }
-          {responseMessage.message && <p className= {`response-message ${responseMessage.success ? "success-message" : "error-message"}`}>{responseMessage.message}</p>}
-      </div>
+      )}
     </div>
   );
 }

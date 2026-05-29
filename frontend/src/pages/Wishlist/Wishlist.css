@@ -1,0 +1,272 @@
+/* ══════════════════════════════════════
+   WISHLIST PAGE — Whishlist.css
+   (uses global CSS variables from colors.css)
+══════════════════════════════════════ */
+
+.wl-page {
+  min-height: 100vh;
+  background: var(--خلفية-الصفحة);
+  padding: 32px 20px 60px;
+  font-family: "Cairo", "Segoe UI", sans-serif;
+  direction: rtl;
+}
+
+/* ── Header ── */
+.wl-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.wl-back-btn {
+  background: var(--خلفية-البطاقة);
+  border: 1px solid var(--حد-واضح);
+  border-radius: var(--راديوس-الحقل);
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--نص-ثانوي);
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.wl-back-btn:hover {
+  background: var(--خلفية-2);
+  color: var(--نص-رئيسي);
+}
+
+.wl-header-text {
+  flex: 1;
+}
+
+.wl-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--نص-رئيسي);
+  margin: 0 0 30px;
+  display: inline-block;
+  text-align: center;
+}
+
+.wl-heart {
+  color: var(--وردي);
+}
+
+.wl-subtitle {
+  font-size: 14px;
+  color: var(--نص-خافت);
+  margin: 0;
+}
+
+/* ── Empty State ── */
+.wl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+}
+
+.wl-empty-icon {
+  font-size: 64px;
+}
+
+.wl-empty-text {
+  font-size: 18px;
+  color: var(--نص-خافت);
+  margin-top: 10px;
+}
+
+.wl-shop-btn {
+  background: var(--تدرج-الأزرار);
+  color: #fff;
+  border: none;
+  border-radius: var(--راديوس-الزر);
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--ظل-الزر);
+  transition: opacity 0.2s, transform 0.15s;
+  margin: 0 auto;
+}
+
+.wl-shop-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+/* ── Grid ── */
+.wl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ── Card ── */
+.wl-card {
+  background: var(--خلفية-البطاقة);
+  border: 1px solid var(--حد-واضح);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  box-shadow: var(--ظل-البطاقة);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.wl-card:hover {
+  box-shadow: var(--ظل-الأيقونة);
+  transform: translateY(-3px);
+}
+
+.wl-card--loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Heart (remove) button */
+.wl-card-heart {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--بنفسجي-خافت);
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  font-size: 16px;
+  color: var(--وردي);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+  z-index: 1;
+}
+
+.wl-card-heart:hover {
+  background: var(--بنفسجي-خافت);
+  transform: scale(1.1);
+  color: var(--وردي-خافت);
+}
+
+/* Image */
+.wl-card-img-wrapper {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background: var(--خلفية-2); */
+  border-radius: var(--راديوس-الحقل);
+  overflow: hidden;
+}
+
+.wl-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.wl-card-img-placeholder {
+  font-size: 48px;
+}
+
+/* Info */
+.wl-card-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 6px;
+  flex: 1;
+}
+
+.wl-card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--نص-رئيسي);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.wl-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.wl-card-price {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--بنفسجي);
+  margin: 0;
+}
+
+.wl-card-stock {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.wl-in-stock {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--أخضر-نجاح);
+}
+
+.wl-out-stock {
+  background: var(--أحمر-خافت);
+  color: var(--أحمر-خطأ);
+}
+
+/* Add to cart button */
+.wl-card-add-btn {
+  background: var(--تدرج-الأزرار);
+  color: #fff;
+  border: none;
+  border-radius: var(--راديوس-الزر);
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: var(--ظل-الزر);
+  transition: opacity 0.2s, transform 0.15s;
+  width: 100%;
+}
+
+.wl-card-add-btn:hover:not(:disabled) {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.wl-card-add-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .wl-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .wl-title {
+    font-size: 20px;
+  }
+}

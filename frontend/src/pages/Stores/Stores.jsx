@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Stores.css';
 import { getStores } from '../../services/stores';
 import { responseMessageSetter } from '../../services/authService';
+import { buildImgSrc } from '../../services/imageUtils';
 
 const Stores = () => {
   const navigate= useNavigate();
@@ -49,10 +50,10 @@ const Stores = () => {
     navigate(`/stores/${storeId}/products`);
   };
 
-  const formattedImage = (imgPath) => {
-    if(!imgPath) return null;
-    return imgPath.replace(/\\/g, "//").replace("uploads", "http://127.0.0.1:8080");
-  }
+  // const formattedImage = (imgPath) => {
+  //   if(!imgPath) return null;
+  //   return imgPath.replace(/\\/g, "//").replace("uploads", "http://127.0.0.1:8080");
+  // }
 
   const firstFourStores= stores?.slice(0, 4);
   const hiddenStores= stores?.slice(4);
@@ -66,7 +67,7 @@ const Stores = () => {
       <div className="grid">
         {firstFourStores?.map((store, index) => (
           <div key={index} className="card" onClick={() => handleCardClick(store._id)}>
-            <img src={formattedImage(store.img)} alt={store.name} />
+            <img src={store.img ? buildImgSrc(store.img) : "/images/store/store_img.png"} alt={store.name} style={{"backgroundPosition": "cover"}}/>
             <div className="card-body">
               <div className="card-title">{store.name}</div>
               <div className="card-row">
@@ -82,7 +83,7 @@ const Stores = () => {
         ))}
 
         {moreVisible && hiddenStores?.map((store, index) => (
-          <div key={index} className="card" onClick={() => handleCardClick(store.name)}>
+          <div key={index} className="card" onClick={() => handleCardClick(store._id)}>
             <img src={store.img} alt={store.name} />
             <div className="card-body">
               <div className="card-title">{store.name}</div>

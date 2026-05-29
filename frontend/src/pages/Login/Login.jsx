@@ -95,7 +95,7 @@ const Login = () => {
   };
 
   return (
-    <div className="container">
+    <div className="login-container">
       <div className="login-header">
         <h2>مرحباً بك في Glam Qena</h2>
         <p className="hint">سجل دخولك أو أنشئ حساب جديد</p>
@@ -183,6 +183,7 @@ const Login = () => {
                 type="checkbox"
                 name="rememberMe"
                 {...register("rememberMe")}
+                style={{"margin-left": "5px"}}
               />
               تذكرني (لمدة 30 يوماً)
             </label>

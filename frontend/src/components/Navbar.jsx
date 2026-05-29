@@ -1,6 +1,7 @@
-import { Moon, Sun, LogIn, LogOut, User, ShoppingCart } from "lucide-react";
+import { Moon, Sun, LogIn, LogOut, User, ShoppingCart, HeartHandshake, HeartIcon } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { useLocation, NavLink } from "react-router-dom";
+import {useEffect} from "react";
 import "./Navbar.css";
 import { isUserLogged, logout } from "../services/authService";
 import { getUserRole, isClient, isStoreOwner } from "../services/users";
@@ -8,11 +9,11 @@ import { getUserRole, isClient, isStoreOwner } from "../services/users";
 function Navbar() {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
-  const loggedIn = isUserLogged();
+  let loggedIn= isUserLogged();
   const userRole = getUserRole();
 
-  console.log("is user loggedIn => ", loggedIn);
   console.log("user role => ", userRole);
+  console.log("is user loggedIn => ", loggedIn);
 
   // ============= تحديد الـ links حسب الـ role =============
   const getNavLinks = () => {
@@ -93,6 +94,11 @@ function Navbar() {
             </NavLink>
           )}
 
+          {(
+            <NavLink to="/wishlist" title="قائمة الرغبات" className="nav-icon">
+              <HeartIcon size={20} />
+            </NavLink>
+          )}
          
           {loggedIn && (
             <NavLink to="/profile" title="الملف الشخصي" className="nav-icon">
