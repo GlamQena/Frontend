@@ -1,0 +1,21 @@
+{
+  "files": {
+    "main.css": "/static/css/main.cf7153ab.css",
+    "main.js": "/static/js/main.8f4a4847.js",
+    "static/media/highlighter.png": "/static/media/highlighter.bee8666ce4841c880d4e.png",
+    "static/media/serum.png": "/static/media/serum.1148fb1e85160991c6d3.png",
+    "static/media/Moisturizing cream.png": "/static/media/Moisturizing cream.87d0a3466cb48198b152.png",
+    "static/media/store_background.png": "/static/media/store_background.06e8ac9c8fa73c396855.png",
+    "static/media/Luxury Cream.png": "/static/media/Luxury Cream.290eeecc05f3b398def8.png",
+    "static/media/Skin Serum.png": "/static/media/Skin Serum.8020b025b4c51968adf0.png",
+    "static/media/Premium Lipsticks.png": "/static/media/Premium Lipsticks.d2d3c7556dadecb64e81.png",
+    "static/media/Organic Hair Oil.png": "/static/media/Organic Hair Oil.48c42589e1f5c7131c07.png",
+    "index.html": "/index.html",
+    "main.cf7153ab.css.map": "/static/css/main.cf7153ab.css.map",
+    "main.8f4a4847.js.map": "/static/js/main.8f4a4847.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.cf7153ab.css",
+    "static/js/main.8f4a4847.js"
+  ]
+}
