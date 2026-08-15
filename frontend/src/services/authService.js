@@ -3,13 +3,14 @@ import * as yup from "yup";
 import { getCurrentUser } from "./users";
 import { getProfile } from "./profileService";
 
-const BASE_URL = "http://localhost:8080/auth";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const BASE_URL = `${API_BASE_URL}/auth`;
 
 // ─────────────────────────────────────────────
 // AXIOS INSTANCE
 // ─────────────────────────────────────────────
 export const api = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: API_BASE_URL,
 });
 
 // ─────────────────────────────────────────────
@@ -29,18 +30,18 @@ api.interceptors.request.use(
       return Promise.reject(err);
     }
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 export const isUserLogged = () => {
   const refreshToken = localStorage.getItem("refreshToken");
 
-  if (!refreshToken || refreshToken === "undefined" || refreshToken === "null") return false;
-  
+  if (!refreshToken || refreshToken === "undefined" || refreshToken === "null")
+    return false;
+
   try {
     const user = getCurrentUser();
-    if(!user)
-      return false;
+    if (!user) return false;
     return user && Object.keys(user).length > 0;
   } catch {
     return false;
@@ -66,18 +67,22 @@ export const getAccessToken = async (setResponseMessage) => {
     if (accessTokenEXP < Date.now()) {
       localStorage.removeItem("user");
 
-      let refreshToken  = localStorage.getItem("refreshToken");
+      let refreshToken = localStorage.getItem("refreshToken");
 
-      if (!refreshToken || refreshToken === "null" || refreshToken === "undefined") {
+      if (
+        !refreshToken ||
+        refreshToken === "null" ||
+        refreshToken === "undefined"
+      ) {
         responseMessageSetter(false, "please login first", setResponseMessage);
         localStorage.removeItem("user");
         return null;
       }
 
       const decodedRefreshToken = JSON.parse(atob(refreshToken.split(".")[1]));
-      const refreshTokenEXP= decodedRefreshToken.exp * 1000;
+      const refreshTokenEXP = decodedRefreshToken.exp * 1000;
 
-      if(refreshTokenEXP < Date.now()){
+      if (refreshTokenEXP < Date.now()) {
         console.log("expired refresh token!");
         responseMessageSetter(
           false,
@@ -119,25 +124,24 @@ export const getAccessToken = async (setResponseMessage) => {
 
 export const sid_AuthHeader = async (setResponseMessage) => {
   const sid = getSessionId();
-  let headers=  { 
-      "Content-Type": "application/json",
+  let headers = {
+    "Content-Type": "application/json",
   };
-  
-  let accessToken = await getAccessToken(setResponseMessage);
-  if(accessToken)
-      headers["Authorization"] = `Bearer ${accessToken}`;
 
-  return {sid, headers}
-}
+  let accessToken = await getAccessToken(setResponseMessage);
+  if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+
+  return { sid, headers };
+};
 
 export function responseMessageSetter(success, message, setResponseMessage) {
-   if (setResponseMessage){
+  if (setResponseMessage) {
     setResponseMessage({ success, message });
 
     setTimeout(() => {
       setResponseMessage({ success: false, message: "" });
     }, 6000);
-   }
+  }
 }
 
 export function closeTabHandler() {
@@ -162,13 +166,16 @@ export const login = async (bodyData, activationToken) => {
   try {
     console.log("login fetch entry...");
 
-    const response = await fetch(`${BASE_URL}/login${activationToken ?`token=${activationToken}`: ""}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${BASE_URL}/login${activationToken ? `token=${activationToken}` : ""}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bodyData),
       },
-      body: JSON.stringify(bodyData),
-    });
+    );
 
     console.log("login response => ", response);
     return response;
@@ -219,36 +226,36 @@ export const resetPassword = async (data) => {
   }
 };
 
-export const getEmailToken = async (email) =>{
-  try{
-    const res= await fetch(`${BASE_URL}/email/send-token`,{
+export const getEmailToken = async (email) => {
+  try {
+    const res = await fetch(`${BASE_URL}/email/send-token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({email}),
+      body: JSON.stringify({ email }),
     });
 
     return res;
-  }catch(err){
+  } catch (err) {
     throw err;
   }
-}
+};
 
-export const verifyEmail = async (email, token) =>{
-  try{
-    const res= await fetch(`${BASE_URL}/verify/${email}/${token}`,{
+export const verifyEmail = async (email, token) => {
+  try {
+    const res = await fetch(`${BASE_URL}/verify/${email}/${token}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-      }
+      },
     });
 
     return res;
-  }catch(err){
+  } catch (err) {
     throw err;
   }
-}
+};
 
 export const logout = async () => {
   try {
@@ -331,18 +338,19 @@ export const loginSchema = yup.object({
     }),
   password: passwordField,
   activationCode: yup.string().when([], {
-      is: () => {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get("token");
-        return !!token;
-      },
-      then: (schema) => schema
+    is: () => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      return !!token;
+    },
+    then: (schema) =>
+      schema
         .required("activation code is required")
         .min(6, "activation code must be exactly 6 digits")
         .max(6, "activation code must be exactly 6 digits")
         .matches(/^\d+$/, "activation code must contain digits only"),
-      otherwise: (schema) => schema.notRequired()
-    }),
+    otherwise: (schema) => schema.notRequired(),
+  }),
   rememberMe: yup.boolean(),
 });
 

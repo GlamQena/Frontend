@@ -6,7 +6,7 @@ const ProductCard = ({ product }) => {
       <img
         src={
           product.images?.[0]
-            ? `http://127.0.0.1:8080/${product.images[0]}`
+            ? `${process.env.REACT_APP_API_URL || "http://localhost:8080"}/${product.images[0]}`
             : "/placeholder.png"
         }
         alt={product.name}

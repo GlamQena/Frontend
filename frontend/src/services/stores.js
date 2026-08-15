@@ -1,7 +1,8 @@
 import { getAccessToken } from "./authService";
 import { getCurrentUser } from "./users";
 
-const BASE_URL = "http://localhost:8080/stores";
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const BASE_URL = `${API_BASE_URL}/stores`;
 
 // ─────────────────────────────────────────────
 // STORE HELPER
@@ -18,30 +19,28 @@ export const getStoreInfo = () => {
   };
 };
 
-export const getStores= async() => {
-    try{
-        const res= await fetch(`${BASE_URL}/`, {
-            headers:{
-                "Content-Type": "application/json",
-            },
-        });
-        return res;
+export const getStores = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
 
-    }catch(error){
-        throw error;
-    }
-}
-
-export const getStoreProducts= async(store_id) => {
-    try{
-        const res= await fetch(`${BASE_URL}/${store_id}/products`, {
-            headers:{
-                "Content-Type": "application/json",
-            },
-        });
-        return res;
-
-    }catch(error){
-        throw error;
-    }
-}
+export const getStoreProducts = async (store_id) => {
+  try {
+    const res = await fetch(`${BASE_URL}/${store_id}/products`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
