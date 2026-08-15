@@ -31,9 +31,36 @@ export const isStoreOwner = () => getUserRole() === "store_owner";
 
 export const isAdmin = () => getUserRole() === "admin";
 
+export const getWishlist = async (setResponseMessage) => {
+  try {
+    const accessToken = await getAccessToken(setResponseMessage);
+
+    if (!accessToken) {
+      throw new Error("Authentication required. Please login again.");
+    }
+
+    const res = await fetch(`${BASE_URL}/me/wishlist`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      credentials: "include",
+    });
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const addToWishlist = async (prod_id, setResponseMessage) => {
   try {
     const accessToken = await getAccessToken(setResponseMessage);
+
+    if (!accessToken) {
+      throw new Error("Authentication required. Please login again.");
+    }
+
     const res = await fetch(`${BASE_URL}/me/wishlist?productId=${prod_id}`, {
       method: "POST",
       headers: {
@@ -51,8 +78,13 @@ export const addToWishlist = async (prod_id, setResponseMessage) => {
 export const removeFromWishlist = async (prod_id, setResponseMessage) => {
   try {
     const accessToken = await getAccessToken(setResponseMessage);
+
+    if (!accessToken) {
+      throw new Error("Authentication required. Please login again.");
+    }
+
     const res = await fetch(`${BASE_URL}/me/wishlist?productId=${prod_id}`, {
-      method: "Delete",
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,

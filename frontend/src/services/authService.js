@@ -60,64 +60,73 @@ export const getSessionId = () => {
 export const getAccessToken = async (setResponseMessage) => {
   try {
     let accessToken = localStorage.getItem("accessToken");
+    
+    // If no access token, try to refresh
+    if (!accessToken || accessToken === "undefined" || accessToken === "null") {
+      return await refreshAccessToken(setResponseMessage);
+    }
+
     const decodedAccessToken = JSON.parse(atob(accessToken.split(".")[1]));
-    //atob is a global javaScript method for decoding (ASCII to binary)
     const accessTokenEXP = decodedAccessToken.exp * 1000;
 
     if (accessTokenEXP < Date.now()) {
-      localStorage.removeItem("user");
+      return await refreshAccessToken(setResponseMessage);
+    }
+    
+    return accessToken;
+    
+  } catch (error) {
+    // Only show error if setResponseMessage exists
+    if (setResponseMessage) {
+      responseMessageSetter(false, "your session ended, please login", setResponseMessage);
+    }
+    return null;
+  }
+};
 
-      let refreshToken = localStorage.getItem("refreshToken");
+const refreshAccessToken = async (setResponseMessage) => {
+  try {
+    const refreshToken = localStorage.getItem("refreshToken");
 
-      if (
-        !refreshToken ||
-        refreshToken === "null" ||
-        refreshToken === "undefined"
-      ) {
-        responseMessageSetter(false, "please login first", setResponseMessage);
-        localStorage.removeItem("user");
-        return null;
-      }
+    if (!refreshToken || refreshToken === "null" || refreshToken === "undefined") {
+      return null;
+    }
 
+    // Check if refresh token is expired
+    try {
       const decodedRefreshToken = JSON.parse(atob(refreshToken.split(".")[1]));
       const refreshTokenEXP = decodedRefreshToken.exp * 1000;
 
       if (refreshTokenEXP < Date.now()) {
-        console.log("expired refresh token!");
-        responseMessageSetter(
-          false,
-          "your session ended, please login",
-          setResponseMessage,
-        );
-        await logout();
+        await logoutSilently();
         return null;
       }
-
-      const response = await fetch(`${BASE_URL}/refresh-token`, {
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${refreshToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const refreshData = await response.json();
-      console.log("refresh token response => ", refreshData);
-      if (!response.ok) {
-        responseMessageSetter(false, refreshData.message, setResponseMessage);
-        return null;
-      } else {
-        localStorage.setItem("user", JSON.stringify(refreshData.user));
-        localStorage.setItem("accessToken", refreshData.accessToken);
-        accessToken = refreshData.accessToken;
-      }
+    } catch (decodeError) {
+      return null;
     }
-    return accessToken;
+
+    const response = await fetch(`${BASE_URL}/refresh-token`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    
+    const refreshData = await response.json();
+    console.log("refresh token response => ", refreshData);
+    
+    if (!response.ok) {
+      return null;
+    }
+
+    localStorage.setItem("user", JSON.stringify(refreshData.user));
+    localStorage.setItem("accessToken", refreshData.accessToken);
+    return refreshData.accessToken;
+
   } catch (error) {
-    responseMessageSetter(
-      false,
-      "your session ended, please login",
-      setResponseMessage,
-    );
+    console.error("Refresh error:", error);
     return null;
   }
 };
@@ -132,6 +141,17 @@ export const sid_AuthHeader = async (setResponseMessage) => {
   if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
 
   return { sid, headers };
+};
+
+const logoutSilently = async () => {
+  try {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("session_id");
+  } catch (error) {
+    console.error("Silent logout error:", error);
+  }
 };
 
 export function responseMessageSetter(success, message, setResponseMessage) {

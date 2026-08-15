@@ -39,17 +39,20 @@ const VerificationCheck = () => {
             setCheckMessage({success: true, message: data.message});
             setIsVerified(true);
 
-            let user;
-            if(data.user){
-              user= data.user;
+            let user = data.user;
+            if(user)
               localStorage.setItem("user", JSON.stringify(user));
-            }
+            if(data.accessToken)
+              localStorage.setItem("accessToken", JSON.stringify(data.accessToken));
+            if(data.refreshToken)
+              localStorage.setItem("refreshToken", JSON.stringify(data.refreshToken));
 
             timerRef.current = setTimeout(()=>{
               if(user.role === "client")
                 navigate("/");
               else if(user.role === "store_owner")
                 navigate("/dashboard/store_owner");
+              window.location.reload();
             }, 4000);
 
         }catch(error){

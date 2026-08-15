@@ -354,38 +354,74 @@ function Home() {
 
                     <div className="products-grid">
                         {productsToShow ? (
-                            productsToShow.map((product, index) => (
-                                <div className="product-card" onClick={() => navigate(`/products/${product.id}`)} key={product.id || index}>
+                            productsToShow.map((product, index) => {
+                                // Make sure we have an ID
+                                const productId = product._id || product.id;
+                                
+                                // Get the image URL
+                                const imageSrc = (product.images && product.images[0]) 
+                                    ? buildImgSrc(product.images[0]) 
+                                    : '/images/default-product.png';
+                                
+                                // Debug
+                                console.log(`Product ${index}: ${product.name}`, {
+                                    id: productId,
+                                    _id: product._id,
+                                    idField: product.id,
+                                    images: product.images,
+                                    imageSrc
+                                });
+                                
+                                return (
                                     <div 
-                                        className="product-image" 
-                                        style={{ 
-                                            backgroundImage: `url(${
-                                                (product.images && product.images[0]) 
-                                                    ? buildImgSrc(product.images[0]) 
-                                                    : '/images/default-product.png'
-                                            })` 
-                                        }}
-                                    ></div>
-                                    <div className="add-btn" onClick={async (e) => { e.stopPropagation(); await handleAddToCart(product.id);}}>+</div>
-                                    
-                                    {/* Badges */}
-                                    {product.isNew && <div className="product-badge new">جديد</div>}
-                                    {product.isBestseller && <div className="product-badge bestseller">الأكثر مبيعاً</div>}
-                                    
-                                    <div className="product-content">
-                                        <div className="product-store-name">{product.storeName || 'متجر تجميل'}</div>
-                                        <h3 className="product-name">{product.name}</h3>
-                                        <p className="product-desc">{product.description}</p>
-                                        <div className="product-footer">
-                                            <div>
-                                                <span className="product-price-new">{product.price} ج</span>
-                                                {product.oldPrice && <span className="product-price-old">{product.oldPrice} ج</span>}
+                                        className="product-card" 
+                                        onClick={() => {
+                                            if (productId) {
+                                                navigate(`/products/${productId}`);
+                                            } else {
+                                                console.error('No product ID for:', product);
+                                            }
+                                        }} 
+                                        key={productId || index}
+                                    >
+                                        <div 
+                                            className="product-image" 
+                                            style={{ 
+                                                backgroundImage: `url(${imageSrc})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center'
+                                            }}
+                                        ></div>
+                                        <div 
+                                            className="add-btn" 
+                                            onClick={async (e) => { 
+                                                e.stopPropagation(); 
+                                                if (productId) {
+                                                    await handleAddToCart(productId);
+                                                }
+                                            }}
+                                        >+</div>
+                                        
+                                        {product.isNew && <div className="product-badge new">جديد</div>}
+                                        {product.isBestseller && <div className="product-badge bestseller">الأكثر مبيعاً</div>}
+                                        
+                                        <div className="product-content">
+                                            <div className="product-store-name">
+                                                {product.storeName || product.owner_store_id?.store_name || 'متجر تجميل'}
                                             </div>
-                                            <span className="product-rating">⭐ {product.rating || '0.0'}</span>
+                                            <h3 className="product-name">{product.name}</h3>
+                                            <p className="product-desc">{product.description}</p>
+                                            <div className="product-footer">
+                                                <div>
+                                                    <span className="product-price-new">{product.price} ج</span>
+                                                    {product.oldPrice && <span className="product-price-old">{product.oldPrice} ج</span>}
+                                                </div>
+                                                <span className="product-rating">⭐ {product.average_rating || product.rating || '0.0'}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <>
                                 {/* Default static products */}
