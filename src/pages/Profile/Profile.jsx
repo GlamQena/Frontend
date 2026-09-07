@@ -75,6 +75,7 @@ const Profile = () => {
   const [isDeletingStoreLogo, setIsDeletingStoreLogo] = useState(false);
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const api_url = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
   
   const redirectTimeoutRef = useRef(null);
   
@@ -658,7 +659,7 @@ const Profile = () => {
         return encodeURI(
           profileForm.avatar
             .replace(/\\/g, "//")
-            .replace("uploads", "http://127.0.0.1:8080")
+            .replace("uploads", api_url)
         );
       else return profileForm.avatar;
     }
@@ -674,7 +675,7 @@ const Profile = () => {
         return encodeURI(
           profileForm.logo
             .replace(/\\/g, "//")
-            .replace("uploads", "http://127.0.0.1:8080")
+            .replace("uploads", api_url)
         );
       else return profileForm.logo;
     }

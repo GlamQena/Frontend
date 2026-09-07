@@ -1,6 +1,7 @@
 import { getCurrentUser } from "./users";
 
-const API_BASE_URL = process.env.EXPRESS_APP_API_URL || "http://localhost:8080";
+const API_BASE_URL =
+  process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
 const BASE_URL = `/stores`;
 
 // ─────────────────────────────────────────────

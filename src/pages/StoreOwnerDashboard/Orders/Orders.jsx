@@ -5,7 +5,7 @@ import OrdersList from "../../../components/OrdersList";
 import "../../../components/OrdersList.css";
 import { api } from "../../../services/authService";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
 
 export default function StoreOwnerOrders() {
   const [orders, setOrders] = useState([]);
@@ -14,7 +14,7 @@ export default function StoreOwnerOrders() {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-       const res = await api.get(`${BASE_URL}/order/`);
+       const res = await api.get(`/order/`);
 console.log("Orders fetched:", res.data);
 setOrders(res.data.orders || []); 
       } catch (err) {

@@ -1,6 +1,7 @@
 import { getAccessToken } from "./authService";
 
-const API_BASE_URL = process.env.EXPRESS_APP_API_URL || "http://localhost:8080";
+const API_BASE_URL =
+  process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
 const BASE_URL = `/profile`;
 
 // Helper function to create auth errors

@@ -30,6 +30,7 @@ export default function ProductDetails() {
   const { cart, addToCartHandler, refreshCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [responseMessage, setResponseMessage] = useState({ success: false, message: "" });
+  const BASE_URL = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
 
   const handleAuthError = (error) => {
     if (error.code === "AUTH_EXPIRED" || error.message?.includes("session")) {
@@ -235,7 +236,7 @@ export default function ProductDetails() {
   }
 
   const images = product.images?.map((img) => 
-    img.replace(/\\/g, "/").replace("uploads", "http://127.0.0.1:8080")
+    img.replace(/\\/g, "/").replace("uploads", BASE_URL)
   );
 
   const formatReviewDate = (dateString) => {

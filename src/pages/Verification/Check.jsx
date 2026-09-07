@@ -24,6 +24,7 @@ const VerificationCheck = () => {
     const emailParam = urlParams.get("email");
     const token = urlParams.get("token");
     const role = urlParams.get("role");
+    const api_url = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
 
     console.log("email-> ", emailParam);
     console.log("token-> ", token);
@@ -143,7 +144,7 @@ const VerificationCheck = () => {
         setIsFailedResend(false);
         
         try {
-            const response = await fetch("http://127.0.0.1:8080/auth/email/send-token", {
+            const response = await fetch(`/auth/email/send-token`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({email: emailParam})

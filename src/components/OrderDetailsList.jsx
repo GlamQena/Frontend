@@ -146,9 +146,9 @@ function buildImgSrc(imgPath) {
   if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
     return imgPath;
   }
-  const baseURL = process.env.EXPRESS_APP_API_URL || "http://localhost:8080";
+  const baseURL = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
   const path = imgPath.replace(/\\/g, "/").replace(/^\/+/, "");
-  return `${baseURL}/${path}`;
+  return `/${path}`;
 }
 
 // ─── Icons ───────────────────────────────────────────────────────────────────

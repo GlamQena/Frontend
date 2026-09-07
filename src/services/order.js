@@ -1,6 +1,7 @@
 import { getAccessToken } from "./authService";
 
-const API_BASE_URL = process.env.EXPRESS_APP_API_URL || "http://localhost:8080";
+const API_BASE_URL =
+  process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
 const BASE_URL = `/order`;
 
 // Helper function to create auth errors
@@ -107,7 +108,7 @@ export const cancelOrder = async (orderId, body) => {
   }
 
   const res = await fetch(
-    `http://localhost:8080/order/${orderId}/cancel`,
+    `${API_BASE_URL}/order/${orderId}/cancel`,
     {
       method: "PATCH",
       headers: {

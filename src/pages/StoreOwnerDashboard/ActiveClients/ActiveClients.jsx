@@ -17,7 +17,7 @@ function StoreOwnerActiveClients() {
       try {
 
         const response = await api.get(
-          "http://127.0.0.1:8080/stores/me/active-clients",
+          "/stores/me/active-clients",
         );
         console.log("active clients => ", response.data.data);
         setClients(response.data.data);

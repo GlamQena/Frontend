@@ -370,7 +370,9 @@ export default function OrdersList({
   const formattedImage = (imgPath) => {
     if (!imgPath) return null;
     if (imgPath.includes("uploads")) {
-      const apiUrl = process.env.EXPRESS_APP_API_URL || "http://localhost:8080";
+      const apiUrl =
+        process.env.EXPRESS_APP_API_URL ||
+        "https://glamqena-backend.vercel.app";
       return imgPath.replace(/\\/g, "//").replace("uploads", apiUrl);
     }
     return imgPath;

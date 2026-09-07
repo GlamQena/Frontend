@@ -8,7 +8,7 @@ import {getCurrentUser} from "../../../services/users";
 import "./Home.css";
 import { getAccessToken } from "../../../services/authService";
 
-const BASE_URL = "http://127.0.0.1:8080";
+const BASE_URL = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
 
 function getStoreId() {
   const user = getCurrentUser();
@@ -136,7 +136,7 @@ function StatusDropdown({ orderId, isLastOrder, currentStatus, onStatusChange })
     try {
       const headers = await getAuthHeaders();
       const res = await fetch(
-        `${BASE_URL}/order/${orderId}/status?status=${status}`,
+        `/order/${orderId}/status?status=${status}`,
         { method: "PATCH", headers }
       );
       if (res.ok) onStatusChange(orderId, status);
@@ -200,7 +200,7 @@ export default function StoreOwnerHome() {
   const getChartData= useCallback(async (period) => {
     try{
       const headers = await getAuthHeaders();
-      let chartRes = await fetch(`${BASE_URL}/stores/me/sales-chart?period=${period}`, {headers});
+      let chartRes = await fetch(`/stores/me/sales-chart?period=${period}`, {headers});
       let chartResData;
 
       if(chartRes.ok){
@@ -219,7 +219,7 @@ export default function StoreOwnerHome() {
 
   const getStats = useCallback( async() => {
     try{
-      let statsRes = await fetch(`${BASE_URL}/stores/me/statistics`, { headers: await getAuthHeaders() });
+      let statsRes = await fetch(`/stores/me/statistics`, { headers: await getAuthHeaders() });
       let statsResData = await statsRes.json();
 
       if(statsRes.ok){

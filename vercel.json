@@ -6,7 +6,7 @@
   "outputDirectory": "build",
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "destination": "https://glamqena-backend.vercel.app/$1"
     },
     {
