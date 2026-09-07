@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { getCurrentUser } from "./users";
 import { getProfile } from "./profileService";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const API_BASE_URL = process.env.EXPRESS_APP_API_URL || "http://localhost:8080";
 const BASE_URL = `/auth`;
 
 // ─────────────────────────────────────────────
@@ -60,7 +60,7 @@ export const getSessionId = () => {
 export const getAccessToken = async () => {
   try {
     let accessToken = localStorage.getItem("accessToken");
-    
+
     // If no access token, try to refresh
     if (!accessToken || accessToken === "undefined" || accessToken === "null") {
       return await refreshAccessToken();
@@ -72,9 +72,8 @@ export const getAccessToken = async () => {
     if (accessTokenEXP < Date.now()) {
       return await refreshAccessToken();
     }
-    
+
     return accessToken;
-    
   } catch (error) {
     return null;
   }
@@ -84,7 +83,11 @@ const refreshAccessToken = async () => {
   try {
     const refreshToken = localStorage.getItem("refreshToken");
 
-    if (!refreshToken || refreshToken === "null" || refreshToken === "undefined") {
+    if (
+      !refreshToken ||
+      refreshToken === "null" ||
+      refreshToken === "undefined"
+    ) {
       return null;
     }
 
@@ -109,10 +112,10 @@ const refreshAccessToken = async () => {
         "Content-Type": "application/json",
       },
     });
-    
+
     const refreshData = await response.json();
     console.log("refresh token response => ", refreshData);
-    
+
     if (!response.ok) {
       return null;
     }
@@ -120,7 +123,6 @@ const refreshAccessToken = async () => {
     localStorage.setItem("user", JSON.stringify(refreshData.user));
     localStorage.setItem("accessToken", refreshData.accessToken);
     return refreshData.accessToken;
-
   } catch (error) {
     console.error("Refresh error:", error);
     return null;
@@ -182,16 +184,13 @@ export const login = async (bodyData) => {
   try {
     console.log("login fetch entry...");
 
-    const response = await fetch(
-      `${BASE_URL}/login`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bodyData),
+    const response = await fetch(`${BASE_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify(bodyData),
+    });
 
     console.log("login response => ", response);
     return response;
@@ -204,16 +203,13 @@ export const activateAccount = async (bodyData) => {
   try {
     console.log("activate account fetch entry...");
 
-    const response = await fetch(
-      `${BASE_URL}/activation/activate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bodyData),
+    const response = await fetch(`${BASE_URL}/activation/activate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify(bodyData),
+    });
 
     console.log("activate account response => ", response);
     return response;
@@ -226,16 +222,13 @@ export const resendActivationOTP = async (bodyData) => {
   try {
     console.log("resend activation OTP fetch entry...");
 
-    const response = await fetch(
-      `${BASE_URL}/activation/resend-otp`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(bodyData),
+    const response = await fetch(`${BASE_URL}/activation/resend-otp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify(bodyData),
+    });
 
     console.log("esend activation OTP response => ", response);
     return response;
@@ -334,7 +327,6 @@ export const logout = async () => {
     localStorage.removeItem("user");
     localStorage.removeItem("session_id");
     localStorage.clear();
-    
   } catch (error) {
     throw error;
   }
@@ -422,8 +414,14 @@ export const loginSchema = yup.object({
         .required("كلمة المرور مطلوبة")
         .min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل")
         .max(64, "كلمة المرور يجب ألا تتجاوز 64 حرف")
-        .matches(/[A-Z]/, "كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل")
-        .matches(/[a-z]/, "كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل")
+        .matches(
+          /[A-Z]/,
+          "كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل",
+        )
+        .matches(
+          /[a-z]/,
+          "كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل",
+        )
         .matches(/[0-9]/, "كلمة المرور يجب أن تحتوي على رقم واحد على الأقل"),
     otherwise: (schema) => schema.notRequired(),
   }),

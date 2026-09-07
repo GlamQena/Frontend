@@ -50,7 +50,7 @@ const STATUS_CONFIG = {
     icon: "✅",
     aliases: ["تم التوصيل", "delivered"],
   },
-  "ملغي": {
+  ملغي: {
     label: "ملغي",
     color: "#ef4444",
     bg: "rgba(239, 68, 68, 0.12)",
@@ -86,7 +86,7 @@ const STORE_STATUS_OPTIONS = Object.entries(STATUS_CONFIG).map(
     value,
     label: config.label,
     color: config.color,
-  })
+  }),
 );
 
 function StatusDropdown({ currentKey, orderId, onStatusChange }) {
@@ -135,7 +135,7 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
           params: {
             status: statusMap[newStatus] || newStatus,
           },
-        }
+        },
       );
 
       onStatusChange?.(orderId, newStatus);
@@ -189,7 +189,7 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
             (opt) =>
               opt.value !== "قيد التوصيل" &&
               opt.value !== "تم التوصيل" &&
-              opt.value !== "ملغي"
+              opt.value !== "ملغي",
           ).map((opt) => (
             <button
               key={opt.value}
@@ -221,14 +221,14 @@ const PAYMENT_STATUS_CONFIG = {
     bg: "rgba(59, 130, 246, 0.10)",
     icon: "🔄",
   },
-  "مكتمل": {
+  مكتمل: {
     label: "مكتمل",
     cls: "ol-payment--completed",
     color: "#22c55e",
     bg: "rgba(34, 197, 94, 0.10)",
     icon: "✅",
   },
-  "فشل": {
+  فشل: {
     label: "فشل",
     cls: "ol-payment--failed",
     color: "#ef4444",
@@ -255,8 +255,8 @@ const normalizePaymentStatus = (payment, orderStatus) => {
   const directMap = {
     "قيد الانتظار": "قيد الانتظار",
     "تم الاسترداد": "تم الاسترداد",
-    "فشل": "فشل",
-    "مكتمل": "مكتمل",
+    فشل: "فشل",
+    مكتمل: "مكتمل",
     "قيد المعالجة": "قيد المعالجة",
   };
 
@@ -301,7 +301,7 @@ function countProducts(order) {
   if (order.products) {
     return order.products.reduce(
       (acc, s) => acc + (s.products?.length || 0),
-      0
+      0,
     );
   }
   if (order.store_products) {
@@ -316,7 +316,7 @@ export default function OrdersList({
   onStatusChange,
   headerTitle = "الطلبات",
   loading = true,
-}) { 
+}) {
   const navigate = useNavigate();
   const role = getUserRole();
   const storeMode = role === "store_owner";
@@ -327,10 +327,10 @@ export default function OrdersList({
     .filter((o) => o) // Remove null/undefined
     .sort((a, b) => {
       const dateA = new Date(
-        a.createdAt || a.order_date || a.order_created_at || 0
+        a.createdAt || a.order_date || a.order_created_at || 0,
       );
       const dateB = new Date(
-        b.createdAt || b.order_date || b.order_created_at || 0
+        b.createdAt || b.order_date || b.order_created_at || 0,
       );
       return dateB - dateA;
     });
@@ -369,8 +369,8 @@ export default function OrdersList({
 
   const formattedImage = (imgPath) => {
     if (!imgPath) return null;
-    if(imgPath.includes("uploads")){
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
+    if (imgPath.includes("uploads")) {
+      const apiUrl = process.env.EXPRESS_APP_API_URL || "http://localhost:8080";
       return imgPath.replace(/\\/g, "//").replace("uploads", apiUrl);
     }
     return imgPath;
@@ -430,7 +430,7 @@ export default function OrdersList({
                         status: order.payment?.status,
                         method: order.payment?.method,
                       },
-                      key
+                      key,
                     )
                   : normalizePaymentStatus(order.payment, key);
                 const paymentCfg =
@@ -441,7 +441,7 @@ export default function OrdersList({
                   clientMode &&
                   ["wallet", "card"].includes(paymentMethod) &&
                   ["pending", "processing", "failed"].includes(
-                    paymentStatusKey
+                    paymentStatusKey,
                   ) &&
                   !isCancelled;
 
@@ -497,13 +497,13 @@ export default function OrdersList({
                           {formatDate(
                             order.createdAt ||
                               order.order_date ||
-                              order.order_created_at
+                              order.order_created_at,
                           )}
                           {" • "}
                           {formatTime(
                             order.createdAt ||
                               order.order_date ||
-                              order.order_created_at
+                              order.order_created_at,
                           )}
                         </span>
                       </div>
@@ -521,12 +521,12 @@ export default function OrdersList({
                                   ...item,
                                   storeName: store.owner_store_id?.store_name,
                                   storeId: store.owner_store_id?._id,
-                                })) || []
+                                })) || [],
                             )
                             .slice(0, 4)
                             .map((item, j) => {
                               const src = formattedImage(
-                                item.prod_id?.images?.[0]
+                                item.prod_id?.images?.[0],
                               );
                               const productId = item.prod_id?._id;
                               return (
@@ -585,24 +585,34 @@ export default function OrdersList({
                           {order.customer?.name?.trim() && (
                             <div className="ol-customer-row">
                               <span className="ol-customer-label">العميل:</span>
-                              <span className="ol-customer-val">{order.customer.name}</span>
+                              <span className="ol-customer-val">
+                                {order.customer.name}
+                              </span>
                             </div>
                           )}
                           {order.customer?.phone?.trim() && (
                             <div className="ol-customer-row">
                               <span className="ol-customer-label">الهاتف:</span>
-                              <span className="ol-customer-val ol-mono">{order.customer.phone}</span>
+                              <span className="ol-customer-val ol-mono">
+                                {order.customer.phone}
+                              </span>
                             </div>
                           )}
                           {order.customer?.address?.trim() && (
                             <div className="ol-customer-row">
-                              <span className="ol-customer-label">العنوان:</span>
-                              <span className="ol-customer-val">{order.customer.address}</span>
+                              <span className="ol-customer-label">
+                                العنوان:
+                              </span>
+                              <span className="ol-customer-val">
+                                {order.customer.address}
+                              </span>
                             </div>
                           )}
                           {order.store_products && (
                             <div className="ol-customer-row">
-                              <span className="ol-customer-label">المنتجات:</span>
+                              <span className="ol-customer-label">
+                                المنتجات:
+                              </span>
                               <span className="ol-customer-val">
                                 {order.store_products.length} منتج
                               </span>
@@ -714,12 +724,14 @@ export default function OrdersList({
                     const id = order._id || order.order_id;
                     const rawStatus = order.status || order.order_status;
                     const key = normalizeStatus(rawStatus);
-                    const cfg = STATUS_CONFIG[key] || STATUS_CONFIG["قيد الانتظار"];
-                    const total = order.total_price || order.store_subtotal || 0;
+                    const cfg =
+                      STATUS_CONFIG[key] || STATUS_CONFIG["قيد الانتظار"];
+                    const total =
+                      order.total_price || order.store_subtotal || 0;
                     const prodCount = countProducts(order);
                     const paymentStatusKey = normalizePaymentStatus(
                       order.payment,
-                      key
+                      key,
                     );
                     const paymentCfg =
                       PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
@@ -729,10 +741,10 @@ export default function OrdersList({
                       paymentMethod === "cash"
                         ? "نقدي"
                         : paymentMethod === "card"
-                        ? "بطاقة"
-                        : paymentMethod === "wallet"
-                        ? "محفظة"
-                        : paymentMethod;
+                          ? "بطاقة"
+                          : paymentMethod === "wallet"
+                            ? "محفظة"
+                            : paymentMethod;
 
                     return (
                       <tr key={id} className="ol-table-row">
@@ -754,7 +766,11 @@ export default function OrdersList({
                         <td className="ol-table-amount">
                           {total.toLocaleString("ar-EG")} ج
                         </td>
-                        <td>{formatDate(order.createdAt || order.order_created_at)}</td>
+                        <td>
+                          {formatDate(
+                            order.createdAt || order.order_created_at,
+                          )}
+                        </td>
                         <td>
                           <span className={`ol-status ${cfg.cls}`}>
                             <span className="ol-dot" />
@@ -762,11 +778,18 @@ export default function OrdersList({
                           </span>
                         </td>
                         <td>
-                          <span className={`ol-payment-badge ${paymentCfg.cls}`}>
+                          <span
+                            className={`ol-payment-badge ${paymentCfg.cls}`}
+                          >
                             {paymentCfg.label}
                           </span>
                           <br />
-                          <small style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+                          <small
+                            style={{
+                              fontSize: "10px",
+                              color: "var(--text-muted)",
+                            }}
+                          >
                             {methodLabel}
                           </small>
                         </td>

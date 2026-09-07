@@ -1,6 +1,6 @@
 import { getAccessToken } from "./authService";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const API_BASE_URL = process.env.EXPRESS_APP_API_URL || "http://localhost:8080";
 const BASE_URL = `/order`;
 
 // Helper function to create auth errors
@@ -31,7 +31,7 @@ export const placeOrder = async () => {
   if (!accessToken) {
     throw createAuthError();
   }
-  
+
   const res = await fetch(`${BASE_URL}/`, {
     method: "POST",
     headers: {
@@ -41,7 +41,7 @@ export const placeOrder = async () => {
     body: JSON.stringify({}),
     credentials: "include",
   });
-  
+
   return handleResponse(res);
 };
 
@@ -96,7 +96,7 @@ export const getOrderDetails = async (orderId) => {
     },
     withCredentials: true,
   });
-  
+
   return handleResponse(res);
 };
 
