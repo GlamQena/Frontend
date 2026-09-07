@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://glamqena-backend.vercel.app/api/$1"
+      "destination": "https://glamqena-backend.vercel.app/$1"
     },
     {
       "source": "/(.*)",
