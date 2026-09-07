@@ -7,10 +7,6 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "https://glamqena-backend.vercel.app/$1"
-    },
-    {
-      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]

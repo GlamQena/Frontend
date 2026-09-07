@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getStores } from '../../services/stores';
 import { buildImgSrc } from '../../services/imageUtils';
-import { responseMessageSetter } from "../../services/authService";
 import {useTheme} from "../../components/ThemeProvider";
 import "./Stores.css";
 import Pagination from "../../components/Pagination";
@@ -28,7 +27,8 @@ export default function Stores() {
         const json = await res.json();
 
         if (!res.ok || !json.success) {
-          responseMessageSetter(false, json.message || "خطأ فى جلب المتاجر المتاحة", setError);
+          setError(json.message || "خطأ فى جلب المتاجر المتاحة");
+          return;
         }
 
         const preparedStores = (json.data || []).map(store => ({
@@ -46,7 +46,7 @@ export default function Stores() {
 
         setStores(preparedStores);
       } catch (err) {
-          responseMessageSetter(false, err.message || "خطأ فى جلب المتاجر المتاحة", setError);
+        setError(err.message || "خطأ فى جلب المتاجر المتاحة");
       } finally {
         setIsLoading(false);
       }
