@@ -2,7 +2,7 @@ import { getAccessToken } from "./authService";
 
 const API_BASE_URL =
   process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/profile`;
+const BASE_URL = `/api/profile`;
 
 // Helper function to create auth errors
 const createAuthError = () => {

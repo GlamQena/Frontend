@@ -4,7 +4,7 @@ import { getCurrentUser } from "./users";
 import { getProfile } from "./profileService";
 
 const API_BASE_URL = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/auth`;
+const BASE_URL = `/api/auth`;
 
 // ─────────────────────────────────────────────
 // AXIOS INSTANCE

@@ -2,7 +2,7 @@ import { getAccessToken, getSessionId, sid_AuthHeader } from "./authService";
 
 const API_BASE_URL =
   process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/cart`;
+const BASE_URL = `/api/cart`;
 
 export const addToCart = async (productId, quantity = 1) => {
   try {

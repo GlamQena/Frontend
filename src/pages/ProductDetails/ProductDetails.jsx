@@ -31,7 +31,7 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [responseMessage, setResponseMessage] = useState({ success: false, message: "" });
   const BASE_URL = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-
+  
   const handleAuthError = (error) => {
     if (error.code === "AUTH_EXPIRED" || error.message?.includes("session")) {
       setResponseMessage({ 

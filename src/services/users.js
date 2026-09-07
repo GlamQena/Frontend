@@ -2,7 +2,7 @@ import { getAccessToken } from "./authService";
 
 const API_BASE_URL =
   process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/users`;
+const BASE_URL = `/api/users`;
 
 // ─────────────────────────────────────────────
 // GET USER FROM LOCAL STORAGE
