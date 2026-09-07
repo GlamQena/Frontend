@@ -4,7 +4,7 @@ import { getCurrentUser } from "./users";
 import { getProfile } from "./profileService";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
-const BASE_URL = `${API_BASE_URL}/auth`;
+const BASE_URL = `/auth`;
 
 // ─────────────────────────────────────────────
 // AXIOS INSTANCE
@@ -57,34 +57,30 @@ export const getSessionId = () => {
   return sid;
 };
 
-export const getAccessToken = async (setResponseMessage) => {
+export const getAccessToken = async () => {
   try {
     let accessToken = localStorage.getItem("accessToken");
     
     // If no access token, try to refresh
     if (!accessToken || accessToken === "undefined" || accessToken === "null") {
-      return await refreshAccessToken(setResponseMessage);
+      return await refreshAccessToken();
     }
 
     const decodedAccessToken = JSON.parse(atob(accessToken.split(".")[1]));
     const accessTokenEXP = decodedAccessToken.exp * 1000;
 
     if (accessTokenEXP < Date.now()) {
-      return await refreshAccessToken(setResponseMessage);
+      return await refreshAccessToken();
     }
     
     return accessToken;
     
   } catch (error) {
-    // Only show error if setResponseMessage exists
-    if (setResponseMessage) {
-      responseMessageSetter(false, "your session ended, please login", setResponseMessage);
-    }
     return null;
   }
 };
 
-const refreshAccessToken = async (setResponseMessage) => {
+const refreshAccessToken = async () => {
   try {
     const refreshToken = localStorage.getItem("refreshToken");
 
@@ -131,13 +127,13 @@ const refreshAccessToken = async (setResponseMessage) => {
   }
 };
 
-export const sid_AuthHeader = async (setResponseMessage) => {
+export const sid_AuthHeader = async () => {
   const sid = getSessionId();
   let headers = {
     "Content-Type": "application/json",
   };
 
-  let accessToken = await getAccessToken(setResponseMessage);
+  let accessToken = await getAccessToken();
   if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
 
   return { sid, headers };
@@ -160,7 +156,7 @@ export function responseMessageSetter(success, message, setResponseMessage) {
 
     setTimeout(() => {
       setResponseMessage({ success: false, message: "" });
-    }, 6000);
+    }, 5000);
   }
 }
 
@@ -182,12 +178,12 @@ export const registerUser = async (data) => {
   }
 };
 
-export const login = async (bodyData, activationToken) => {
+export const login = async (bodyData) => {
   try {
     console.log("login fetch entry...");
 
     const response = await fetch(
-      `${BASE_URL}/login${activationToken ? `token=${activationToken}` : ""}`,
+      `${BASE_URL}/login`,
       {
         method: "POST",
         headers: {
@@ -201,6 +197,50 @@ export const login = async (bodyData, activationToken) => {
     return response;
   } catch (error) {
     throw error; //throw instead of just return for the error to be handled with try-catch
+  }
+};
+
+export const activateAccount = async (bodyData) => {
+  try {
+    console.log("activate account fetch entry...");
+
+    const response = await fetch(
+      `${BASE_URL}/activation/activate`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bodyData),
+      },
+    );
+
+    console.log("activate account response => ", response);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const resendActivationOTP = async (bodyData) => {
+  try {
+    console.log("resend activation OTP fetch entry...");
+
+    const response = await fetch(
+      `${BASE_URL}/activation/resend-otp`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bodyData),
+      },
+    );
+
+    console.log("esend activation OTP response => ", response);
+    return response;
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -293,8 +333,8 @@ export const logout = async () => {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     localStorage.removeItem("session_id");
-
-    window.location.reload();
+    localStorage.clear();
+    
   } catch (error) {
     throw error;
   }
@@ -369,6 +409,34 @@ export const loginSchema = yup.object({
         .min(6, "activation code must be exactly 6 digits")
         .max(6, "activation code must be exactly 6 digits")
         .matches(/^\d+$/, "activation code must contain digits only"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  newPassword: yup.string().when([], {
+    is: () => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      return !!token;
+    },
+    then: (schema) =>
+      schema
+        .required("كلمة المرور مطلوبة")
+        .min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل")
+        .max(64, "كلمة المرور يجب ألا تتجاوز 64 حرف")
+        .matches(/[A-Z]/, "كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل")
+        .matches(/[a-z]/, "كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل")
+        .matches(/[0-9]/, "كلمة المرور يجب أن تحتوي على رقم واحد على الأقل"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  confirmPassword: yup.string().when([], {
+    is: () => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      return !!token;
+    },
+    then: (schema) =>
+      schema
+        .required("كلمة المرور مطلوبة")
+        .oneOf([yup.ref("newPassword")], "كلمتا المرور غير متطابقتين"),
     otherwise: (schema) => schema.notRequired(),
   }),
   rememberMe: yup.boolean(),

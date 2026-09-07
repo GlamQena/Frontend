@@ -1,31 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Banknote, CreditCard, Wallet } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { responseMessageSetter } from "../../services/authService";
 import { checkoutPayment } from "../../services/order";
+import EmbeddedPayment from './EmbeddedPayment/EmbeddedPayment';
 import "./ShippingInfo.css";
-
-const BASE_URL = "http://127.0.0.1:8080";
 
 const egyptianPhone = /^(010|011|012|015)\d{8}$/;
 
+// Updated schema - removed building, floor, apartment from validation
 const shippingSchema = yup.object().shape({
   first_name: yup.string().trim().required("الاسم الأول مطلوب"),
-  last_name: yup.string().trim().required("اسم العائلة مطلوب"),
-  email: yup.string().trim().required("البريد الإلكتروني مطلوب").email("البريد الإلكتروني غير صحيح"),
-  phone_number: yup.string().trim().required("رقم الهاتف مطلوب").matches(egyptianPhone, "رقم مصري غير صحيح (010, 011, 012, 015 + 8 أرقام)"),
+  last_name: yup.string().trim().required("الاسم الأخير مطلوب"),
+  email: yup
+    .string()
+    .trim()
+    .required("البريد الإلكتروني مطلوب")
+    .email("صيغة البريد الإلكتروني غير صحيحة"),
+  phone_number: yup
+    .string()
+    .trim()
+    .required("رقم الهاتف مطلوب")
+    .matches(egyptianPhone, "رقم مصري غير صحيح (010, 011, 012, 015 + 8 أرقام)"),
   country: yup.string().trim().required("الدولة مطلوبة"),
   city: yup.string().trim().required("المدينة مطلوبة"),
-  street: yup.string().trim().required("العنوان مطلوب"),
-  building: yup.string().trim(),
-  floor: yup.string().trim(),
-  apartment: yup.string().trim(),
+  street: yup.string().trim().required("عنوان الشارع مطلوب"),
   notes: yup.string().trim(),
 });
 
 const TruckIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
     <rect x="1" y="3" width="15" height="13" rx="2" />
     <path d="M16 8h4l3 5v3h-7V8z" />
     <circle cx="5.5" cy="18.5" r="2.5" />
@@ -34,16 +46,25 @@ const TruckIcon = () => (
 );
 
 const ShieldIcon = () => (
-  <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="25"
+    height="25"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     <polyline points="9 12 11 14 15 10" />
   </svg>
 );
 
 const paymentMethods = [
-  { id: "cod", icon: <Banknote size={22} />, label: "دفع عند الاستلام" },
+  { id: "cash", icon: <Banknote size={22} />, label: "الدفع عند الاستلام" },
   { id: "card", icon: <CreditCard size={22} />, label: "بطاقة ائتمان" },
-  { id: "wallet", icon: <Wallet size={22} />, label: "المحفظة" },
+  { id: "wallet", icon: <Wallet size={22} />, label: "محفظة إلكترونية" },
 ];
 
 const getUserData = () => {
@@ -58,12 +79,20 @@ const getUserData = () => {
 export default function CheckoutPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { orderId, subtotal = 0, shipping = 0, discount = 0, total = 0 } = location.state || {};
+  const timerRef = useRef(null);
+  const {
+    orderId,
+    subtotal = 0,
+    shipping = 0,
+    discount = 0,
+    total = 0,
+  } = location.state || {};
 
   const [activePayment, setActivePayment] = useState("card");
   const [actionMsg, setActionMsg] = useState({ success: false, message: "" });
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showEmbeddedPayment, setShowEmbeddedPayment] = useState(false);
 
   const [form, setForm] = useState(() => {
     const user = getUserData();
@@ -78,37 +107,59 @@ export default function CheckoutPage() {
       country: address.country || billing.country || "مصر",
       city: address.city || billing.city || "",
       street: address.street || billing.street || "",
-      building: address.building || billing.building || "",
-      floor: address.floor || billing.floor || "",
-      apartment: address.apartment || billing.apartment || "",
       notes: "",
     };
   });
 
   useEffect(() => {
     if (!orderId) {
-      responseMessageSetter(false, "the order wasn't placed properly", setActionMsg);
-      const timer = setTimeout(() => {
-        navigate('/cart');
+      responseMessageSetter(
+        false,
+        "لم يتم إنشاء الطلب بشكل صحيح",
+        setActionMsg,
+      );
+      timerRef.current = setTimeout(() => {
+        navigate("/cart");
       }, 6000);
-      return () => clearTimeout(timer);
+      return () => clearTimeout(timerRef.current);
     }
-  }, [orderId]);
+    window.scrollTo({top: 0 , behavior: "smooth"});
+  }, [orderId, navigate]);
 
-  const validate = async () => {
+  // ✅ Validation function - passed to EmbeddedPayment
+  const validateForm = async () => {
     try {
       await shippingSchema.validate(form, { abortEarly: false });
       setErrors({});
-      return true;
+      return { isValid: true, errors: null };
     } catch (err) {
       const formErrors = {};
       err.inner.forEach((e) => {
         formErrors[e.path] = e.message;
       });
       setErrors(formErrors);
-      return false;
+      // Scroll to first error
+      const firstErrorField = document.querySelector('.shipping-form-group .error');
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return { isValid: false, errors: formErrors };
     }
   };
+
+  // ✅ Get formatted billing data
+  const getBillingData = () => ({
+    first_name: form.first_name || "ضيف",
+    last_name: form.last_name || "مستخدم",
+    email: form.email || "guest@example.com",
+    phone_number: form.phone_number || "01000000000",
+    country: form.country || "مصر",
+    city: form.city || "القاهرة",
+    street: form.street || "غير محدد",
+    building: "1",
+    floor: "1",
+    apartment: "1",
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -118,122 +169,100 @@ export default function CheckoutPage() {
     }
   };
 
-  async function checkoutPaymentHandler() {
-    try {
-      setCheckoutLoading(true);
+  // ✅ Handle success from EmbeddedPayment
+  const handlePaymentSuccess = (response) => {
+    console.log('Payment success:', response);
+    // The component handles navigation internally
+  };
 
-      const billingData = {
-        first_name: form.first_name || "Guest",
-        last_name: form.last_name || "User",
-        email: form.email || "guest@example.com",
-        phone_number: form.phone_number || "01000000000",
-        country: form.country || "EG",
-        city: form.city || "Cairo",
-        street: form.street || "N/A",
-        building: form.building || "1",
-        floor: form.floor || "1",
-        apartment: form.apartment || "1",
-      };
-
-      const res = await checkoutPayment(
-        orderId, 
-        JSON.stringify({
-            billing_data: billingData,
-            payment_method: activePayment,
-        }),
-        setActionMsg
-      );
-      setCheckoutLoading(false);
-      const json = await res.json();
-
-      if (activePayment === "cash" && res.ok) {
-        responseMessageSetter(true, json.message || "تم حفظ بيانات الشحن بنجاح", setActionMsg);
-        navigate("/orders");
-      } 
-      else if(!res.ok){
-        responseMessageSetter(false, json.message || "حدث خطأ أثناء تأكيد الدفع", setActionMsg);
-      } else if((activePayment === "card" || activePayment === "wallet") && res.ok) {
-        if(json.redirect_url)
-          window.open(json.redirect_url, "_self");
-        else {
-          window.alert("تم إرسال رابط الدفع إلى بريدك الإلكتروني. يرجى فتح البريد الإلكتروني وإكمال عملية الدفع");
-        }
-      }
-    } catch (err) {
-      console.error("checkoutPayment error:", err);
-    }
-  }
-
-  const handleConfirm = async (e) => {
-    e.preventDefault();
-    const isValid = await validate();
-    if (!isValid) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    checkoutPaymentHandler();
+  // ✅ Handle error from EmbeddedPayment
+  const handlePaymentError = (error) => {
+    console.error('Payment error:', error);
   };
 
   return (
-    <div className="body-wrap">
-      <Link to="/Cart" className="back-link">← رجوع للسلة</Link>
-
+    <div className="shipping-page" dir="rtl">
       {actionMsg.message && (
-        <div className={actionMsg.success ? "success-message" : "error-message"}>
+        <div
+          className={
+            actionMsg.success
+              ? "shipping-success-message"
+              : "shipping-error-message"
+          }
+        >
           {actionMsg.message}
         </div>
       )}
 
-      <div className="layout">
-        <div className="main-col">
-          <div className="card">
-            <div className="card-title">
+      <div className="shipping-layout">
+        <div className="shipping-main-col">
+          <div className="shipping-card">
+            <div className="shipping-card-title">
               <TruckIcon />
-              معلومات الشحن والفاتورة
+              بيانات الشحن والفواتير
             </div>
-            <div className="form-grid">
-              <div className="form-group">
-                <label>الاسم الأول <span className="required-star">*</span></label>
+            <div className="shipping-form-grid">
+              <div className="shipping-form-group">
+                <label>
+                  الاسم الأول <span className="shipping-required-star">*</span>
+                </label>
                 <input
                   name="first_name"
-                  placeholder="محمد"
+                  placeholder="أية"
                   value={form.first_name}
                   onChange={handleChange}
                   className={errors.first_name ? "error" : ""}
+                  dir="rtl"
                 />
                 {errors.first_name && (
-                  <span className="field-error">{errors.first_name}</span>
+                  <span className="shipping-field-error">
+                    {errors.first_name}
+                  </span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label>اسم العائلة</label>
+              <div className="shipping-form-group">
+                <label>
+                  الاسم الأخير <span className="shipping-required-star">*</span>
+                </label>
                 <input
                   name="last_name"
-                  placeholder="احمد"
+                  placeholder="محمد"
                   value={form.last_name}
                   onChange={handleChange}
                   className={errors.last_name ? "error" : ""}
+                  dir="rtl"
                 />
-              </div>
-
-              <div className="form-group">
-                <label>البريد الإلكتروني <span className="required-star">*</span></label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="ahmed@example.com"
-                  value={form.email}
-                  onChange={handleChange}
-                  className={errors.email ? "error" : ""}
-                />
-                {errors.email && (
-                  <span className="field-error">{errors.email}</span>
+                {errors.last_name && (
+                  <span className="shipping-field-error">
+                    {errors.last_name}
+                  </span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label>رقم الهاتف <span className="required-star">*</span></label>
+              <div className="shipping-form-group">
+                <label>
+                  البريد الإلكتروني{" "}
+                  <span className="shipping-required-star">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="example@email.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  className={errors.email ? "error" : ""}
+                  dir="ltr"
+                />
+                {errors.email && (
+                  <span className="shipping-field-error">{errors.email}</span>
+                )}
+              </div>
+
+              <div className="shipping-form-group">
+                <label>
+                  رقم الهاتف <span className="shipping-required-star">*</span>
+                </label>
                 <input
                   type="tel"
                   name="phone_number"
@@ -241,146 +270,113 @@ export default function CheckoutPage() {
                   value={form.phone_number}
                   onChange={handleChange}
                   className={errors.phone_number ? "error" : ""}
+                  dir="ltr"
                 />
                 {errors.phone_number && (
-                  <span className="field-error">{errors.phone_number}</span>
+                  <span className="shipping-field-error">
+                    {errors.phone_number}
+                  </span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label>الدولة <span className="required-star">*</span></label>
+              <div className="shipping-form-group">
+                <label>
+                  الدولة <span className="shipping-required-star">*</span>
+                </label>
                 <input
                   name="country"
                   placeholder="مصر"
                   value={form.country}
                   onChange={handleChange}
                   className={errors.country ? "error" : ""}
+                  dir="rtl"
                 />
                 {errors.country && (
-                  <span className="field-error">{errors.country}</span>
+                  <span className="shipping-field-error">{errors.country}</span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label>المدينة <span className="required-star">*</span></label>
+              <div className="shipping-form-group">
+                <label>
+                  المدينة <span className="shipping-required-star">*</span>
+                </label>
                 <input
                   name="city"
                   placeholder="قنا"
                   value={form.city}
                   onChange={handleChange}
                   className={errors.city ? "error" : ""}
+                  dir="rtl"
                 />
                 {errors.city && (
-                  <span className="field-error">{errors.city}</span>
+                  <span className="shipping-field-error">{errors.city}</span>
                 )}
               </div>
 
-              <div className="form-group full">
-                <label>العنوان بالتفصيل <span className="required-star">*</span></label>
+              <div className="shipping-form-group shipping-form-group-full">
+                <label>
+                  عنوان الشارع <span className="shipping-required-star">*</span>
+                </label>
                 <input
                   name="street"
-                  placeholder="الشارع"
+                  placeholder="شارع الجيش - ميدان المحطة"
                   value={form.street}
                   onChange={handleChange}
                   className={errors.street ? "error" : ""}
+                  dir="rtl"
                 />
                 {errors.street && (
-                  <span className="field-error">{errors.street}</span>
+                  <span className="shipping-field-error">{errors.street}</span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label>المبنى</label>
-                <input
-                  name="building"
-                  placeholder="24"
-                  value={form.building}
-                  onChange={handleChange}
-                  className={errors.building ? "error" : ""}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>الطابق</label>
-                <input
-                  name="floor"
-                  placeholder="2"
-                  value={form.floor}
-                  onChange={handleChange}
-                  className={errors.floor ? "error" : ""}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>الشقة</label>
-                <input
-                  name="apartment"
-                  placeholder="4"
-                  value={form.apartment}
-                  onChange={handleChange}
-                  className={errors.apartment ? "error" : ""}
-                />
-              </div>
-
-              <div className="form-group full">
+              <div className="shipping-form-group shipping-form-group-full">
                 <label>ملاحظات إضافية (اختياري)</label>
                 <textarea
                   name="notes"
-                  placeholder="أدخل أي تعليمات خاصة بالتسليم هنا..."
+                  placeholder="أدخل أي تعليمات خاصة للتوصيل هنا..."
                   value={form.notes}
                   onChange={handleChange}
                   className={errors.notes ? "error" : ""}
+                  dir="rtl"
                 />
               </div>
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-title">طريقة الدفع</div>
-            <div className="pay-options">
-              {paymentMethods.map((method) => (
-                <div
-                  key={method.id}
-                  className={`pay-opt ${activePayment === method.id ? "active" : ""}`}
-                  onClick={() => setActivePayment(method.id)}
-                >
-                  <span className="pay-icon">{method.icon}</span>
-                  {method.label}
-                </div>
-              ))}
-            </div>
+          <div className="shipping-card">
+            <div className="shipping-card-title">طريقة الدفع</div>
+            
+            {/* ✅ EmbeddedPayment with validation and billing data */}
+            <EmbeddedPayment
+              orderId={orderId}
+              billingData={getBillingData()}
+              totalAmount={total}
+              initialMethod="card"
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+              // ✅ Pass validation function and form data
+              validateForm={validateForm}
+              formData={form}
+              setFormErrors={setErrors}
+            />
           </div>
         </div>
 
-        <div className="summary-card">
-          <div className="summary-title">ملخص الطلب</div>
-          <div className="summary-row">
-            <span className="summary-label">المجموع الفرعي</span>
-            <span>{subtotal.toLocaleString("ar-EG")} ج</span>
+        <div className="shipping-summary-card">
+          <div className="shipping-summary-title">ملخص الطلب</div>
+          <div className="shipping-summary-row">
+            <span className="shipping-summary-label">المجموع الفرعي</span>
+            <span>{subtotal.toLocaleString()} ج.م</span>
           </div>
-          <div className="summary-row">
-            <span className="summary-label">الشحن</span>
-            <span>{shipping} ج</span>
+          <div className="shipping-summary-row">
+            <span className="shipping-summary-label">الشحن</span>
+            <span>{shipping} ج.م</span>
           </div>
-          <div className="summary-row">
-            <span className="summary-label">الخصم</span>
-            <span className="discount-val">{discount} ج</span>
-          </div>
-          <hr className="divider" />
-          <div className="total-row">
+          <hr className="shipping-divider" />
+          <div className="shipping-total-row">
             <span>الإجمالي</span>
-            <span>{total.toLocaleString("ar-EG")} ج</span>
-          </div>
-          <button
-            className="confirm-btn"
-            onClick={handleConfirm}
-            disabled={checkoutLoading}
-          >
-            {checkoutLoading ? "جاري التأكيد..." : "تأكيد الطلب ←"}
-          </button>
-          <div className="security-note">
-            <ShieldIcon />
-            جميع معاملاتك مشفرة وآمنة بنسبة 100%. نلتزم بحماية بياناتك الشخصية
+            <span>{total.toLocaleString()} ج.م</span>
           </div>
         </div>
       </div>

@@ -1,9 +1,6 @@
 import { api } from './authService';
 import { getCurrentUser } from './users';
 
-// ─────────────────────────────────────────────
-//   user._id
-// ─────────────────────────────────────────────
 const getStoreId = () => {
   const user = getCurrentUser();
   if (!user) return null;
@@ -13,14 +10,14 @@ const getStoreId = () => {
 // ─────────────────────────────────────────────
 // 1. (GET /stores/:id/products)
 // ─────────────────────────────────────────────
-export const getProducts = async () => {
-  const storeId = getStoreId();
+export const getProducts = async (storeId) => {
+  // const storeId = getStoreId();
   if (!storeId) {
     console.warn('Store ID not found');
-    return { data: { products: [] } };
+    return { data: { products: [], store: getCurrentUser()} };
   }
   
-  const response = await api.get(`/stores/${storeId}/products`);
+  const response = await api.get(`/stores/${storeId}`);
   return response.data;
 };
 
@@ -56,9 +53,9 @@ export const deleteProduct = async (id) => {
 // 5.(GET /categories)
 // ─────────────────────────────────────────────
 export const getCategories = async () => {
-  const response = await api.get('/categories');
+  const response = await api.get('/categories?limit=100&page=1&sortBy=name&sortOrder=asc');
   return response.data;
-};
+}; //for admin dashboard
 
 // ─────────────────────────────────────────────
 // 6.   (GET /products/special) - 

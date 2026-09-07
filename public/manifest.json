@@ -1,25 +1,32 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "GlamQena",
+  "name": "GlamQena Cosmetics E-commerce",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/GlamQena_logo_icons/android-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "logo192.png",
+      "src": "/GlamQena_logo_icons/android-icon-192x192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "sizes": "192x192"
+      "purpose": "maskable"
     },
     {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "/GlamQena_logo_icons/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/GlamQena_logo_icons/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#6b008a",
+  "background_color": "#07040f"
 }

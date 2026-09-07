@@ -1,0 +1,453 @@
+/* ==========================================
+   STORE PRODUCTS & DETAILS PAGE ENHANCEMENTS
+   ========================================== */
+
+.store-page {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: all 0.3s ease;
+  direction: rtl;
+  text-align: right;
+  font-family: "Cairo", "Segoe UI", sans-serif;
+  padding: 24px 20px 80px;
+  position: relative;
+}
+
+.store-top-nav {
+  max-width: 1160px;
+  margin: 0 auto 16px auto;
+  padding: 0 10px;
+}
+
+.back-stores-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+  padding: 0;
+}
+
+.back-stores-btn:hover {
+  color: var(--text-primary);
+}
+
+/* Enhanced Store Banner Header Layout */
+.store-banner {
+  max-width: 1160px;
+  margin: 0 auto 24px auto;
+  padding: 36px 32px;
+  border-radius: var(--card-radius);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.store-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--bg-button);
+  opacity: 0.8;
+}
+
+.banner-overlay {
+  position: relative;
+  z-index: 1;
+}
+
+.banner-content-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap-reverse;
+  gap: 20px;
+}
+
+.banner-overlay h2 {
+  font-size: 26px;
+  margin: 0 0 8px 0;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.store-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.store-header-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary-subtle);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border-prominent);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary-main);
+}
+
+.store-header-rates-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.store-header-products-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-input);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-subtle);
+}
+
+.store-header-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 750px;
+}
+
+.store-banner-logo {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-input);
+  border: 2px solid var(--border-prominent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-card);
+}
+
+.store-banner-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Category Filter Scroll Bar */
+.category-filter {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  max-width: 1160px;
+  margin: 0 auto 24px auto;
+  padding: 4px 10px 12px 10px;
+  scrollbar-width: thin;
+}
+
+.category-filter::-webkit-scrollbar {
+  height: 4px;
+}
+
+.category-filter::-webkit-scrollbar-track {
+  background: var(--border-subtle);
+  border-radius: 10px;
+}
+
+.category-filter::-webkit-scrollbar-thumb {
+  background: var(--border-prominent);
+  border-radius: 10px;
+}
+
+.category-filter button {
+  padding: 10px 20px;
+  border-radius: var(--button-radius);
+  border: 1px solid var(--border-prominent);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: var(--shadow-card);
+}
+
+.category-filter button:hover {
+  background: var(--bg-input-focus);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  border-color: var(--border-focus);
+}
+
+.category-filter button.active {
+  background: var(--bg-button);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: var(--shadow-button);
+}
+
+/* Controls Bar (Enhanced for multiple search fields and filters) */
+.store-controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  max-width: 1160px;
+  margin: 0 auto 30px auto;
+  justify-content: space-between;
+  padding: 0 10px;
+  align-items: center;
+}
+
+.sp-search-wrapper {
+  flex: 1;
+  min-width: 200px;
+}
+
+.sp-filters-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.sp-search-input,
+.sp-filter-input,
+.sp-filter-select {
+  width: 100%;
+  height: var(--input-height);
+  padding: var(--input-padding);
+  background: var(--bg-input);
+  border: 1px solid var(--border-prominent);
+  border-radius: var(--input-radius);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.sp-filter-input {
+  width: 105px;
+}
+
+.sp-filter-select {
+  width: 130px;
+}
+
+.sp-search-input:focus,
+.sp-filter-input:focus,
+.sp-filter-select:focus {
+  background: var(--bg-input-focus);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Browser Overrides for Select Option Hover & Number Spinners */
+.sp-filter-select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+.sp-filter-select option:hover,
+.sp-filter-select option:focus,
+.sp-filter-select option:checked {
+  background: var(--primary-subtle) !important;
+  color: var(--primary-main) !important;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+  filter: drop-shadow(0 0 1px var(--primary-main));
+  cursor: pointer;
+}
+
+/* Products Grid */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 24px;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+/* Empty State */
+.no-data {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
+  max-width: 1160px;
+  margin: 20px auto;
+  border: 1px dashed var(--border-prominent);
+  box-shadow: var(--shadow-card);
+}
+
+.no-data p {
+  color: var(--text-secondary);
+  font-size: 15px;
+  margin: 0;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: var(--text-primary);
+}
+
+.loading-spinner {
+  width: 45px;
+  height: 45px;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--border-focus);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Floating Error Response Message at Bottom of the Page */
+.response-message {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 12px 24px;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
+  font-size: 14px;
+  font-weight: 600;
+  animation: slideUpFade 0.3s ease;
+  max-width: 90%;
+  text-align: center;
+}
+
+.error-message {
+  background: var(--error-subtle, #fce8e6);
+  color: var(--error-main, #c5221f);
+  border: 1px solid var(--error-main, #c5221f);
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Pagination Aligned with Stores Page Design */
+.stores-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.stores-page-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-prominent);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-card);
+}
+
+.stores-page-btn:hover:not(:disabled) {
+  background: var(--bg-button);
+  color: #ffffff;
+  border-color: transparent;
+  transform: scale(1.05);
+}
+
+.stores-page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.stores-dots-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px;
+}
+
+.stores-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-prominent);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stores-dot.active {
+  background: var(--primary-main);
+  border-radius: 6px;
+}
+
+.stores-dot:hover:not(.active) {
+  background: var(--text-muted);
+  transform: scale(1.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .store-controls-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .sp-search-wrapper,
+  .sp-filters-group {
+    width: 100%;
+  }
+
+  .sp-filter-input,
+  .sp-filter-select {
+    flex: 1;
+    width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .store-banner {
+    padding: 24px 20px;
+  }
+  
+  .banner-overlay h2 {
+    font-size: 20px;
+  }
+}

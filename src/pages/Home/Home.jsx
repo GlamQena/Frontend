@@ -1,24 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './Home.css';
-import Footer from "../../components/Footer";
 import { useTheme } from '../../components/ThemeProvider';
 import { getSpecialProducts } from '../../services/products.js';
 import { buildImgSrc } from '../../services/imageUtils.js';
 import { addToCart } from '../../services/cart.js';
-import { responseMessageSetter } from '../../services/authService.js';
-import { useNavigate } from 'react-router-dom';
+import { responseMessageSetter, isUserLogged } from '../../services/authService.js';
+import { useNavigate, Link } from 'react-router-dom';
+import { isClient, addToWishlist, removeFromWishlist, getCurrentUser } from '../../services/users.js';
+import ProductCard from '../../components/ProductCard.jsx';
+import FloatingErrorMsg from '../../components/FloatingErrorMsg.jsx';
+import SimpleButton from '../../components/SimpleButton.jsx';
 
 function Home() {
     const [activeSection, setActiveSection] = useState('home');
-    const {theme, setTheme} = useTheme();
+    const { theme } = useTheme();
     const [specialProducts, setSpecialProducts] = useState([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(false);
-    const [responseMessage, setResponseMessage] = useState({success: false, message: ""});
+    const [responseMessage, setResponseMessage] = useState({ success: false, message: "" });
     const [showAllProducts, setShowAllProducts] = useState(false);
+    const [currentImageIndexes, setCurrentImageIndexes] = useState({});
+    const [addingToCart, setAddingToCart] = useState(null);
 
-    const navigate= useNavigate();
+    const navigate = useNavigate();
+    const timer = useRef();
+
+    // Helper to check wishlist status
+    const isProductInWishlist = useCallback((productId, userWishlist) => {
+        if (!userWishlist || !Array.isArray(userWishlist)) return false;
+        return userWishlist.some(item => {
+            if (item._id && item._id.toString() === productId.toString()) return true;
+            if (item.toString && item.toString() === productId.toString()) return true;
+            if (item.productId && item.productId.toString() === productId.toString()) return true;
+            return false;
+        });
+    }, []);
 
     useEffect(() => {
+        window.scrollTo({top: 0, behavior: "smooth"});
         const sections = document.querySelectorAll('section[id]');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -29,7 +47,10 @@ function Home() {
         }, { threshold: 0.3 });
 
         sections.forEach(section => observer.observe(section));
-        return () => sections.forEach(section => observer.unobserve(section));
+        return () => {
+            sections.forEach(section => observer.unobserve(section));
+            clearTimeout(timer);
+        }
     }, []);
 
     const scrollToSection = (sectionId) => {
@@ -37,100 +58,144 @@ function Home() {
         if (section) {
             section.scrollIntoView({ behavior: 'smooth' });
         }
-        
     };
 
-    useEffect( () => {
-    const handleShowSpecialProducts = async () => {
+    useEffect(() => {
+        const handleShowSpecialProducts = async () => {
+            try {
+                setIsLoadingProducts(true);
+                const response = await getSpecialProducts();
+                
+                const loggedUser = getCurrentUser();
+                const userWishlist = loggedUser?.wishlist || [];
+
+                const mapProductData = (product, additionalFlags = {}) => ({
+                    ...product,
+                    id: product._id,
+                    storeName: product.owner_store_id?.store_name || product.store_name || 'متجر تجميل',
+                    rating: product.average_rating || 0,
+                    totalRates: product.total_rates || 0,
+                    stock: product.stock ?? 0,
+                    volume: product.volume || null,
+                    images: product.images || [],
+                    addedToWishlist: isProductInWishlist(product._id, userWishlist),
+                    ...additionalFlags
+                });
+
+                const recentWithBadge = response.recentProducts.map(p => mapProductData(p, { isNew: true }));
+                const frequentWithBadge = response.frequentlySoldProducts.map(p => mapProductData(p, { isBestseller: true }));
+                
+                const allProducts = [...frequentWithBadge, ...recentWithBadge];
+                setSpecialProducts(allProducts);
+                
+                const initialIndexes = {};
+                allProducts.forEach((_, index) => {
+                    initialIndexes[index] = 0;
+                });
+                setCurrentImageIndexes(initialIndexes);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            } finally {
+                setIsLoadingProducts(false);
+            }
+        };
+
+        handleShowSpecialProducts();
+    }, [isProductInWishlist]);
+
+    const updateProductWishlistStatus = (productId, status) => {
+        setSpecialProducts(prev =>
+            prev.map(p => (p._id === productId || p.id === productId) ? { ...p, addedToWishlist: status } : p)
+        );
+    };
+
+    const handleToggleWishlist = async (e, productId) => {
+        e.stopPropagation();
+        const product = specialProducts.find(p => p._id === productId || p.id === productId);
+        if (!product) return;
+
         try {
-            setIsLoadingProducts(true);
-            const response = await getSpecialProducts();
+            const apiCall = product.addedToWishlist ? removeFromWishlist : addToWishlist;
+            const res = await apiCall(productId);
+            const data = await res.json();
 
-            console.log("special products response =>", response);
-            
-            // Transform the data to match frontend expectations
-            const recentWithBadge = response.recentProducts.map(product => ({
-                ...product,
-                id: product._id,
-                storeName: product.owner_store_id?.store_name || 'متجر تجميل',
-                rating: product.average_rating || 0,
-                isNew: true
-            }));
-            
-            const frequentWithBadge = response.frequentlySoldProducts.map(product => ({
-                ...product,
-                id: product._id,
-                storeName: product.store_name || 'متجر تجميل',
-                rating: product.average_rating || 0,
-                isBestseller: true
-            }));
-            
-            // Combine both arrays, with bestsellers first
-            const allProducts = [...frequentWithBadge, ...recentWithBadge];
-            
-            setSpecialProducts(allProducts); 
-        } catch (error) {
-            console.error("Error fetching products:", error);
-        } finally {
-            setIsLoadingProducts(false);
-        }
-    }
+            if (!res.ok) {
+                responseMessageSetter(false, data.message || "حدث خطأ أثناء التحديث", setResponseMessage);
+                return;
+            }
 
-    handleShowSpecialProducts();
-    }, []);
-
-    const handleAddToCart = async (productId) => {
-        try {
-        const res = await addToCart(productId, setResponseMessage);
-        const json = await res.json();
-
-        if (!res.ok) {
-            console.error("addToCart error:", json.message);
-            return responseMessageSetter(false, json.message || "خطأ فى الإضافة للسلة", setResponseMessage);
-        }
-
-        responseMessageSetter(true, json.message || "تمت الإضافة بنجاح ✓", setResponseMessage);
-        
-        setTimeout(() => {
-            setResponseMessage({ success: false, message: "" });
-        }, 3000);
+            const user = apiCall == removeFromWishlist ? data.data.user : data.user;
+            localStorage.setItem("user", JSON.stringify(user));
+            updateProductWishlistStatus(productId, !product.addedToWishlist);
+            // responseMessageSetter(true, data.message || "تم تحديث قائمة الرغبات بنجاح", setResponseMessage);
         } catch (err) {
-        console.error("addToCart error:", err);
-        responseMessageSetter(false, err.message || "خطأ فى الإضافة للسلة", setResponseMessage);
+            if(err.code == "AUTH_EXPIRED"|| err.message?.includes("session")) {
+                responseMessageSetter(false, err.message || "Your session has expired. Please login again.", setResponseMessage);
+                timer = setTimeout(() => {
+                    navigate("/login");
+                }, 3000);
+            }else{
+                console.error("Wishlist toggle error:", err);
+                responseMessageSetter(false, err.message || "حدث خطأ في تحديث قائمة الرغبات", setResponseMessage);
+            }
+        }
+    };
+
+    const handleAddToCart = async (e, productId) => {
+        e.stopPropagation();
+        try {
+            if(addingToCart === productId) return;
+            setAddingToCart(productId);
+
+            const res = await addToCart(productId);
+            const json = await res.json();
+
+            if (!res.ok) {
+                console.error("addToCart error:", json.message);
+                return responseMessageSetter(false, json.message || "خطأ فى الإضافة للسلة", setResponseMessage);
+            }
+
+            // responseMessageSetter(true, json.message || "تمت الإضافة بنجاح ✓", setResponseMessage);
+        } catch (err) {
+            console.error("addToCart error:", err);
+            responseMessageSetter(false, err.message || "خطأ فى الإضافة للسلة", setResponseMessage);
+        } finally{
+            setAddingToCart(null);
         }
     };
     
-    // Determine which products to display
     const displayProducts = () => {
-        // If we have special products from API and we want to show all or just first 4
         if (specialProducts.length > 0) {
             return showAllProducts ? specialProducts : specialProducts.slice(0, 4);
         }
-        // Otherwise show default static products (always show all 4)
         return null;
     };
 
     const productsToShow = displayProducts();
     const hasSpecialProducts = specialProducts.length > 0;
-    
+    const isLoggedIn = isUserLogged();
+    const isClientUser = isClient();
+
     return (
         <div className="page-container">
-            {/* ========== Navbar ========== */}
-            <nav className="sub-navbar">
-                <div className="nav-home-links">
-                    <a href="#home" className={activeSection === 'home' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>الرئيسية</a>
-                    <a href="#how-it-works" className={activeSection === 'how-it-works' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('how-it-works'); }}>كيف يعمل</a>
-                    <a href="#for-whom" className={activeSection === 'for-whom' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('for-whom'); }}>لمن هذه المنصة</a>
-                    <a href="#features" className={activeSection === 'features' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>المميزات</a>
-                    <a href="#products" className={activeSection === 'products' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('products'); }}>المنتجات</a>
-                </div>
-                <div className="nav-footer-links">
-                    <a href="#about" className={activeSection === 'about' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>من نحنا</a>
-                    <a href="#contact" className={activeSection === 'contact' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>تواصل معنا</a>
-                </div>
-            </nav>
+            {/* ========== Sub Navbar ========== */}
+            <div className="sub-navbar-wrapper">
+                <nav className="sub-navbar">
+                    <div className="nav-home-links">
+                        <a href="#home" className={activeSection === 'home' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}>الرئيسية</a>
+                        <a href="#how-it-works" className={activeSection === 'how-it-works' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('how-it-works'); }}>كيف يعمل</a>
+                        <a href="#for-whom" className={activeSection === 'for-whom' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('for-whom'); }}>لمن هذه المنصة</a>
+                        <a href="#features" className={activeSection === 'features' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('features'); }}>المميزات</a>
+                        <a href="#products" className={activeSection === 'products' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('products'); }}>المنتجات</a>
+                    </div>
+                    <div className="nav-footer-links">
+                        <a href="#about" className={activeSection === 'about' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}>من نحن</a>
+                        <a href="#contact" className={activeSection === 'contact' ? 'active' : ''} onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>تواصل معنا</a>
+                    </div>
+                </nav>
+            </div>
 
-            {responseMessage.message && <p className= {`response-message ${responseMessage.success ? "success-message" : "error-message"}`}>{responseMessage.message}</p>}
+            {responseMessage.message && <FloatingErrorMsg success={responseMessage.success} message={responseMessage.message}/>}
 
             {/* ========== Hero Section ========== */}
             <section id="home" className="hero">
@@ -147,10 +212,13 @@ function Home() {
                         اكتشفي أرقى منتجات التجميل المختارة بعناية من أفضل المتاجر المحلية في قلب صعيد مصر.
                     </p>
                     <div className="hero-buttons">
-                        <button className="btn-shop" onClick={() => window.location.href = '/stores'}>ابدأ التسوق</button>
+                        <SimpleButton
+                            onClick={() => window.location.href = '/stores'}
+                            content= {"ابدأ التسوق"}
+                        />
                         <button className="btn-discover" onClick={() => scrollToSection('features')}>اكتشف المنصة</button>
                     </div>
-                    <div className="stat-card">
+                    <div className="mhابدأ التسوق">
                         <div className="stat-number">24h</div>
                         <div className="stat-label">توصيل سريع</div>
                     </div>
@@ -197,9 +265,7 @@ function Home() {
                     <div className="steps-timeline">
                         <div className="step-item">
                             <div className="step-icon-wrapper">
-                                <div className="step-icon-circle">
-                                    <i className="fas fa-user-plus"></i>
-                                </div>
+                                <div className="step-icon-circle"><i className="fas fa-user-plus"></i></div>
                             </div>
                             <div className="step-line"></div>
                             <div className="step-content">
@@ -210,9 +276,7 @@ function Home() {
 
                         <div className="step-item">
                             <div className="step-icon-wrapper">
-                                <div className="step-icon-circle">
-                                    <i className="fas fa-shopping-cart"></i>
-                                </div>
+                                <div className="step-icon-circle"><i className="fas fa-shopping-cart"></i></div>
                             </div>
                             <div className="step-line"></div>
                             <div className="step-content">
@@ -223,9 +287,7 @@ function Home() {
 
                         <div className="step-item">
                             <div className="step-icon-wrapper">
-                                <div className="step-icon-circle">
-                                    <i className="fas fa-check-circle"></i>
-                                </div>
+                                <div className="step-icon-circle"><i className="fas fa-check-circle"></i></div>
                             </div>
                             <div className="step-line"></div>
                             <div className="step-content">
@@ -236,9 +298,7 @@ function Home() {
 
                         <div className="step-item">
                             <div className="step-icon-wrapper">
-                                <div className="step-icon-circle">
-                                    <i className="fas fa-truck"></i>
-                                </div>
+                                <div className="step-icon-circle"><i className="fas fa-truck"></i></div>
                             </div>
                             <div className="step-line"></div>
                             <div className="step-content">
@@ -248,7 +308,10 @@ function Home() {
                         </div>
                     </div>
 
-                    <button className="btn-start" onClick={() => window.location.href = '/stores'}>ابدأ رحلة الجمال الآن</button>
+                    <SimpleButton
+                        onClick={() => window.location.href = '/stores'} 
+                        content={"ابدأ رحلة الجمال الآن"}
+                    />
                 </div>
             </section>
 
@@ -256,13 +319,15 @@ function Home() {
             <section className="delivery-section">
                 <div className="delivery-container">
                     <div className="delivery-image">
-                        <img src="/images/main-home/Beauty Products.png" alt="توصيل سريع" />
+                        <img src="/images/main-home/Beauty Products.png" onError= {(e) =>{
+                            e.target.onError = null;
+                            e.target.src = "/images/main-home/placeholder_product.png"
+                        }} alt="توصيل سريع" />
                     </div>
                     <div className="delivery-content">
                         <h3 className="delivery-title">توصيل سريع لعناية لا تنتظر</h3>
                         <p className="delivery-text">
-                            في قنا، نؤمن أن الجمال لا يجب أن ينتظر. فريقنا يعمل على مدار الساعة لضمان
-                            وصول مفضلاتك إليك في أسرع وقت وبأفضل حالة.
+                            في قنا، نؤمن أن الجمال لا يجب أن ينتظر. فريقنا يعمل على مدار الساعة لضمان وصول مفضلاتك إليك في أسرع وقت وبأفضل حالة.
                         </p>
                         <div className="delivery-exclusive">EXCLUSIVE COLLECTIONS</div>
                     </div>
@@ -281,9 +346,7 @@ function Home() {
                 </div>
                 <div className="cards-grid">
                     <div className="role-card">
-                        <div className="icon-wrapper customer-icon">
-                            <i className="fas fa-user"></i>
-                        </div>
+                        <div className="icon-wrapper customer-icon"><i className="fas fa-user"></i></div>
                         <h3>CUSTOMER</h3>
                         <div className="role-sub">(عميل)</div>
                         <div className="role-desc">تسوق منتجات التجميل من أفضل محلات قنا</div>
@@ -298,9 +361,7 @@ function Home() {
                     </div>
 
                     <div className="role-card">
-                        <div className="icon-wrapper store-icon">
-                            <i className="fas fa-store"></i>
-                        </div>
+                        <div className="icon-wrapper store-icon"><i className="fas fa-store"></i></div>
                         <h3>STORE OWNER</h3>
                         <div className="role-sub">(صاحب محل)</div>
                         <div className="role-desc">اعرض منتجاتك واستفد من قاعدة عملاء أوسع</div>
@@ -353,148 +414,25 @@ function Home() {
                     </div>
 
                     <div className="products-grid">
-                        {productsToShow ? (
-                            productsToShow.map((product, index) => {
-                                // Make sure we have an ID
-                                const productId = product._id || product.id;
-                                
-                                // Get the image URL
-                                const imageSrc = (product.images && product.images[0]) 
-                                    ? buildImgSrc(product.images[0]) 
-                                    : '/images/default-product.png';
-                                
-                                // Debug
-                                console.log(`Product ${index}: ${product.name}`, {
-                                    id: productId,
-                                    _id: product._id,
-                                    idField: product.id,
-                                    images: product.images,
-                                    imageSrc
-                                });
-                                
-                                return (
-                                    <div 
-                                        className="product-card" 
-                                        onClick={() => {
-                                            if (productId) {
-                                                navigate(`/products/${productId}`);
-                                            } else {
-                                                console.error('No product ID for:', product);
-                                            }
-                                        }} 
-                                        key={productId || index}
-                                    >
-                                        <div 
-                                            className="product-image" 
-                                            style={{ 
-                                                backgroundImage: `url(${imageSrc})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center'
-                                            }}
-                                        ></div>
-                                        <div 
-                                            className="add-btn" 
-                                            onClick={async (e) => { 
-                                                e.stopPropagation(); 
-                                                if (productId) {
-                                                    await handleAddToCart(productId);
-                                                }
-                                            }}
-                                        >+</div>
-                                        
-                                        {product.isNew && <div className="product-badge new">جديد</div>}
-                                        {product.isBestseller && <div className="product-badge bestseller">الأكثر مبيعاً</div>}
-                                        
-                                        <div className="product-content">
-                                            <div className="product-store-name">
-                                                {product.storeName || product.owner_store_id?.store_name || 'متجر تجميل'}
-                                            </div>
-                                            <h3 className="product-name">{product.name}</h3>
-                                            <p className="product-desc">{product.description}</p>
-                                            <div className="product-footer">
-                                                <div>
-                                                    <span className="product-price-new">{product.price} ج</span>
-                                                    {product.oldPrice && <span className="product-price-old">{product.oldPrice} ج</span>}
-                                                </div>
-                                                <span className="product-rating">⭐ {product.average_rating || product.rating || '0.0'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        ) : (
-                            <>
-                                {/* Default static products */}
-                                <div className="product-card">
-                                    <div className="product-badge discount">خصم %20</div>
-                                    <div className="product-image product-image-1"></div>
-                                    <div className="add-btn" onClick={() => handleAddToCart('product1')}>+</div>
-                                    <div className="product-content">
-                                        <div className="product-store-name">محل نور للتجميل</div>
-                                        <h3 className="product-name">سيروم فيتامين C</h3>
-                                        <p className="product-desc">تفتيح وتوحيد لون البشرة</p>
-                                        <div className="product-footer">
-                                            <div>
-                                                <span className="product-price-new">150 ج</span>
-                                                <span className="product-price-old">185 ج</span>
-                                            </div>
-                                            <span className="product-rating">⭐ 4.5</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="product-card">
-                                    <div className="product-badge discount">خصم %20</div>
-                                    <div className="product-image product-image-2"></div>
-                                    <div className="add-btn" onClick={() => handleAddToCart('product2')}>+</div>
-                                    <div className="product-content">
-                                        <div className="product-store-name">محل نور للتجميل</div>
-                                        <h3 className="product-name">هايلايتر ذهبي</h3>
-                                        <p className="product-desc">لمسة إشراق طبيعية</p>
-                                        <div className="product-footer">
-                                            <span className="product-price-new">95 ج</span>
-                                            <span className="product-rating">⭐ 5.0</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="product-card">
-                                    <div className="product-badge new">جديد</div>
-                                    <div className="product-image product-image-3"></div>
-                                    <div className="add-btn" onClick={() => handleAddToCart('product3')}>+</div>
-                                    <div className="product-content">
-                                        <div className="product-store-name">محل نور للتجميل</div>
-                                        <h3 className="product-name">كريم SPF 30</h3>
-                                        <p className="product-desc">حماية وترطيب</p>
-                                        <div className="product-footer">
-                                            <span className="product-price-new">120 ج</span>
-                                            <span className="product-rating">⭐ 4.5</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="product-card">
-                                    <div className="product-badge bestseller">الأكثر مبيعاً</div>
-                                    <div className="product-image product-image-4"></div>
-                                    <div className="add-btn" onClick={() => handleAddToCart('product4')}>+</div>
-                                    <div className="product-content">
-                                        <div className="product-store-name">محل نور للتجميل</div>
-                                        <h3 className="product-name">روج مات</h3>
-                                        <p className="product-desc">ثبات 12 ساعة</p>
-                                        <div className="product-footer">
-                                            <span className="product-price-new">85 ج</span>
-                                            <span className="product-rating">⭐ 5.0</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        )}
+                        {productsToShow && productsToShow.map((product, index) => {
+                           const productId = product._id || product.id;
+                            return (
+                                <ProductCard 
+                                    key={productId || index}
+                                    product={product}
+                                    isLoggedIn={isLoggedIn}
+                                    isClientUser={isClientUser}
+                                    onToggleWishlist={handleToggleWishlist}
+                                    onAddToCart={handleAddToCart}
+                                    isAddingToCart= {addingToCart === productId}
+                                />
+                            );
+                        })}
                     </div>
 
-                    {/* Show "View All Products" button only when showing limited products */}
                     {(hasSpecialProducts && !showAllProducts && specialProducts.length > 4) && (
                         <div className="view-all-btn">
-                            <button className="btn-view-all" onClick={() => {setShowAllProducts(true);}} disabled={isLoadingProducts}>
+                            <button className="btn-view-all" onClick={() => setShowAllProducts(true)} disabled={isLoadingProducts}>
                                 {isLoadingProducts ? 'جاري التحميل...' : 'عرض جميع المنتجات'}
                             </button>
                         </div>
@@ -505,17 +443,21 @@ function Home() {
             {/* ========== Footer Section ========== */}
             <div className="footer-section">
                 <div className="footer-image">
-                    <img src={theme === "dark" ? "/images/main-home/Overlay+ShadowDark.png" : "/images/main-home/Overlay+Shadow.png"} alt="Qena Glam" />
+                    <img src={theme === "purple" ? "/images/main-home/footer_berfum_dark.jpg" : "/images/main-home/footer_berfum_light.jpg"} alt="Qena Glam" />
                     <div className="footer-image-content">
-                        <h2>الجمال يبدأ من <span className="city">قنا</span></h2>
-                        <p>اكتشفي أرقى منتجات التجميل المختارة بعناية من أفضل المتاجر<br />المحلية في قلب صعيد مصر.</p>
+                        <span className="city">قنا، جمهورية مصر العربية</span>
+                        <h3>انضمي إلينا واكتشفي المتاجر المميزة</h3>
+                        <p>تصفحي أفضل المتاجر المتاحة لدينا واستمتعي بتجربة تسوق فريدة ومخصصة تلبي كافة احتياجاتك بكل سهولة.</p>
+                        
+                        {/* Added Store Navigation Button */}
+                        <Link to="/stores" className="footer-btn">
+                            استعرضي المتاجر
+                        </Link>
                     </div>
                 </div>
-
-                <Footer />
             </div>
         </div>
     );
 }
 
-export default Home; // Only one export default
+export default Home;

@@ -1,193 +1,453 @@
+/* ============================================
+   FOOTER STYLES
+   ============================================ */
+
 .footer {
-    border-top: 1px solid var(--حد-خافت);
-    padding: 72px 48px 32px;
-    background-color: var(--فوتر-خلفية);
-    width: var(--عرض-صفحة);
+  border-top: 1px solid var(--border-subtle);
+  padding: 60px 48px 24px;
+  background: var(--bg-footer);
+  width: 100%;
+  margin-top: auto;
 }
 
 .footer-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 80px;
-    max-width: 1280px;
-    margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr;
+  gap: 60px;
+  max-width: 1280px;
+  margin: 0 auto;
 }
 
+/* ============================================
+   BRAND SECTION
+   ============================================ */
+
 .footer-brand {
-    flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .footer-logo-circle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--ذهبي);
-    border-radius: 50%;
-    width: 10px;
-    height: 10px;
-    box-shadow: 0 0 4px 2px rgba(212, 175, 55, 0.6);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gold-main);
+  box-shadow: 0 0 4px 2px rgba(212, 175, 55, 0.6);
+  flex-shrink: 0;
 }
 
 .footer-logo-qena {
-    font-family: 'Playfair Display', serif;
-    font-weight: 400;
-    font-size: 18px;
-    color: var(--نص-خافت);
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--text-secondary);
 }
 
 .footer-logo-glam {
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--بنفسجي);
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--primary-main);
 }
 
-.footer-qena {
-    font-family: 'Tajawal', sans-serif;
-    font-size: 13px;
-    color: var(--نص-خافت);
-    margin-bottom: 12px;
+.footer-logo-ar {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .footer-desc {
-    font-family: 'Tajawal', sans-serif;
-    font-size: 13px;
-    color: var(--نص-ثانوي);
-    line-height: 1.8;
-    max-width: 320px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  max-width: 380px;
 }
 
+/* ============================================
+   SOCIAL LINKS
+   ============================================ */
+
+.footer-social {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.social-link {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-subtle);
+  text-decoration: none;
+}
+
+.social-link:hover {
+  background: var(--primary-subtle);
+  color: var(--primary-main);
+  transform: translateY(-3px);
+  border-color: var(--primary-main);
+  box-shadow: 0 4px 12px var(--primary-subtle);
+}
+
+.social-link svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================
+   QUICK LINKS
+   ============================================ */
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer-links h4 {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-links ul li a {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.footer-links ul li a:hover {
+  color: var(--primary-main);
+  transform: translateX(-4px);
+}
+
+/* ============================================
+   CONTACT SECTION
+   ============================================ */
+
 .footer-contact {
-    flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .footer-contact h4 {
-    font-family: 'Tajawal', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--نص-رئيسي);
-    margin-bottom: 20px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .footer-contact-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-    font-family: 'Tajawal', sans-serif;
-    font-size: 14px;
-    color: var(--نص-ثانوي);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
 }
 
-.footer-contact-item i {
-    width: 24px;
-    color: var(--بنفسجي);
-    font-size: 16px;
+.footer-contact-item:hover {
+  color: var(--primary-main);
+}
+
+.footer-contact-item .footer-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-main);
+  flex-shrink: 0;
+}
+
+.footer-contact-item:hover .footer-icon {
+  transform: scale(1.1);
 }
 
 .footer-hours {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--حد-خافت);
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
 }
+
+/* ============================================
+   FOOTER BOTTOM
+   ============================================ */
 
 .footer-bottom {
-    text-align: center;
-    padding-top: 40px;
-    margin-top: 40px;
-    border-top: 1px solid var(--حد-خافت);
-    font-family: 'Tajawal', sans-serif;
-    font-size: 12px;
-    color: var(--نص-خافت);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 32px;
+  margin-top: 48px;
+  border-top: 1px solid var(--border-subtle);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 12px;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Responsive adjustments for footer */
-@media (max-width: 992px) {
-    .footer {
-        padding: 48px 32px 32px;
-    }
-    
-    .footer-container {
-        flex-direction: column;
-        gap: 40px;
-    }
-    
-    .footer-brand {
-        text-align: center;
-    }
-    
-    .footer-logo {
-        justify-content: center;
-    }
-    
-    .footer-desc {
-        max-width: 100%;
-        text-align: center;
-    }
-    
-    .footer-contact {
-        text-align: center;
-    }
-    
-    .footer-contact-item {
-        justify-content: center;
-    }
+.footer-bottom-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-bottom-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-bottom-links a:hover {
+  color: var(--primary-main);
+}
+
+.footer-bottom-links .separator {
+  color: var(--border-subtle);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1200px) {
+  .footer-container {
+    grid-template-columns: 1.5fr 1fr 1.5fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .footer {
+    padding: 48px 32px 24px;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+    align-items: center;
+  }
+
+  .footer-logo {
+    justify-content: center;
+  }
+
+  .footer-desc {
+    max-width: 100%;
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .footer-social {
+    justify-content: center;
+  }
+
+  .footer-links {
+    align-items: center;
+  }
+
+  .footer-links ul {
+    align-items: center;
+  }
+
+  .footer-links ul li a:hover {
+    transform: translateX(0) scale(1.05);
+  }
+
+  .footer-contact {
+    align-items: center;
+  }
+
+  .footer-contact-item {
+    justify-content: center;
+  }
+
+  .footer-hours {
+    text-align: center;
+  }
 }
 
 @media (max-width: 768px) {
-    .footer {
-        padding: 40px 20px 24px;
-    }
-    
-    .footer-container {
-        gap: 32px;
-    }
-    
-    .footer-contact h4 {
-        font-size: 16px;
-    }
-    
-    .footer-contact-item {
-        font-size: 13px;
-        gap: 8px;
-    }
-    
-    .footer-bottom {
-        padding-top: 24px;
-        margin-top: 24px;
-        font-size: 11px;
-    }
+  .footer {
+    padding: 40px 24px 20px;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    text-align: center;
+  }
+
+  .footer-brand {
+    align-items: center;
+  }
+
+  .footer-logo {
+    justify-content: center;
+  }
+
+  .footer-desc {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .footer-social {
+    justify-content: center;
+  }
+
+  .footer-links {
+    align-items: center;
+  }
+
+  .footer-links ul {
+    align-items: center;
+  }
+
+  .footer-links ul li a:hover {
+    transform: translateX(0) scale(1.05);
+  }
+
+  .footer-contact {
+    align-items: center;
+  }
+
+  .footer-contact-item {
+    justify-content: center;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+    padding-top: 24px;
+    margin-top: 32px;
+  }
+
+  .footer-bottom-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {
-    .footer {
-        padding: 32px 16px 20px;
-    }
-    
-    .footer-logo-qena,
-    .footer-logo-glam {
-        font-size: 16px;
-    }
-    
-    .footer-desc {
-        font-size: 12px;
-    }
-    
-    .footer-contact-item {
-        flex-direction: column;
-        gap: 4px;
-        text-align: center;
-    }
-    
-    .footer-contact-item i {
-        margin-bottom: 4px;
-    }
+  .footer {
+    padding: 32px 16px 16px;
+  }
+
+  .footer-container {
+    gap: 24px;
+  }
+
+  .footer-logo-glam {
+    font-size: 18px;
+  }
+
+  .footer-logo-qena {
+    font-size: 16px;
+  }
+
+  .footer-logo-ar {
+    font-size: 12px;
+  }
+
+  .footer-desc {
+    font-size: 13px;
+  }
+
+  .footer-links h4,
+  .footer-contact h4 {
+    font-size: 16px;
+  }
+
+  .footer-contact-item {
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .social-link {
+    width: 36px;
+    height: 36px;
+  }
+
+  .social-link svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .footer-bottom {
+    font-size: 11px;
+  }
+
+  .footer-bottom-links {
+    font-size: 11px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .footer {
+    padding: 24px 12px 12px;
+  }
+
+  .footer-logo-glam {
+    font-size: 16px;
+  }
+
+  .footer-logo-qena {
+    font-size: 14px;
+  }
+
+  .footer-logo-ar {
+    font-size: 11px;
+  }
+
+  .footer-desc {
+    font-size: 12px;
+  }
+
+  .footer-contact-item {
+    font-size: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .footer-bottom {
+    font-size: 10px;
+  }
 }

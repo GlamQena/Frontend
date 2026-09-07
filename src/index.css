@@ -7,143 +7,110 @@
 }
 
 html {
-    scroll-behavior: smooth;
-    direction: rtl;
+  scroll-behavior: smooth;
+  direction: rtl;
 }
 
-#root{
+/* Base Theme Variables for Glow Effects */
+:root[data-theme="dark"] {
+  --glow-top-right: rgba(168, 85, 247, 0.14); /* Soft Orchid Glow */
+  --glow-bottom-left: rgba(61, 10, 92, 0.35); /* Deep Purple Depth */
+}
+
+:root[data-theme="light"] {
+  --glow-top-right: rgba(255, 105, 180, 0.15); /* Soft Pink Glow */
+  --glow-bottom-left: rgba(168, 85, 247, 0.08); /* Very Soft Lavender Glow */
+}
+
+#root, body {
   width: 100%;
   min-height: 100vh;
-  background-color: var(--خلفية-الصفحة);
-}
-
-body {
-  background: var(--خلفية-الصفحة);
-  background-image:
-    radial-gradient(ellipse 80% 60% at 60% -10%, rgba(120,40,180,0.12) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 40% at 10% 90%,  rgba(90,20,140,0.08) 0%, transparent 60%);
-  color: var(--نص-رئيسي);
   margin: 0;
-  font-family: Tajawal, sans-serif;
+  background-color: var(--bg-page);
+  
+  /* Dual Responsive Radial Glow matching Flutter's LinearGradient stops */
+  background-image: 
+    radial-gradient(
+      ellipse 60vw 50vh at 85% 10%, 
+      var(--glow-top-right) 0%, 
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 70vw 60vh at 15% 90%, 
+      var(--glow-bottom-left) 0%, 
+      transparent 75%
+    );
+  
+  background-attachment: fixed; /* Keeps glow pinned cleanly during scrolling */
+  color: var(--text-primary);
+  font-family: 'Tajawal', sans-serif;
   font-weight: 700;
   font-size: 16px;
   line-height: 24px;
-  letter-spacing: 0px;
   text-align: center;
 }
 
 .page {
-  background: var(--خلفية-الصفحة);
-  color: var(--نص-رئيسي);
+  background: transparent; 
+  color: var(--text-primary);
   padding: 30px 50px 60px;
   min-height: 100vh;
-  transition: background 0.3s;
+  transition: background 0.3s ease;
 }
 
-/* ===== Scrollbar Styling ===== */
+/* ===== Responsive Breakpoint Enhancements ===== */
+@media (max-width: 768px) {
+  #root, body {
+    /* Scale down the glow spread on mobile screens to prevent visual clutter */
+    background-image: 
+      radial-gradient(
+        ellipse 90vw 40vh at 90% 5%, 
+        var(--glow-top-right) 0%, 
+        transparent 65%
+      ),
+      radial-gradient(
+        ellipse 90vw 40vh at 10% 95%, 
+        var(--glow-bottom-left) 0%, 
+        transparent 65%
+      );
+  }
+
+  .page {
+    padding: 20px 16px 40px; /* Responsive mobile padding */
+  }
+}
+
+/* ===== Neutral Scrollbar Styling ===== */
 ::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
+  height: 8px; /* Added height for horizontal scrollbars if needed */
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--خلفية-الصفحة);
-    border-radius: 10px;
+  background: var(--bg-page);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--بنفسجي);
-    border-radius: 10px;
+  background: var(--border-prominent);
+  border-radius: 10px;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--وردي);
+  background: var(--text-muted);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--text-secondary);
+}
+
+/* Firefox standard scrollbar support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-prominent) var(--bg-page);
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
-/* form submit error and success messages */
-/* Response Message */
-.response-message {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10000;
-  padding: 14px 28px;
-  border-radius: var(--راديوس-الزر);
-  font-size: 0.9rem;
-  font-weight: 500;
-  text-align: center;
-  min-width: 280px;
-  max-width: 90%;
-  height: fit-content;
-  direction: rtl;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  animation: slideInUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  backdrop-filter: blur(10px);
-}
-
-.error-message, .success-message {
-  padding: 12px 16px;
-  border-radius: var(--راديوس-الحقل);
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.error-message{
-  background: var(--أحمر-خافت);
-  border: 1px solid var(--أحمر-خطأ);
-  color: var(--أحمر-خطأ);
-}
-
-.success-message {
-  background: var(--أخضر-خافت);
-  border: 1px solid var(--أخضر-نجاح);
-  color: var(--أخضر-نجاح);
-}
-
-/* Fields with errors */
-.form-group input.error,
-.form-group select.error {
-  border-color: var(--أحمر-خطأ) !important;
-  background-color: var(--أحمر-خافت) !important;
-}
-
-/* fields related messages*/
-.field-error {
-  color: var(--أحمر-خطأ);
-  font-size: 13px;
-  margin-top: 5px;
-  text-align: right;
-  display: block;
-}
-
-.field-hint {
-  color: var(--نص-خافت);
-  font-size: 12px;
-  margin-top: 5px;
-  display: block;
-  opacity: 0.8;
-}
-
-.required-star {
-  color: var(--أحمر-خطأ);
-  margin-right: 4px;
-  font-size: 16px;
-}
-
-/*Animations*/
-@keyframes slideInUp {
-  from {
-    transform: translateX(-50%) translateY(100px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }

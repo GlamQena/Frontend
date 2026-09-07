@@ -1,7 +1,7 @@
 import { getAccessToken } from "./authService";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
-const BASE_URL = `${API_BASE_URL}/users`;
+const BASE_URL = `/users`;
 
 // ─────────────────────────────────────────────
 // GET USER FROM LOCAL STORAGE
@@ -31,68 +31,82 @@ export const isStoreOwner = () => getUserRole() === "store_owner";
 
 export const isAdmin = () => getUserRole() === "admin";
 
-export const getWishlist = async (setResponseMessage) => {
-  try {
-    const accessToken = await getAccessToken(setResponseMessage);
-
-    if (!accessToken) {
-      throw new Error("Authentication required. Please login again.");
-    }
-
-    const res = await fetch(`${BASE_URL}/me/wishlist`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      credentials: "include",
-    });
-    return res;
-  } catch (error) {
-    throw error;
-  }
+// Helper function to create auth errors
+const createAuthError = () => {
+  const error = new Error("Your session has expired. Please login again.");
+  error.code = "AUTH_EXPIRED";
+  return error;
 };
 
-export const addToWishlist = async (prod_id, setResponseMessage) => {
-  try {
-    const accessToken = await getAccessToken(setResponseMessage);
-
-    if (!accessToken) {
-      throw new Error("Authentication required. Please login again.");
+// Helper function to handle fetch responses
+const handleResponse = async (response) => {
+  if (response.status === 401) {
+    const error = createAuthError();
+    // Try to get the response message for additional context
+    try {
+      const data = await response.json();
+      error.message = data.message || error.message;
+    } catch (e) {
+      // If response doesn't have JSON body, use default message
     }
-
-    const res = await fetch(`${BASE_URL}/me/wishlist?productId=${prod_id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      credentials: "include",
-    });
-    return res;
-  } catch (error) {
     throw error;
   }
+  return response;
 };
 
-export const removeFromWishlist = async (prod_id, setResponseMessage) => {
-  try {
-    const accessToken = await getAccessToken(setResponseMessage);
+export const getWishlist = async () => {
+  const accessToken = await getAccessToken();
 
-    if (!accessToken) {
-      throw new Error("Authentication required. Please login again.");
-    }
-
-    const res = await fetch(`${BASE_URL}/me/wishlist?productId=${prod_id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      credentials: "include",
-    });
-    return res;
-  } catch (error) {
-    throw error;
+  if (!accessToken) {
+    throw createAuthError();
   }
+
+  const res = await fetch(`${BASE_URL}/me/wishlist`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    credentials: "include",
+  });
+
+  return handleResponse(res);
+};
+
+export const addToWishlist = async (prod_id) => {
+  const accessToken = await getAccessToken();
+
+  if (!accessToken) {
+    throw createAuthError();
+  }
+
+  const res = await fetch(`${BASE_URL}/me/wishlist?productId=${prod_id}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    credentials: "include",
+  });
+
+  return handleResponse(res);
+};
+
+export const removeFromWishlist = async (prod_id) => {
+  const accessToken = await getAccessToken();
+
+  if (!accessToken) {
+    throw createAuthError();
+  }
+
+  const res = await fetch(`${BASE_URL}/me/wishlist?productId=${prod_id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    credentials: "include",
+  });
+
+  return handleResponse(res);
 };

@@ -4,25 +4,24 @@
 
 .navbar-container {
   width: 100%;
-  height: var(--ناف-بار-ارتفاع);
+  height: var(--navbar-height);
 
   position: sticky;
   top: 0;
   z-index: 1000;
 
-  background: var(--ناف-بار-خلفية);
+  background: var(--bg-navbar);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 
-  border-bottom: 1px solid var(--ناف-بار-حد);
+  border-bottom: 1px solid var(--border-navbar);
 
   transition:
     background 0.3s ease,
     border-color 0.3s ease,
     box-shadow 0.3s ease;
 
-  box-shadow:
-    0 4px 30px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
 }
 
 /* ───────────────────────────── */
@@ -34,12 +33,47 @@
   height: 100%;
 
   margin: 0 auto;
-  padding: 0 42px;
+  padding: 0 16px;
 
   display: flex;
   align-items: center;
-  align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+/* ───────────────────────────── */
+/* Hamburger Menu */
+/* ───────────────────────────── */
+
+.nav-hamburger {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 12px;
+
+  background: transparent;
+
+  color: var(--text-primary);
+
+  cursor: pointer;
+
+  transition:
+    background 0.22s ease,
+    transform 0.22s ease;
+}
+
+.nav-hamburger:hover {
+  background: var(--primary-subtle);
+  transform: scale(1.05);
+}
+
+.nav-hamburger:active {
+  transform: scale(0.95);
 }
 
 /* ───────────────────────────── */
@@ -67,7 +101,7 @@
 
   letter-spacing: 0.4px;
 
-  color: var(--بنفسجي);
+  color: var(--primary-main);
 }
 
 .logo-qena {
@@ -75,7 +109,7 @@
   font-size: 22px;
   font-weight: 500;
 
-  color: var(--نص-ثانوي);
+  color: var(--text-secondary);
 }
 
 .logo-dot {
@@ -84,7 +118,7 @@
 
   border-radius: 50%;
 
-  background: var(--ذهبي);
+  background: var(--gold-main);
 
   box-shadow:
     0 0 8px rgba(212, 175, 55, 0.55),
@@ -100,7 +134,21 @@
 
   margin-inline-start: 2px;
 
-  color: var(--نص-خافت);
+  color: var(--text-muted);
+}
+
+/* ───────────────────────────── */
+/* Icon Colors - Using Global Variables */
+/* ───────────────────────────── */
+
+.nav-icon-color {
+  color: var(--primary-main);
+  transition: color 0.22s ease, transform 0.22s ease;
+}
+
+.nav-icon-color:hover {
+  color: var(--pink-main);
+  transform: scale(1.1);
 }
 
 /* ───────────────────────────── */
@@ -110,7 +158,7 @@
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
 /* ───────────────────────────── */
@@ -126,159 +174,54 @@
   justify-content: center;
 
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 12px;
 
   background: transparent;
-
-  color: var(--نص-ثانوي);
 
   cursor: pointer;
   text-decoration: none;
 
   transition:
     background 0.22s ease,
-    color 0.22s ease,
     border-color 0.22s ease,
     transform 0.22s ease,
     box-shadow 0.22s ease;
 }
 
 .nav-icon:hover {
-  background: var(--بنفسجي-خافت);
-
-  border-color: var(--حد-واضح);
-
-  color: var(--بنفسجي);
-
+  background: var(--primary-subtle);
+  border-color: var(--border-prominent);
   transform: translateY(-2px);
-
-  box-shadow: var(--ظل-الأيقونة);
 }
 
 .nav-icon:active {
   transform: scale(0.96);
 }
 
-/* active route */
-
 .nav-icon.active {
-  background: var(--بنفسجي-خافت);
-  color: var(--بنفسجي);
-
-  border-color: var(--حد-واضح);
+  background: var(--primary-subtle);
+  border-color: var(--border-prominent);
 }
 
 /* ───────────────────────────── */
-/* Login Button */
-/* ───────────────────────────── */
-
-.nav-btn-login {
-  height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  padding: 0 18px;
-
-  border-radius: var(--راديوس-الزر);
-  border: 1px solid var(--حد-واضح);
-
-  background: transparent;
-
-  color: var(--نص-رئيسي);
-
-  text-decoration: none;
-
-  font-family: "Tajawal", sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-
-  transition:
-    background 0.22s ease,
-    color 0.22s ease,
-    border-color 0.22s ease,
-    transform 0.22s ease;
-}
-
-.nav-btn-login:hover {
-  background: var(--بنفسجي-خافت);
-
-  border-color: var(--بنفسجي);
-
-  color: var(--بنفسجي);
-
-  transform: translateY(-1px);
-}
-
-/* ───────────────────────────── */
-/* Signup Button */
-/* ───────────────────────────── */
-
-.nav-btn-signup {
-  height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 22px;
-
-  border: none;
-  border-radius: var(--راديوس-الزر);
-
-  background: var(--تدرج-الأزرار);
-
-  color: white;
-
-  text-decoration: none;
-
-  font-family: "Tajawal", sans-serif;
-  font-size: 14px;
-  font-weight: 800;
-
-  box-shadow: var(--ظل-الزر);
-
-  transition:
-    transform 0.22s ease,
-    opacity 0.22s ease,
-    box-shadow 0.22s ease;
-}
-
-.nav-btn-signup:hover {
-  opacity: 0.95;
-
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 10px 30px rgba(168, 85, 247, 0.28);
-}
-
-.nav-btn-signup:active {
-  transform: scale(0.97);
-}
-
-/* ───────────────────────────── */
-/* Theme Toggle */
+/* Theme Toggle & Split-Circle Indicator */
 /* ───────────────────────────── */
 
 .mode-toggler {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border: 1px solid var(--حد-خافت);
+  border: 1px solid var(--border-subtle);
   border-radius: 50%;
 
-  background: var(--خلفية-2);
-
-  color: var(--بنفسجي);
+  background: var(--bg-input);
 
   cursor: pointer;
+  padding: 0;
 
   transition:
     background 0.22s ease,
@@ -288,76 +231,278 @@
 }
 
 .mode-toggler:hover {
-  background: var(--بنفسجي-خافت);
-
-  border-color: var(--حد-واضح);
-
+  background: var(--primary-subtle);
+  border-color: var(--border-prominent);
   transform: rotate(18deg) scale(1.04);
+}
 
-  box-shadow: var(--ظل-الأيقونة);
+.theme-half-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* When current is Purple, show Pink/White gradient to switch to */
+:root[data-theme="purple"] .theme-half-circle {
+  background: linear-gradient(135deg, var(--pink-main) 50%, #ffffff 50%);
+}
+
+/* When current is Pink, show Purple/Black gradient to switch to */
+:root[data-theme="pink"] .theme-half-circle {
+  background: linear-gradient(135deg, var(--purple-dark) 50%, #07040f 50%);
 }
 
 /* ───────────────────────────── */
-/* Navigation Links  */
+/* Side Drawer */
 /* ───────────────────────────── */
 
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  justify-content: center;
-}
-
-.nav-link {
-  padding: 8px 18px;
-  border-radius: 40px;
-  text-decoration: none;
-  font-family: "Tajawal", sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--نص-ثانوي);
-  transition: all 0.22s ease;
-  white-space: nowrap;
-  background: transparent;
-  border: none;
+.drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
   cursor: pointer;
 }
 
-.nav-link:hover {
-  background: var(--بنفسجي-خافت);
-  color: var(--بنفسجي);
-  transform: translateY(-1px);
+.drawer-overlay.active {
+  opacity: 1;
+  visibility: visible;
 }
 
-.nav-link.active {
-  background: var(--بنفسجي-خافت);
-  color: var(--بنفسجي);
+.side-drawer {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 320px;
+  max-width: 85%;
+  height: 100%;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-prominent);
+  box-shadow: var(--shadow-card);
+  z-index: 1000;
+  transition: right 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.side-drawer.open {
+  right: 0;
+  pointer-events: auto;
+}
+
+.side-drawer.open * {
+  pointer-events: auto;
+}
+
+/* ───────────────────────────── */
+/* Drawer Header */
+/* ───────────────────────────── */
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  flex-shrink: 0;
+}
+
+.drawer-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.drawer-logo .logo-glam {
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
   font-weight: 700;
+  color: var(--primary-main);
+}
+
+.drawer-logo .logo-qena {
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.drawer-logo .logo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold-main);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.55);
+  flex-shrink: 0;
+}
+
+.drawer-close {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.22s ease;
+}
+
+.drawer-close:hover {
+  background: var(--primary-subtle);
 }
 
 /* ───────────────────────────── */
-/* Responsive */
+/* Drawer Divider */
 /* ───────────────────────────── */
 
-@media (max-width: 992px) {
-  .nav-bar {
-    padding: 0 24px;
-  }
-  
-  .nav-link {
-    padding: 6px 14px;
-    font-size: 14px;
-  }
+.drawer-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 16px;
+  flex-shrink: 0;
 }
+
+/* ───────────────────────────── */
+/* Drawer Icons */
+/* ───────────────────────────── */
+
+.drawer-icon {
+  color: var(--primary-main);
+  transition: color 0.22s ease, transform 0.22s ease;
+  flex-shrink: 0;
+}
+
+.drawer-icon-logout {
+  color: var(--error-main);
+  transition: color 0.22s ease, transform 0.22s ease;
+  flex-shrink: 0;
+}
+
+/* ───────────────────────────── */
+/* Drawer Links */
+/* ───────────────────────────── */
+
+.drawer-links {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-family: "Tajawal", sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.22s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: right;
+}
+
+.drawer-link:hover {
+  background: var(--primary-subtle);
+  color: var(--primary-main);
+}
+
+.drawer-link:hover .drawer-icon {
+  color: var(--pink-main);
+  transform: scale(1.1);
+}
+
+.drawer-link.active {
+  background: var(--primary-subtle);
+  color: var(--primary-main);
+  font-weight: 600;
+}
+
+.drawer-link.active .drawer-icon {
+  color: var(--pink-main);
+}
+
+.drawer-link span {
+  flex: 1;
+}
+
+.drawer-link.drawer-logout {
+  color: var(--error-main);
+}
+
+.drawer-link.drawer-logout:hover {
+  background: var(--error-subtle);
+  color: var(--error-main);
+}
+
+.drawer-link.drawer-logout:hover .drawer-icon-logout {
+  transform: scale(1.1);
+}
+
+/* ───────────────────────────── */
+/* Drawer Footer */
+/* ───────────────────────────── */
+
+.drawer-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.drawer-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.22s ease;
+  width: 100%;
+  font-family: "Tajawal", sans-serif;
+  font-size: 14px;
+}
+
+.drawer-theme-toggle:hover {
+  background: var(--primary-subtle);
+  color: var(--primary-main);
+}
+
+.drawer-theme-toggle:hover .theme-half-circle {
+  transform: scale(1.1);
+}
+
+/* ───────────────────────────── */
+/* Responsive Adjustments */
+/* ───────────────────────────── */
 
 @media (max-width: 768px) {
   .navbar-container {
-    height: 60px;
+    height: 56px;
   }
 
   .nav-bar {
-    padding: 0 16px;
+    padding: 0 12px;
   }
 
   .logo-glam,
@@ -365,24 +510,12 @@
     font-size: 18px;
   }
 
-  /* Hide signup button completely on mobile */
-  .nav-btn-signup {
-    display: none;
-  }
-
-  /* Make login button an icon only on mobile */
-  .nav-btn-login {
-    width: 40px;
-    padding: 0;
-    gap: 0;
-  }
-  
-  .nav-btn-login span {
+  .logo-ar {
     display: none;
   }
 
   .nav-actions {
-    gap: 6px;
+    gap: 4px;
   }
 
   .nav-icon,
@@ -390,53 +523,44 @@
     width: 36px;
     height: 36px;
   }
-  
-  .nav-links {
-    gap: 6px;
-  }
-  
-  .nav-link {
-    padding: 6px 12px;
-    font-size: 13px;
-  }
-}
 
-@media (max-width: 650px) {
-  /* في الموبايل الصغير، نخفي النص ونظهر نقطة */
-  .nav-link {
-    font-size: 0;
-    padding: 8px 10px;
-  }
-  
-  .nav-link:before {
-    content: "●";
-    font-size: 14px;
-    font-weight: bold;
-  }
-  
-  .nav-link.active:before {
-    color: var(--بنفسجي);
+  .side-drawer {
+    width: 280px;
   }
 }
 
 @media (max-width: 480px) {
-  .logo-ar {
-    display: none;
+  .navbar-container {
+    height: 50px;
   }
 
   .nav-bar {
-    padding: 0 14px;
+    padding: 0 10px;
+    gap: 8px;
   }
-  
-  .nav-links {
-    gap: 4px;
+
+  .logo-glam,
+  .logo-qena {
+    font-size: 16px;
   }
-  
-  .nav-link {
-    padding: 6px 8px;
+
+  .logo-dot {
+    width: 6px;
+    height: 6px;
   }
-  
-  .nav-link:before {
-    font-size: 12px;
+
+  .nav-hamburger {
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav-icon,
+  .mode-toggler {
+    width: 32px;
+    height: 32px;
+  }
+
+  .side-drawer {
+    width: 280px;
   }
 }

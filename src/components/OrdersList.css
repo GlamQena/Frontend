@@ -1,481 +1,413 @@
 /* ══════════════════════════════════════════
-   OrdersList.css - Compact & Clean
+   OrdersList.css - Enhanced with Better Visual Design
    ══════════════════════════════════════════ */
 
-
+/* ── Root Container ─────────────────────────── */
 .ol-root {
   display: flex;
   flex-direction: column;
-  font-family: Tajawal, sans-serif;
+  font-family: 'Tajawal', sans-serif;
   direction: rtl;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
-
+  min-height: 400px;
 }
 
-/* ── Page Header ─────────────────────────── */
-.Page-Header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0 8px;
-  flex-wrap: wrap;
-  gap: 12px;
-
-}
-
-.Page-Header h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--نص-رئيسي);
-  margin: 0;
-}
-
-/* ── Search ──────────────────────────────── */
-.so-search-wrap {
-  position: relative;
-  width: 240px;
-}
-
-.so-search {
-  width: 100%;
-  padding: 8px 36px 8px 12px;
-  border-radius: 9999px;
-  border: 1px solid var(--حد-واضح);
-  background: var(--خلفية-2);
-  color: var(--نص-رئيسي);
-  font-family: Tajawal, sans-serif;
-  font-size: 13px;
-  outline: none;
-  transition: all 0.2s;
-}
-
-.so-search::placeholder {
-  color: var(--نص-ثانوي);
-}
-
-.so-search:focus {
-  border-color: var(--بنفسجي);
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
-  background: var(--خلفية-3);
-}
-
-.so-search-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 13px;
-  pointer-events: none;
-  color: var(--نص-خافت);
-}
-
-/* ── Filters ─────────────────────────────── */
-.ol-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 16px;
-  padding: 4px 0;
-}
-
-.ol-filter-btn {
-  all: unset;
-  cursor: pointer;
-  height: 32px;
-  padding: 0 14px;
-  border-radius: 9999px;
-  border: 1px solid var(--حد-خافت);
-  background: transparent;
-  color: var(--نص-ثانوي);
-  font-family: Tajawal, sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  font-weight: 800;
-  font-size: 14px;
-}
-
-.ol-filter-btn:hover {
-  background: var(--بنفسجي-خافت);
-  color: var(--بنفسجي);
-  border-color: var(--بنفسجي);
-   box-shadow: 0 2px 8px var(--ظل-الأيقونة);
-  scale: 1.1;
-  transform: translateY(-2px);
-}
-
-.ol-filter-btn--active {
-  background: var(--تدرج-الأزرار);
-  color: #fff;
-  border-color: transparent;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.25);
-}
-
-/* ── List ────────────────────────────────── */
+/* ── List ────────────────────────────────────── */
 .ol-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
-/* ── Card ────────────────────────────────── */
+/* ── Card ────────────────────────────────────── */
 .ol-card {
-  border-radius: 30px;
-  background: var(--خلفية-البطاقة);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--حد-خافت);
+  border-radius: var(--card-radius);
+  background: var(--bg-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-prominent);
   overflow: hidden;
-  transition: box-shadow 0.2s;
-      display: flex;
-    flex-direction: column;
-    gap: 20px;
-  
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .ol-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--border-focus);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+  transform: translateY(-3px);
 }
 
-/* ── Card Header ─────────────────────────── */
+/* ── Card Header ────────────────────────────── */
 .ol-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  background: var(--خلفية-2);
-  border-bottom: 1px solid var(--حد-خافت);
-  gap: 8px;
+  padding: 14px 22px;
+  background: var(--bg-input);
+  border-bottom: 1px solid var(--border-subtle);
+  gap: 12px;
   flex-wrap: wrap;
-    font-weight: 800;
-  font-size: 14px;
 }
 
-/* Status badge - compact */
+.ol-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Status Badge ───────────────────────────── */
 .ol-status {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: 9999px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid transparent;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid transparent;
   white-space: nowrap;
-  max-width: 150px;
-    font-weight: 800;
-  font-size: 14px;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.ol-dot {
-  width: 5px;
-  height: 5px;
+.ol-status .ol-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  animation: pulse-dot 2s ease-in-out infinite;
 }
 
-/* Status colors */
-.ol-status--pending {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: var(--ذهبي);
-  color: var(--ذهبي);
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
 }
-.ol-status--pending .ol-dot { background: var(--ذهبي); }
+
+.ol-status--pending {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #f59e0b;
+}
+.ol-status--pending .ol-dot { background: #f59e0b; }
 
 .ol-status--preparing {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: var(--بنفسجي);
-  color: var(--بنفسجي);
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.25);
+  color: #a855f7;
 }
-.ol-status--preparing .ol-dot { background: var(--بنفسجي); }
-
-.ol-status--shipping {
-  background: rgba(2, 132, 199, 0.1);
-  border-color: #0284c7;
-  color: #0284c7;
-}
-.ol-status--shipping .ol-dot { background: #0284c7; }
+.ol-status--preparing .ol-dot { background: #a855f7; }
 
 .ol-status--ready {
-  background: rgba(230, 16, 198, 0.1);
-  border-color: #e610c6;
+  background: rgba(230, 16, 198, 0.12);
+  border-color: rgba(230, 16, 198, 0.25);
   color: #e610c6;
 }
 .ol-status--ready .ol-dot { background: #e610c6; }
 
-.ol-status--delivered {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: var(--أخضر-نجاح);
-  color: var(--أخضر-نجاح);
+.ol-status--shipping {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.25);
+  color: #3b82f6;
 }
-.ol-status--delivered .ol-dot { background: var(--أخضر-نجاح); }
+.ol-status--shipping .ol-dot { background: #3b82f6; }
+
+.ol-status--delivered {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.25);
+  color: #22c55e;
+}
+.ol-status--delivered .ol-dot { 
+  background: #22c55e;
+  animation: none;
+}
 
 .ol-status--cancelled {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: var(--أحمر-خطأ);
-  color: var(--أحمر-خطأ);
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
 }
-.ol-status--cancelled .ol-dot { background: var(--أحمر-خطأ); }
+.ol-status--cancelled .ol-dot { 
+  background: #ef4444;
+  animation: none;
+}
 
-/* Payment badge - compact */
-
-
+/* ── Payment Badge ───────────────────────────── */
 .ol-payment-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 9999px;
-    font-weight: 800;
-  font-size: 14px;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 16px;
+  border: 1.5px solid transparent;
+  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
 }
 
+.ol-payment-badge .bedge-svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 14px;
+}
+
+.ol-payment-badge .bedge-svg path {
+  fill: currentColor;
+}
 
 .ol-payment--pending {
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(245, 158, 11, 0.10);
   color: #f59e0b;
-  border: 1px solid #f59e0b;
-}
-.ol-payment--pending .bedge-svg path {
-  fill: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.15);
 }
 
 .ol-payment--processing {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.10);
   color: #3b82f6;
-  border: 1px solid #3b82f6;
-}
-.ol-payment--processing .bedge-svg path {
-  fill: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.15);
 }
 
 .ol-payment--completed {
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(34, 197, 94, 0.10);
   color: #22c55e;
-  border: 1px solid #22c55e;
-}
-.ol-payment--completed .bedge-svg path {
-  fill: #22c55e;
+  border-color: rgba(34, 197, 94, 0.15);
 }
 
 .ol-payment--failed {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.10);
   color: #ef4444;
-  border: 1px solid #ef4444;
-}
-.ol-payment--failed .bedge-svg path {
-  fill: #ef4444;
+  border-color: rgba(239, 68, 68, 0.15);
 }
 
 .ol-payment--refunded {
-  background: rgba(168, 85, 247, 0.1);
+  background: rgba(168, 85, 247, 0.10);
   color: #a855f7;
-  border: 1px solid #a855f7;
+  border-color: rgba(168, 85, 247, 0.15);
 }
 
-.ol-payment--refunded .bedge-svg path {
-  fill: #a855f7;
-}
-
-/* Order ID + date */
+/* ── Order Meta ───────────────────────────────── */
 .ol-order-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0;
-  
+  gap: 1px;
 }
 
 .ol-order-id {
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--بنفسجي);
   font-weight: 800;
+  font-size: 16px;
+  color: var(--primary-main);
+  letter-spacing: 0.5px;
 }
 
 .ol-order-date {
-  font-size: 13px;
-  color: var(--نص-خافت);
-  font-weight: 800;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
-/* ── Card Body ───────────────────────────── */
+/* ── Card Body ──────────────────────────────── */
 .ol-card-body {
   padding: 0;
 }
 
-/* CLIENT: items - compact */
+/* ── Client Items ────────────────────────────── */
 .ol-items {
-    display: flex;
-    flex-direction: column;
-    padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
 }
 
 .ol-item {
   display: flex;
   align-items: center;
-  gap: 30px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--حد-خافت);
-  transition: all 0.2s ease;
-  padding: 10px 16px;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
   border-radius: 12px;
-
-
-}
-.ol-item:hover {
- /* background: var(--خلفية-الهيدر); */
-  transform: translateY(-2px);
-  transform: translateX(-2px);
-  box-shadow: var(--ظل-الأيقونة);
-  scale: 1.02;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease;
   cursor: pointer;
+  position: relative;
 }
 
 .ol-item:last-child {
   border-bottom: none;
 }
 
+.ol-item:hover {
+  background: var(--bg-input);
+  transform: translateX(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.ol-item::before {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 20%;
+  height: 60%;
+  width: 3px;
+  background: var(--primary-main);
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ol-item:hover::before {
+  opacity: 1;
+}
+
 .ol-item-img {
-  width: 86px;
-  height: 86px;
+  width: 68px;
+  height: 68px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
-  transition: all 0.2s ease;
+  background: var(--bg-input);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-subtle);
 }
+
 .ol-item-img:hover {
-  scale: 1.1;
-  transform: translateY(-2px);
-
+  transform: scale(1.05);
+  border-color: var(--border-focus);
 }
-
 
 .ol-item-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-
 }
 
-
 .ol-img-fb {
-  font-size: 20px;
+  font-size: 28px;
+  color: var(--text-muted);
 }
 
 .ol-item-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   text-align: right;
-    font-weight: 800;
-  font-size: 14px;
+  min-width: 0;
 }
 
 .ol-item-name {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--نص-رئيسي);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
   margin: 0;
-    font-weight: 800;
-  font-size: 16px;
+  line-height: 1.4;
 }
 
 .ol-item-store {
-  font-size: 11px;
-  color: var(--ذهبي);
-  font-weight: 500;
+  font-size: 13px;
+  color: #f59e0b;
+  font-weight: 600;
   margin: 0;
-    font-weight: 800;
-  font-size: 14px;
 }
 
 .ol-item-qty {
-  font-size: 12px;
-  color: var(--نص-خافت);
+  font-size: 13px;
+  color: var(--text-muted);
   margin: 0;
-    font-weight: 800;
-  font-size: 14px;
 }
 
 .ol-item-price {
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--بنفسجي);
-  flex-shrink: 0;
-    font-weight: 800;
+  font-weight: 800;
   font-size: 18px;
+  color: var(--primary-main);
+  flex-shrink: 0;
+  background: var(--bg-input);
+  padding: 4px 12px;
+  border-radius: 8px;
 }
 
-/* STORE: customer info - compact */
+.ol-more-items {
+  padding: 8px 16px 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: center;
+  border-top: 1px dashed var(--border-subtle);
+  background: var(--bg-input);
+  border-radius: 0 0 12px 12px;
+}
+
+/* ── Store Customer Info ──────────────────────── */
 .ol-customer {
   display: flex;
-  flex-direction:column;
+  flex-direction: column;
   flex-wrap: wrap;
-  gap: 8px 16px;
-  padding: 10px 16px;
-  background: var(--خلفية-البطاقة);
-  min-height: 100px;
-  font-weight: 800;
-  font-size: 16px;
+  gap: 6px 16px;
+  padding: 14px 20px;
+  background: var(--bg-input);
+  min-height: 60px;
+  border-radius: 0 0 12px 12px;
 }
 
 .ol-customer-row {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-weight: 800;
-  font-size: 16px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .ol-customer-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--نص-ثانوي);
-  font-weight: 800;
-  font-size: 14px;
+  color: var(--text-secondary);
+  min-width: 55px;
 }
 
 .ol-customer-val {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--نص-رئيسي);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-weight: 800;
-  font-size: 16px;
+  gap: 6px;
+  background: var(--bg-card);
+  padding: 2px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
 }
 
-/* ── Card Footer ─────────────────────────── */
+.ol-mono {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+  direction: ltr;
+}
+
+/* ── Card Footer ────────────────────────────── */
 .ol-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
-  background: var(--خلفية-2);
-  border-top: 1px solid var(--حد-خافت);
-  gap: 8px;
+  padding: 12px 22px;
+  background: var(--bg-input);
+  border-top: 1px solid var(--border-subtle);
+  gap: 12px;
   flex-wrap: wrap;
   min-height: 60px;
 }
 
-/* Buttons - compact */
+/* ── Buttons ──────────────────────────────────── */
 .ol-foot-btns {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-  
 }
 
 .ol-btn {
@@ -484,102 +416,118 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 30px;
-  padding: 0 14px;
-  border-radius: 9999px;
-  font-family: Tajawal, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  gap: 6px;
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
-    font-weight: 800;
-  font-size: 14px;
+  position: relative;
+  overflow: hidden;
 }
 
-.ol-btn:hover {
-  transform: translateY(-1px);
+.ol-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
 
-
+.ol-btn:hover::after {
+  opacity: 1;
 }
 
 .ol-btn--details {
-  border: 1px solid var(--حد-واضح);
-  color: var(--نص-ثانوي);
+  border: 1.5px solid var(--border-subtle);
+  color: var(--text-secondary);
   background: transparent;
 }
 
 .ol-btn--details:hover {
-  background: var(--بنفسجي-خافت);
-  color: var(--بنفسجي);
-  border-color: var(--بنفسجي);
-    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
-  scale: 1.1;
+  background: var(--primary-subtle);
+  color: var(--primary-main);
+  border-color: var(--primary-main);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .ol-btn--cancel {
   background: rgba(239, 68, 68, 0.08);
-  color: var(--أحمر-خطأ);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1.5px solid rgba(239, 68, 68, 0.15);
 }
 
-.ol-btn--cancel:hover:not(:disabled) {
-  background: var(--أحمر-خطأ);
-  color: #fff;
-    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
-  scale: 1.1;
+.ol-btn--cancel:hover {
+  background: #ef4444;
+  color: #ffffff;
   transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
 }
 
 .ol-btn--cancel:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none !important;
 }
 
 .ol-btn--reorder {
   background: rgba(34, 197, 94, 0.08);
-  color: var(--أخضر-نجاح);
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1.5px solid rgba(34, 197, 94, 0.15);
 }
 
 .ol-btn--reorder:hover {
-  background: var(--أخضر-نجاح);
-  color: #fff;
-    box-shadow: 0 2px 8px var(--ظل-الأيقونة);
-  scale: 1.1;
+  background: #22c55e;
+  color: #ffffff;
   transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
 }
 
-/* Total block - compact */
+/* ── Total Block ─────────────────────────────── */
 .ol-total-block {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
 }
 
 .ol-prod-count {
-  font-size: 11px;
-  color: var(--نص-خافت);
-  font-weight: 800;
-  font-size: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  padding: 2px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+}
+
+.ol-total-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .ol-total-label {
-  font-size: 11px;
-  color: var(--نص-خافت);
-  font-weight: 800;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .ol-total-val {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--نص-رئيسي);
-  font-weight: 800;
   font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  padding: 2px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
 }
 
-/* ── Status Dropdown (compact) ────────────── */
+/* ── Status Dropdown ─────────────────────────── */
 .sd-wrap {
   position: relative;
   display: inline-block;
@@ -590,20 +538,23 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px 4px 8px;
-  border-radius: 9999px;
-  border: 1px solid;
-  font-family: Tajawal, sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  background: transparent;
-  transition: opacity 0.2s;
+  gap: 8px;
+  padding: 6px 16px 6px 12px;
+  border-radius: 20px;
+  border: 1.5px solid;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--bg-card);
+  transition: all 0.3s ease;
   white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.sd-trigger:hover {
-  opacity: 0.8;
+.sd-trigger:hover:not(.sd-trigger--locked) {
+  opacity: 0.85;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .sd-trigger--loading {
@@ -612,40 +563,65 @@
 }
 
 .sd-trigger--locked {
-  opacity: 0.8;
+  opacity: 0.85;
   cursor: default;
+  background: var(--bg-input);
 }
 
-.sd-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.sd-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 
-.sd-arrow { transition: transform 0.2s; flex-shrink: 0; width: 10px; height: 10px; }
-.sd-arrow--open { transform: rotate(180deg); }
+.sd-arrow {
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+}
+
+.sd-arrow--open {
+  transform: rotate(180deg);
+}
 
 .sd-menu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 8px);
   right: 0;
   z-index: 100;
-  min-width: 160px;
-  background: var(--خلفية-البطاقة);
-  border: 1px solid var(--حد-واضح);
-  border-radius: 12px;
+  min-width: 190px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-prominent);
+  border-radius: var(--input-radius);
   padding: 8px 6px;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  animation: sdSlideDown 0.2s ease;
+}
+
+@keyframes sdSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .sd-menu-title {
-  color: var(--نص-خافت);
+  color: var(--text-muted);
   text-align: right;
-  padding: 2px 10px 6px;
+  padding: 4px 14px 8px;
   margin: 0;
-  border-bottom: 1px solid var(--حد-خافت);
-  font-weight: 800;
-  font-size: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .sd-option {
@@ -653,95 +629,303 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 10px;
+  padding: 8px 14px;
   border-radius: 8px;
-  font-family: Tajawal, sans-serif;
+  font-family: 'Tajawal', sans-serif;
   font-size: 14px;
   font-weight: 600;
   text-align: right;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
 }
 
-.sd-option:hover { background: var(--خلفية-2); }
-.sd-option--active { background: var(--بنفسجي-خافت); }
+.sd-option:hover {
+  background: var(--bg-input);
+  transform: translateX(-3px);
+}
 
-/* ── Empty State ─────────────────────────── */
+.sd-option--active {
+  background: var(--primary-subtle);
+}
+
+/* ── Admin Table ────────────────────────────── */
+.ol-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--card-radius);
+  border: 1px solid var(--border-prominent);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+}
+
+.ol-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  min-width: 800px;
+}
+
+.ol-table thead {
+  background: var(--bg-input);
+  border-bottom: 2px solid var(--border-subtle);
+}
+
+.ol-table th {
+  padding: 14px 18px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ol-table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.ol-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ol-table tr:hover {
+  background: var(--bg-input);
+}
+
+.ol-table-id {
+  font-weight: 700;
+  color: var(--primary-main);
+  font-size: 14px;
+}
+
+.ol-table-amount {
+  font-weight: 700;
+  color: var(--primary-main);
+  font-size: 16px;
+}
+
+/* ── Empty State ────────────────────────────── */
 .ol-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 16px;
-  color: var(--نص-خافت);
-  gap: 8px;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  gap: 12px;
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--border-prominent);
+  min-height: 300px;
 }
 
-.ol-empty-icon { font-size: 32px; }
-.ol-empty p { font-size: 14px; font-weight: 500; margin: 0; }
+.ol-empty-icon {
+  font-size: 48px;
+  opacity: 0.6;
+}
 
-/* ── Responsive ──────────────────────────── */
+.ol-empty p {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 992px) {
+  .ol-root {
+    padding: 0 12px;
+  }
+}
+
 @media (max-width: 768px) {
-  .ol-root { padding: 0 8px; }
-  
-  .Page-Header {
+  .ol-root {
+    padding: 0 8px;
+  }
+
+  .ol-card-header {
+    padding: 10px 16px;
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
   }
-  
-  .Page-Header h1 { font-size: 1.2rem; }
-  
-  .so-search-wrap { width: 100%; }
-  
-  .ol-filters {
-    gap: 4px;
-    padding: 2px 0;
+
+  .ol-card-header-left {
+    justify-content: flex-start;
+    gap: 8px;
   }
-  
-  .ol-filter-btn {
-    height: 28px;
-    padding: 0 10px;
+
+  .ol-status {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+
+  .ol-payment-badge {
     font-size: 11px;
+    padding: 3px 10px;
   }
-  
-  .ol-card-header {
-    padding: 8px 12px;
-  }
-  .ol-item:hover {
 
- scale: 1.05;
-
-
-}
- 
-  .ol-item-img { width: 44px; height: 44px; border-radius: 8px; }
-  .ol-item-name { font-size: 12px; }
-  
-  .ol-customer { padding: 8px 12px; }
-  .ol-card-footer {
-    padding: 8px 12px;
-    flex-direction: column;
+  .ol-order-meta {
     align-items: flex-start;
+    flex-direction: row;
+    gap: 8px;
+    flex-wrap: wrap;
   }
-  
-  .ol-foot-btns { width: 100%; }
+
+  .ol-order-id {
+    font-size: 14px;
+  }
+
+  .ol-item {
+    padding: 10px 12px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .ol-item-img {
+    width: 56px;
+    height: 56px;
+  }
+
+  .ol-item-name {
+    font-size: 14px;
+  }
+
+  .ol-item-price {
+    font-size: 16px;
+    padding: 2px 10px;
+  }
+
+  .ol-customer {
+    padding: 10px 16px;
+  }
+
+  .ol-customer-val {
+    font-size: 13px;
+    padding: 2px 10px;
+  }
+
+  .ol-card-footer {
+    padding: 10px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .ol-foot-btns {
+    width: 100%;
+    justify-content: stretch;
+  }
+
   .ol-btn {
     flex: 1;
     justify-content: center;
-    height: 28px;
-    font-size: 11px;
-    padding: 0 10px;
+    height: 34px;
+    font-size: 12px;
+    padding: 0 14px;
   }
-  
+
   .ol-total-block {
     width: 100%;
     justify-content: space-between;
   }
+
+  .ol-total-val {
+    font-size: 18px;
+    padding: 2px 12px;
+  }
+
+  .ol-table-wrap {
+    border-radius: 16px;
+  }
+
+  .ol-table {
+    font-size: 13px;
+    min-width: 650px;
+  }
+
+  .ol-table th,
+  .ol-table td {
+    padding: 10px 14px;
+  }
 }
 
 @media (max-width: 480px) {
-  .ol-root { padding: 0 4px; }
-  .ol-card { border-radius: 12px; }
-  .ol-card-header { flex-direction: column; align-items: stretch; gap: 4px; }
-  .ol-order-meta { align-items: flex-start; }
+  .ol-root {
+    padding: 0 4px;
+  }
+
+  .ol-card {
+    border-radius: 16px;
+  }
+
+  .ol-card-header {
+    padding: 8px 12px;
+  }
+
+  .ol-item {
+    padding: 8px 10px;
+    gap: 10px;
+  }
+
+  .ol-item-img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .ol-item-name {
+    font-size: 13px;
+  }
+
+  .ol-item-price {
+    font-size: 15px;
+    padding: 2px 8px;
+  }
+
+  .ol-foot-btns {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ol-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ol-total-block {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .ol-table {
+    font-size: 12px;
+    min-width: 500px;
+  }
+
+  .ol-table th,
+  .ol-table td {
+    padding: 8px 10px;
+  }
+}
+
+/* ── Scrollbar ────────────────────────────────── */
+.ol-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ol-root::-webkit-scrollbar-track {
+  background: var(--bg-page);
+}
+
+.ol-root::-webkit-scrollbar-thumb {
+  background: var(--primary-main);
+  border-radius: 10px;
+}
+
+.ol-root::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-button-hover);
 }

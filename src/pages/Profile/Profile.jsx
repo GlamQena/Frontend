@@ -12,12 +12,46 @@ import {
   deleteProfile,
   editProfile,
   editAvatar,
+  deleteAvatar,
+  editStoreLogo,
+  deleteStoreLogo,
   getProfile,
 } from "../../services/profileService";
 
-import Footer from "../../components/Footer";
 import { useTheme } from "../../components/ThemeProvider";
+import ChangePasswordForm from "./ChangePassword";
+
+// Icons
+import {
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
+  Venus,
+  Mars,
+  VenusAndMars,
+  Building2,
+  MapPinned,
+  Store,
+  Bell,
+  Lock,
+  Shield,
+  Trash2,
+  Edit,
+  Save,
+  X,
+  Camera,
+  Image,
+} from "lucide-react";
 import { getCurrentUser } from "../../services/users";
+
+const CloseIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -26,6 +60,7 @@ const Profile = () => {
   const [editMode, setEditMode] = useState(false);
   const [profileForm, setProfileForm] = useState(null);
   const [avatarImg, setAvatarImg] = useState(null);
+  const [storeLogoImg, setStoreLogoImg] = useState(null);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -36,14 +71,214 @@ const Profile = () => {
     success: false,
     message: "",
   });
+  const [isDeletingAvatar, setIsDeletingAvatar] = useState(false);
+  const [isDeletingStoreLogo, setIsDeletingStoreLogo] = useState(false);
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const redirectTimeoutRef = useRef(null);
   
   const profileFormRef = useRef(null);
 
+  // Centralized auth error handler
+  const handleAuthError = (error) => {
+    if (error.code === "AUTH_EXPIRED" || error.message?.includes("session")) {
+      setFormMessage({ 
+        success: false, 
+        message: "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى" 
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Clear any existing redirect timeout
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+      
+      redirectTimeoutRef.current = setTimeout(() => {
+        navigate('/login');
+      }, 4000);
+      
+      return true; // Auth error handled
+    }
+    return false; // Not an auth error
+  };
+
+  // Clean up redirect timeout on unmount
+  useEffect(() => {
+    window.scrollTo({top: 0, behavior: "smooth"});
+    
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // BroadcastChannel listener for email verification
+  useEffect(() => {
+    // Check if verification was completed in another tab
+    const checkVerificationStatus = () => {
+      const verified = localStorage.getItem('emailVerified');
+      const timestamp = localStorage.getItem('verificationTimestamp');
+      
+      if (verified === 'true' && timestamp) {
+        const time = parseInt(timestamp);
+        // Check if verification happened within the last 10 seconds
+        if (Date.now() - time < 10 * 1000) {
+          console.log('📧 Email verification detected on Register page!');
+          
+          // Clear the flags to prevent duplicate messages
+          localStorage.removeItem('emailVerified');
+          localStorage.removeItem('verificationTimestamp');
+          
+          responseMessageSetter(
+            true,
+            "تم التحقق من البريد الإلكتروني بنجاح! يمكنك الآن تسجيل الدخول.",
+            setFormMessage
+          );
+
+          setTimeout(() => {
+            navigate('/login', { 
+              state: { 
+                message: "تم التحقق من بريدك الإلكتروني بنجاح. يرجى تسجيل الدخول."
+              } 
+            });
+          }, 3000);
+        }
+      }
+    };
+
+    // Check on mount
+    checkVerificationStatus();
+
+    // Listen for storage changes (when verification tab updates localStorage)
+    const handleStorageChange = (event) => {
+      if (event.key === 'emailVerified' && event.newValue === 'true') {
+        console.log('📧 Storage event: email verified!');
+        checkVerificationStatus();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Listen for BroadcastChannel messages from verification tab
+    const channel = new BroadcastChannel('email_verification_channel');
+    
+    channel.onmessage = (event) => {
+      if (event.data.type === 'EMAIL_VERIFIED') {
+        console.log('📧 BroadcastChannel: Email verified in another tab!', event.data);
+        
+        responseMessageSetter(
+          true,
+          "تم التحقق من البريد الإلكتروني بنجاح! يمكنك الآن تسجيل الدخول.",
+          setFormMessage
+        );
+        
+        // Clear localStorage flags if they exist
+        localStorage.removeItem('emailVerified');
+        localStorage.removeItem('verificationTimestamp');
+        
+        setTimeout(() => {
+          navigate('/login', { 
+            state: { 
+              message: "تم التحقق من بريدك الإلكتروني بنجاح. يرجى تسجيل الدخول."
+            } 
+          });
+        }, 3000);
+      }
+    };
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      channel.close();
+    };
+  }, [navigate]); 
+  
+  const handleVerificationSuccess = async () => {
+    responseMessageSetter(true, "تم التحقق من البريد الإلكتروني بنجاح!", setFormMessage);
+    getUserProfile();
+    
+    setTimeout(() => {
+      window.location.reload();
+    }, 4000);
+  };
+
+  const getUserProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await getProfile();
+      const data = await response.json();
+
+      if (!response.ok) {
+        responseMessageSetter(false, data.message || "فشل تحميل البيانات", setFormMessage);
+        return;
+      }
+
+      let user;
+      if(data.user && typeof data.user === "object"){
+        user = data.user;
+      }
+      else{
+        user = getCurrentUser();
+      }
+      setProfileForm({ ...user });
+      localStorage.setItem("user", JSON.stringify(user));
+
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        responseMessageSetter(false, error.message || "حدث خطأ فى تحميل البيانات", setFormMessage);
+      }
+    } finally {
+      setLoading(false);
+      window.scrollTo({top: 0, behavior: "smooth"});
+    }
+  };
+
   useEffect(() => {
     getUserProfile();
-  }, [editMode]);
+  }, []);
 
-  // Prevent accidental form submissions globally
+  useEffect(() => {
+    const channel = new BroadcastChannel('email_verification_channel');
+    
+    channel.onmessage = (event) => {
+      if (event.data.type === 'EMAIL_VERIFIED') {
+        console.log('📧 Email verified in another tab!');
+        handleVerificationSuccess();
+      }
+    };
+    
+    const checkLocalStorage = () => {
+      const verified = localStorage.getItem('emailVerified');
+      const timestamp = localStorage.getItem('verificationTimestamp');
+      
+      if (verified === 'true' && timestamp) {
+        const time = parseInt(timestamp);
+        if (Date.now() - time < 5 * 60 * 1000) {
+          localStorage.removeItem('emailVerified');
+          localStorage.removeItem('verificationTimestamp');
+          handleVerificationSuccess();
+        }
+      }
+    };
+    
+    checkLocalStorage();
+    
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkLocalStorage();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      channel.close();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   useEffect(() => {
     const handleGlobalSubmit = (e) => {
       if (e.target && e.target.tagName === 'FORM') {
@@ -62,37 +297,25 @@ const Profile = () => {
     };
   }, [editMode]);
 
-  const loadUserData = async () => {
-    setLoading(true);
-    const user = await getCurrentUser();
-    if (user && user !== "undefined" && user !== "null" && user !== "") {
-      setProfileForm({ ...JSON.parse(user) });
-      setLoading(false);
-    } else {
-      localStorage.removeItem("user");
-      await getUserProfile();
-    }
-  };
-
-  const getUserProfile = async () => {
+  const handleVerifyEmail = async () => {
+    if (isVerifyingEmail) return;
+    
+    setIsVerifyingEmail(true);
     try {
-      setLoading(true);
-      const response = await getProfile(setFormMessage);
+      const response = await getEmailToken(profileForm.email);
       const data = await response.json();
 
       if (!response.ok) {
-        responseMessageSetter(false, data.message, setFormMessage);
-        setLoading(false);
-        return;
+        return responseMessageSetter(false, data.message || "فشل الحصول على رابط التحقق", setFormMessage);
       }
 
-      setProfileForm({ ...data.user });
-      setLoading(false);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setLoading(false);
+      responseMessageSetter(true, data.message || "تم إرسال رابط التحقق إلى بريدك الإلكتروني", setFormMessage);
     } catch (error) {
-      responseMessageSetter(false, error.message, setFormMessage);
-      setLoading(false);
+      if (!handleAuthError(error)) {
+        responseMessageSetter(false, error.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
+      }
+    } finally {
+      setIsVerifyingEmail(false);
     }
   };
 
@@ -105,9 +328,15 @@ const Profile = () => {
     else if (type === "file") {
       const file = e.target.files[0];
       if (file) {
-        setAvatarImg(file);
-        const previewUrl = URL.createObjectURL(file);
-        setProfileForm((prev) => ({ ...prev, imagePreview: previewUrl }));
+        if (name === "storeLogo") {
+          setStoreLogoImg(file);
+          const previewUrl = URL.createObjectURL(file);
+          setProfileForm((prev) => ({ ...prev, storeLogoPreview: previewUrl }));
+        } else {
+          setAvatarImg(file);
+          const previewUrl = URL.createObjectURL(file);
+          setProfileForm((prev) => ({ ...prev, imagePreview: previewUrl }));
+        }
       }
     } 
     else if (type === "checkbox") {
@@ -138,6 +367,72 @@ const Profile = () => {
     } 
     else {
       setProfileForm((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!window.confirm("هل أنت متأكد من حذف الصورة الشخصية؟")) {
+      return;
+    }
+
+    setIsDeletingAvatar(true);
+    try {
+      const response = await deleteAvatar();
+      const data = await response.json();
+
+      if (response.ok) {
+        setProfileForm((prev) => ({
+          ...prev,
+          avatar: null,
+          avatar_hash: null,
+          imagePreview: null
+        }));
+        const updatedUser = { ...profileForm, avatar: null, avatar_hash: null };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setAvatarImg(null);
+        responseMessageSetter(true, "تم حذف الصورة الشخصية بنجاح", setFormMessage);
+      } else {
+        responseMessageSetter(false, data.message || "فشل حذف الصورة الشخصية", setFormMessage);
+      }
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        responseMessageSetter(false, error.message || "حدث خطأ أثناء حذف الصورة", setFormMessage);
+      }
+    } finally {
+      setIsDeletingAvatar(false);
+    }
+  };
+
+  const handleDeleteStoreLogo = async () => {
+    if (!window.confirm("هل أنت متأكد من حذف شعار المتجر؟")) {
+      return;
+    }
+
+    setIsDeletingStoreLogo(true);
+    try {
+      const response = await deleteStoreLogo();
+      const data = await response.json();
+
+      if (response.ok) {
+        setProfileForm((prev) => ({
+          ...prev,
+          logo: null,
+          logo_hash: null,
+          storeLogoPreview: null
+        }));
+        const updatedUser = { ...profileForm, logo: null, logo_hash: null };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setStoreLogoImg(null);
+        responseMessageSetter(true, "تم حذف شعار المتجر بنجاح", setFormMessage);
+      } else {
+        responseMessageSetter(false, data.message || "فشل حذف شعار المتجر", setFormMessage);
+      }
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        responseMessageSetter(false, error.message || "حدث خطأ أثناء حذف الشعار", setFormMessage);
+      }
+    } finally {
+      setIsDeletingStoreLogo(false);
     }
   };
 
@@ -174,6 +469,9 @@ const Profile = () => {
     }
 
     try {
+      if(isSubmitting) return;
+      setIsSubmitting(true);
+
       const reqBody = JSON.stringify({
         email: profileForm.email,
         currentPassword: passwordForm.currentPassword,
@@ -181,11 +479,13 @@ const Profile = () => {
         confirmNewPassword: passwordForm.confirmPassword,
       });
 
-      const response = await changePassword(reqBody, setFormMessage);
+      const response = await changePassword(reqBody);
       const data = await response.json();
       
       if (!response.ok) {
-        return responseMessageSetter(false, data.message, setFormMessage);
+        responseMessageSetter(false, data.message || "فشل تغيير كلمة المرور", setFormMessage);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
       }
 
       responseMessageSetter(true, "تم تغيير كلمة المرور بنجاح، سيتم تسجيل الخروج...", setFormMessage);
@@ -197,17 +497,20 @@ const Profile = () => {
       });
       setShowPasswordForm(false);
 
-      localStorage.removeItem("user");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      localStorage.clear();
       
       setTimeout(() => {
         window.location.href = "/login";
-      }, 2000);
+      }, 4000);
       
-    } catch (e) {
-      responseMessageSetter(false, e.message, setFormMessage);
-      console.error(e);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        console.error(`error occured while changing password : ${JSON.stringify(error)}`);
+        responseMessageSetter(false, error.message || "حدث خطأ فى تغيير كلمة المرور", setFormMessage);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } finally{
+      setIsSubmitting(false);
     }
   };
 
@@ -216,84 +519,127 @@ const Profile = () => {
     
     if (!editMode) return;
 
+    setFormMessage({ success: false, message: "" });
+
+    // Upload avatar if changed
     if (avatarImg && avatarImg instanceof File) {
       const imageFormData = new FormData();
       imageFormData.append("image", avatarImg);
 
       try {
-        const response = await editAvatar(imageFormData, setFormMessage);
+        const response = await editAvatar(imageFormData);
         const avatarResData = await response.json();
         
         if (!response.ok) {
           console.log("Avatar upload failed:", avatarResData);
-          return responseMessageSetter(false, avatarResData.message, setFormMessage);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return responseMessageSetter(false, avatarResData.message || "فشل رفع الصورة", setFormMessage);
         }
-        
-        responseMessageSetter(true, "تم تحديث الصورة بنجاح", setFormMessage);
         
         if (avatarResData.user) {
           localStorage.setItem("user", JSON.stringify(avatarResData.user));
-          setProfileForm((prev) => ({ ...prev, image: avatarResData.user.image }));
+          setProfileForm((prev) => ({ ...prev, avatar: avatarResData.user.avatar }));
         }
       } catch (error) {
-        responseMessageSetter(false, error.message, setFormMessage);
+        if (handleAuthError(error)) return;
+        responseMessageSetter(false, error.message || "حدث خطأ ما فى تعديل صورة الأفاتر", setFormMessage);
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
     }
 
-    const { imagePreview, ...updateData } = profileForm;
-    console.log("edit profile updated data to be sent:", updateData);
+    if (storeLogoImg && storeLogoImg instanceof File) {
+      const logoFormData = new FormData();
+      logoFormData.append("logo", storeLogoImg);
+
+      try {
+        const response = await editStoreLogo(logoFormData);
+        const logoResData = await response.json();
+        
+        if (!response.ok) {
+          console.log("Store logo upload failed:", logoResData);
+          return responseMessageSetter(false, logoResData.message || "فشل رفع الشعار", setFormMessage);
+        }
+        
+        if (logoResData.user) {
+          localStorage.setItem("user", JSON.stringify(logoResData.user));
+          setProfileForm((prev) => ({ ...prev, logo: logoResData.user.logo }));
+        }
+      } catch (error) {
+        if (handleAuthError(error)) return;
+        responseMessageSetter(false, error.message || "حدث خطأ ما فى تعديل لوجو المتجر", setFormMessage);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+    }
+
+    const { imagePreview, storeLogoPreview, ...updateData } = profileForm;
 
     try {
-      const res = await editProfile(updateData, setFormMessage);
+      const res = await editProfile(updateData);
       const data = await res.json();
 
       if (res.ok) {
-        responseMessageSetter(true, data.message || "تم حفظ التعديلات بنجاح", setFormMessage);
         localStorage.setItem("user", JSON.stringify(data.user));
         setProfileForm(data.user);
         setEditMode(false);
         setAvatarImg(null);
+        setStoreLogoImg(null);
+        responseMessageSetter(true, "تم تحديث الملف الشخصي بنجاح", setFormMessage);
       } else {
         console.log("edit profile failed:", data);
-        responseMessageSetter(false, data.message || "فشل التعديل", setFormMessage);
+        responseMessageSetter(false, data.message || "فشل تعديل بيانات البروفايل", setFormMessage);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
-    } catch (err) {
-      responseMessageSetter(false, err.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        console.log("edit profile failed:", JSON.stringify(error));
+        responseMessageSetter(false, error.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
   };
 
   const handleDeleteProfile = async () => {
     if (window.confirm("هل أنت متأكد من حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه")) {
       try {
-        const res = await deleteProfile(setFormMessage);
+        const res = await deleteProfile();
         const data = await res.json();
 
         if (res.ok) {
-          responseMessageSetter(true, data.message, setFormMessage);
+          // responseMessageSetter(true, data.message || "تم حذف الحساب بنجاح", setFormMessage);
           await logout();
           setTimeout(() => {
             navigate("/");
           }, 3000);
         } else {
-          responseMessageSetter(false, data.message, setFormMessage);
+          console.log("delete profile failed:", data);
+          responseMessageSetter(false, data.message || "فشل حذف الحساب", setFormMessage);
+          window.scrollTo({top: 0, behavior: "smooth"});
         }
-      } catch (err) {
-        responseMessageSetter(false, "خطأ في الاتصال بالسيرفر", setFormMessage);
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          console.log("delete profile failed:", JSON.stringify(error));
+          responseMessageSetter(false, error.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
+          window.scrollTo({top: 0, behavior: "smooth"});
+        }
       }
     }
   };
 
   const cancelEdit = () => {
-    loadUserData();
+    getUserProfile();
     setEditMode(false);
     setAvatarImg(null);
+    setStoreLogoImg(null);
     setFormMessage({ success: false, message: "" });
+    window.scrollTo({top: 0, behavior: "smooth"});
   };
 
   const enterEditMode = () => {
     setEditMode(true);
     setShowPasswordForm(false);
+    window.scrollTo({top: 0, behavior: "smooth"});
   };
 
   const formatDateForInput = (dateString) => {
@@ -304,35 +650,36 @@ const Profile = () => {
   };
 
   const getAvatarSrc = () => {
-    if (profileForm.imagePreview) {
+    if (profileForm?.imagePreview) {
       return profileForm.imagePreview;
     }
-    if (profileForm.image) {
-      if(profileForm.image.includes("uploads"))
+    if (profileForm?.avatar) {
+      if (profileForm.avatar.includes("uploads"))
         return encodeURI(
-          profileForm.image
+          profileForm.avatar
             .replace(/\\/g, "//")
             .replace("uploads", "http://127.0.0.1:8080")
         );
-      else return profileForm.image;
+      else return profileForm.avatar;
     }
-    return theme === "light" ? "/images/profile/Avatar Light.png" : "/images/profile/Avatar.png";
+    return null;
   };
 
-  const getEmailVerificationToken = async () => {
-    try{
-      let res = await getEmailToken(profileForm.email);
-      let data = await res.json();
-
-      if(!res.ok){
-        return responseMessageSetter(false, data.message || "فشل الحصول على رابط التحقق", setFormMessage);
-      }
-
-      responseMessageSetter(true, data.message || "تم إرسال رابط التحقق إلى بريدك الإلكتروني", setFormMessage);
-    }catch(err){
-      responseMessageSetter(false, err.message || "خطأ في الاتصال بالسيرفر", setFormMessage);
+  const getStoreLogoSrc = () => {
+    if (profileForm?.storeLogoPreview) {
+      return profileForm.storeLogoPreview;
     }
-  }
+    if (profileForm?.logo) {
+      if(profileForm.logo.includes("uploads"))
+        return encodeURI(
+          profileForm.logo
+            .replace(/\\/g, "//")
+            .replace("uploads", "http://127.0.0.1:8080")
+        );
+      else return profileForm.logo;
+    }
+    return null;
+  };
 
   if (!isUserLogged()) {
     return (
@@ -372,23 +719,93 @@ const Profile = () => {
           <div className="user-main-info">
             {editMode ? (
               <div className="avatar-upload-wrapper">
-                <div className="profile-avatar">
-                  <img src={getAvatarSrc()} alt="Profile" />
-                </div>
+              <div className="profile-avatar">
+                {getAvatarSrc() ? (
+                  <img
+                    src={getAvatarSrc()}
+                    alt="الصورة الشخصية"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  <svg 
+                    className="profile-avatar-icon"
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="12" cy="12" r="12" className="avatar-bg-token" />
+                    <path 
+                      d="M12 11C13.6569 11 15 9.65685 15 8C15 6.34315 13.6569 5 12 5C10.3431 5 9 6.34315 9 8C9 9.65685 10.3431 11 12 11Z" 
+                      className="avatar-fg-token"
+                    />
+                    <path 
+                      d="M6 18.5C6 15.4624 8.68629 13 12 13C15.3137 13 18 15.4624 18 18.5" 
+                      className="avatar-fg-token"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                )}
+              </div>
+
+              {editMode && (
                 <label className="avatar-upload-label">
-                  <span>تغيير الصورة</span>
+                  <Camera size={12} />
+                  <span>{getAvatarSrc() ? 'تغيير' : 'إضافة'}</span>
                   <input
                     type="file"
-                    name="image"
-                    accept="image/*"
+                    name="avatar"
+                    accept="image/jpeg,image/png,image/webp,image/avif,image/jpg"
                     className="avatar-input-hidden"
                     onChange={handleChangeInput}
                   />
                 </label>
-              </div>
+              )}
+
+              {profileForm.avatar && (
+                <button 
+                  type="button"
+                  className="avatar-delete-btn"
+                  onClick={handleDeleteAvatar}
+                  disabled={isDeletingAvatar}
+                  title="حذف الصورة الشخصية"
+                >
+                  {isDeletingAvatar ? (
+                    <span className="spinner-small" />
+                  ) : (
+                    <CloseIcon />
+                  )}
+                </button>
+              )}
+            </div>
             ) : (
               <div className="profile-avatar">
-                <img src={getAvatarSrc()} alt="Profile" />
+                {getAvatarSrc() ? (
+                  <img
+                    src={getAvatarSrc()}
+                    alt="الصورة الشخصية"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  <svg 
+                    className="profile-avatar-icon"
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="12" cy="12" r="12" className="avatar-bg-token" />
+                    <path 
+                      d="M12 11C13.6569 11 15 9.65685 15 8C15 6.34315 13.6569 5 12 5C10.3431 5 9 6.34315 9 8C9 9.65685 10.3431 11 12 11Z" 
+                      className="avatar-fg-token"
+                    />
+                    <path 
+                      d="M6 18.5C6 15.4624 8.68629 13 12 13C15.3137 13 18 15.4624 18 18.5" 
+                      className="avatar-fg-token"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                )}
               </div>
             )}
 
@@ -402,7 +819,17 @@ const Profile = () => {
                 {profileForm.isEmailVerified ? (
                   <span className="badge-green">الإيميل مفعل</span>
                 ) : (
-                  <button className="badge-red" onClick={getEmailVerificationToken} disabled={editMode}>الإيميل غير مفعل</button>
+                  <button 
+                    className="badge-red clickable"
+                    onClick={handleVerifyEmail}
+                    disabled={isVerifyingEmail || editMode}
+                  >
+                    {isVerifyingEmail ? (
+                      <span className="spinner-small" />
+                    ) : (
+                      "الإيميل غير مفعل - اضغط للتحقق"
+                    )}
+                  </button>
                 )}
                 {profileForm.isPhoneVerified ? (
                   <span className="badge-green">رقم الهاتف مفعل</span>
@@ -522,7 +949,7 @@ const Profile = () => {
                       disabled={!editMode}
                       onClick={() => handleSelection("gender", "female")}
                     >
-                      أنثى
+                      <Venus size={16} /> أنثى
                     </button>
                     <button
                       type="button"
@@ -530,14 +957,14 @@ const Profile = () => {
                       disabled={!editMode}
                       onClick={() => handleSelection("gender", "male")}
                     >
-                      ذكر
+                      <Mars size={16} /> ذكر
                     </button>
                   </div>
                 )}
 
                 {((profileForm.address && Object.keys(profileForm.address).length > 0) || editMode) && (
                   <div className="address-fields">
-                    <h3>العنوان</h3>
+                    <h3 className="address-heading">العنوان</h3>
                     <div className="address-inputs">
                       <div className="input-field">
                         <label>المدينة</label>
@@ -608,8 +1035,61 @@ const Profile = () => {
               {profileForm.role === "store_owner" && (
                 <section className="form-card">
                   <h3>بيانات المتجر</h3>
+                  
+                  {/* Store Logo Section - Enhanced */}
+                  <div className="store-logo-section">
+                    <div className="store-logo-container">
+                      {getStoreLogoSrc() ? (
+                        <div className="store-logo-wrapper">
+                          <img 
+                            src={getStoreLogoSrc()} 
+                            alt="شعار المتجر" 
+                            className="store-logo-image" 
+                          />
+                          {editMode && (
+                            <button 
+                              type="button"
+                              className="store-logo-delete-btn"
+                              onClick={handleDeleteStoreLogo}
+                              disabled={isDeletingStoreLogo}
+                              title="حذف شعار المتجر"
+                            >
+                              {isDeletingStoreLogo ? (
+                                <span className="spinner-small" />
+                              ) : (
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" y1="6" x2="6" y2="18" />
+                                  <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="store-logo-placeholder">
+                          <Image size={32} />
+                          <span>شعار المتجر</span>
+                        </div>
+                      )}
+                      
+                      {editMode && (
+                        <label className="store-logo-upload-label">
+                          <Camera size={14} />
+                          <span>{getStoreLogoSrc() ? 'تغيير الشعار' : 'إضافة شعار'}</span>
+                          <input
+                            type="file"
+                            name="storeLogo"
+                            accept="image/jpeg,image/png,image/webp,image/avif,image/jpg"
+                            className="store-logo-input-hidden"
+                            onChange={handleChangeInput}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="input-field">
-                    <label>اسم المتجر</label>
+                    <label><Store size={16} /> اسم المتجر</label>
                     <input
                       name="store_name"
                       value={profileForm.store_name || ""}
@@ -618,7 +1098,7 @@ const Profile = () => {
                     />
                   </div>
                   <div className="input-field">
-                    <label>بريد المتجر</label>
+                    <label><Mail size={16} /> بريد المتجر</label>
                     <input
                       name="store_email"
                       value={profileForm.store_email || ""}
@@ -627,7 +1107,7 @@ const Profile = () => {
                     />
                   </div>
                   <div className="input-field">
-                    <label>رقم هاتف المتجر</label>
+                    <label><Phone size={16} /> رقم هاتف المتجر</label>
                     <input
                       name="store_phone"
                       value={profileForm.store_phone || ""}
@@ -636,10 +1116,10 @@ const Profile = () => {
                     />
                   </div>
                   <div className="store_address">
-                    <p>عنوان المتجر</p>
+                    <h3 className="address-heading">عنوان المتجر</h3>
                     <div className="address-inputs">
                       <div className="input-field">
-                        <label>المدينة</label>
+                        <label><Building2 size={16} /> المدينة</label>
                         <input
                           name="store_address.city"
                           value={profileForm.store_address?.city || ""}
@@ -648,7 +1128,7 @@ const Profile = () => {
                         />
                       </div>
                       <div className="input-field">
-                        <label>المنطقة</label>
+                        <label><MapPinned size={16} /> المنطقة</label>
                         <input
                           name="store_address.district"
                           value={profileForm.store_address?.district || ""}
@@ -657,7 +1137,7 @@ const Profile = () => {
                         />
                       </div>
                       <div className="input-field">
-                        <label>الشارع</label>
+                        <label><MapPin size={16} /> الشارع</label>
                         <input
                           name="store_address.street"
                           value={profileForm.store_address?.street || ""}
@@ -720,38 +1200,14 @@ const Profile = () => {
                     <span>انقر لتغيير كلمة المرور</span>
                     <i className={`fas fa-chevron-${showPasswordForm ? 'up' : 'down'}`}></i>
                   </div>
-                  {showPasswordForm && (
-                    <div className="password-change-form">
-                      <input
-                        type="password"
-                        name="currentPassword"
-                        value={passwordForm.currentPassword}
-                        placeholder="كلمة المرور الحالية"
-                        onChange={handleChangeInput}
-                      />
-                      <input
-                        type="password"
-                        name="newPassword"
-                        value={passwordForm.newPassword}
-                        placeholder="كلمة المرور الجديدة"
-                        onChange={handleChangeInput}
-                      />
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={passwordForm.confirmPassword}
-                        placeholder="تأكيد كلمة المرور"
-                        onChange={handleChangeInput}
-                      />
-                      <button 
-                        type="button" 
-                        onClick={handleChangePassword}
-                        className="password-submit-btn"
-                      >
-                        تغيير كلمة المرور
-                      </button>
-                    </div>
-                  )}
+                  {showPasswordForm && 
+                   <ChangePasswordForm 
+                      passwordForm={passwordForm} 
+                      setPasswordForm={setPasswordForm}
+                      handleChangePassword={handleChangePassword}
+                      isSubmitting={isSubmitting}
+                    />
+                  }
                 </>
               ) : (
                 <p className="password-disabled-message">
@@ -774,19 +1230,19 @@ const Profile = () => {
                       }
                     }}
                   >
-                    حفظ التغييرات
+                    <Save size={16} /> حفظ التغييرات
                   </button>
                   <button type="button" className="btn-secondary" onClick={cancelEdit}>
-                    إلغاء
+                    <X size={16} /> إلغاء
                   </button>
                 </>
               ) : (
                 <>
                   <button type="button" className="btn-primary" onClick={enterEditMode}>
-                    تعديل البيانات
+                    <Edit size={16} /> تعديل البيانات
                   </button>
                   <button type="button" className="btn-danger" onClick={handleDeleteProfile}>
-                    حذف الحساب
+                    <Trash2 size={16} /> حذف الحساب
                   </button>
                 </>
               )}
@@ -794,7 +1250,6 @@ const Profile = () => {
           </aside>
         </div>
       </div>
-      <Footer />
     </>
   );
 };

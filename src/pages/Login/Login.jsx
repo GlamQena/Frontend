@@ -1,205 +1,348 @@
 import "./Login.css";
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { Eye, EyeOff, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   loginSchema,
   responseMessageSetter,
   login,
-  getSessionId
+  getSessionId,
+  activateAccount,
+  resendActivationOTP
 } from "../../services/authService";
 
 const Login = () => {
   const navigate = useNavigate();
-
-  // إظهإر او اخفاء الباسورد
+  const location = useLocation();
+  
+  const params = new URLSearchParams(location.search);
+  const token = params.get("token");
+  const email = params.get("email");
+  const role = params.get("role");
+  
   const [showPassword, setShowPassword] = useState(false);
-
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isActivationFlow, setIsActivationFlow] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [submitMessage, setSubmitMessage] = useState({
     success: false,
     message: "",
   });
 
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
-  let id= null, role= null;
-
-  try{
-    if(token){
-      console.log("Token received:", token.substring(0, 50) + "...");
-      const decodedToken = JSON.parse(atob(token.split(".")[1]));
-      role = decodedToken.role;
-      id = decodedToken.id;
-      console.log("Decoded token successfully:", { role, id });
+  useEffect(() => {
+    if (token && email) {
+      setIsActivationFlow(true);
+      try {
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        console.log("Activation flow detected:", { email, role, token });
+      } catch (e) {
+        console.error("Error decoding activation token:", e);
+      }
     }
-  }catch(e){
-    console.error("error decoding the activation token", e);
-  }
+  }, [token, email, role]);
 
-  let {
+  const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(loginSchema),
-    defaultValues: { usernameOrEmail: "", password: "", activationCode:"", rememberMe: false},
+    defaultValues: { 
+      usernameOrEmail: email || "", 
+      password: "", 
+      activationCode: "",
+      newPassword: "",
+      confirmPassword: "",
+      rememberMe: false 
+    },
     mode: "onChange",
   });
 
+  const handleResendActivation = async () => {
+    if (isResending) return;
+    setIsResending(true);
+    
+    try {
+      const response = await resendActivationOTP({ email, token });
+      const data = await response.json();
+      
+      if (response.ok) {
+        responseMessageSetter(true, data.message || "تم إرسال كود التفعيل الجديد إلى بريدك الإلكتروني", setSubmitMessage);
+      } else {
+        responseMessageSetter(false, data.message || "فشل إرسال كود التفعيل", setSubmitMessage);
+      }
+    } catch (error) {
+      console.error("Resend activation error:", error);
+      responseMessageSetter(false, error.message || "حدث خطأ أثناء إرسال كود التفعيل", setSubmitMessage);
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const onSubmit = async (formData) => {
-    console.log("form data-> ", formData);
+    if (isActivationFlow && token) {
+      try {
+        const response = await activateAccount({
+          email,
+          token,
+          activationCode: formData.activationCode,
+          newPassword: formData.newPassword,
+          confirmPassword: formData.confirmPassword,
+          rememberMe: formData.rememberMe
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const user = data.user;
+          localStorage.setItem("user", JSON.stringify(user));
+          localStorage.setItem("accessToken", data.accessToken);
+          localStorage.setItem("refreshToken", data.refreshToken);
+          
+          responseMessageSetter(true, data.message || "تم تفعيل الحساب بنجاح", setSubmitMessage);
+
+          setTimeout(() => {
+            if (user.role === "store_owner") {
+              navigate("/dashboard/store_owner");
+            } else if (user.role === "admin") {
+              navigate("/dashboard/admin");
+            } else {
+              navigate("/");
+            }
+          }, 2000);
+        } else {
+          responseMessageSetter(false, data.message || "فشل تفعيل الحساب", setSubmitMessage);
+        }
+      } catch (error) {
+        console.error("Activation error:", error);
+        responseMessageSetter(false, error.message || "حدث خطأ أثناء التفعيل", setSubmitMessage);
+      }
+      return;
+    }
 
     const bodyData = {
       usernameOrEmail: formData.usernameOrEmail,
       password: formData.password,
-      rememberMe: formData.rememberMe
+      rememberMe: formData.rememberMe,
+      session_id: getSessionId()
     };
 
-    if(token && id){
-      if(!formData.activationCode)
-        return responseMessageSetter(false, "activation code is required", setSubmitMessage);
-      bodyData.activationCode = formData.activationCode;
-    }
-
-    const session_id= getSessionId();
-    bodyData["session_id"] = session_id;
-    console.log("data to be sent to login-> ", bodyData);
-
     try {
-      const response = await login(bodyData, token);
+      const response = await login(bodyData, null);
       const data = await response.json();
 
       if (response.ok) {
-        console.log(data);
         const user = data.user;
         localStorage.removeItem("session_id");
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
-        responseMessageSetter(true, data.message, setSubmitMessage);
 
-        if(token && id)
-          navigate("/reset-password");
-        else if(user.role === "store_owner") navigate("/dashboard/store_owner");
-        else navigate("/"); //client usual home
+        setTimeout(() => {
+          if (user.role === "store_owner") {
+            navigate("/dashboard/store_owner");
+          } else if (user.role === "admin") {
+            navigate("/dashboard/admin");
+          } else {
+            navigate("/");
+          }
+        }, 1500);
       } else {
-        console.log("error logging in");
         responseMessageSetter(false, data.message, setSubmitMessage);
       }
     } catch (error) {
-      console.log("error logging in", error);
+      console.error("Login error:", error);
       responseMessageSetter(false, error.message, setSubmitMessage);
     }
   };
 
   return (
-    <div className="login-container">
+    <div className="login-page-wrapper">
       <div className="login-header">
-        <h2>مرحباً بك في Glam Qena</h2>
-        <p className="hint">سجل دخولك أو أنشئ حساب جديد</p>
-      </div>
-      <div className="login-card">
-        {/* أزرار التبديل بين دخول وحساب جديد */}
-        <div className="tabs-container">
-          <button className="tab-btn active">تسجيل دخول</button>
-          <button className="tab-btn" onClick={() => navigate("/register")}>
-            حساب جديد
-          </button>
+        <div className="login-avatar-icon">
+          <User size={30} />
         </div>
+        {isActivationFlow ? (
+          <>
+            <h2>تفعيل حساب جديد</h2>
+            <p className="login-hint">أدخل كود التفعيل وكلمة المرور الجديدة لتفعيل حسابك</p>
+          </>
+        ) : (
+          <>
+            <h2>مرحباً بك في Glam Qena</h2>
+            <p className="login-hint">سجل دخولك أو أنشئ حساب عميل جديد</p>
+          </>
+        )}
+      </div>
+      
+      <div className="login-card">
+        {!isActivationFlow && (
+          <div className="login-tabs-container">
+            <button className="login-tab-btn active">تسجيل دخول</button>
+            <button className="login-tab-btn" onClick={() => navigate("/register")}>
+              حساب جديد
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="login-form">
           {submitMessage.message && (
-            <p
-              className={`submit-message ${submitMessage.success ? "success-message" : "error-message"}`}
-            >
+            <p className={`login-alert ${submitMessage.success ? "alert-success" : "alert-error"}`}>
               {submitMessage.message}
             </p>
           )}
 
-          <div className="form-group">
-            <label>
-              اسم المستخدم أو البريد الإلكتروني{" "}
-              <span className="required-star">*</span>
+          {isActivationFlow && (
+            <div className="login-activation-info">
+              <p>📧 جاري تفعيل الحساب للبريد الإلكتروني:</p>
+              <div className="login-email-highlight">{email}</div>
+              <p className="login-activation-hint">يرجى إدخال كود التفعيل المرسل إلى بريدك الإلكتروني</p>
+            </div>
+          )}
+
+          <div className="login-field-group">
+            <label className="login-label">
+              {isActivationFlow ? "البريد الإلكتروني" : "اسم المستخدم أو البريد الإلكتروني"}
+              <span className="login-required">*</span>
             </label>
             <input
               type="text"
-              name="usernameOrEmail"
-              className={errors.usernameOrEmail?.message ? "error" : ""}
-              placeholder="اسم المستخدم أو البريد الإلكتروني"
+              className={`login-input ${errors.usernameOrEmail?.message ? "input-error" : ""}`}
+              placeholder={isActivationFlow ? "البريد الإلكتروني" : "اسم المستخدم أو البريد الإلكتروني"}
               {...register("usernameOrEmail")}
+              readOnly={isActivationFlow}
             />
             {errors.usernameOrEmail?.message && (
-              <p className="field-error">{errors.usernameOrEmail?.message}</p>
+              <p className="login-field-error">{errors.usernameOrEmail?.message}</p>
             )}
           </div>
 
-          <div className="form-group">
-            <label>
-              كلمة المرور <span className="required-star">*</span>
-            </label>
-            <div className="password-input-wrapper">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                className={errors.password?.message ? "error" : ""}
-                placeholder="........"
-                {...register("password")}
-              />
-              <button
-                type="button"
-                className="eye-icon"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+          {isActivationFlow ? (
+            <>
+              <div className="login-field-group">
+                <label className="login-label">
+                  كود التفعيل <span className="login-required">*</span>
+                </label>
+                <input
+                  type="text"
+                  className={`login-input ${errors.activationCode?.message ? "input-error" : ""}`}
+                  placeholder="أدخل كود التفعيل المكون من 6 أرقام"
+                  {...register("activationCode")}
+                />
+                {errors.activationCode?.message && (
+                  <p className="login-field-error">{errors.activationCode?.message}</p>
+                )}
+              </div>
+
+              <div className="login-field-group">
+                <label className="login-label">
+                  كلمة المرور الجديدة <span className="login-required">*</span>
+                </label>
+                <div className="login-password-field">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    className={`login-input ${errors.newPassword?.message ? "input-error" : ""}`}
+                    placeholder="********"
+                    {...register("newPassword")}
+                  />
+                  <button
+                    type="button"
+                    className="login-toggle-password"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.newPassword?.message && (
+                  <p className="login-field-error">{errors.newPassword?.message}</p>
+                )}
+              </div>
+
+              <div className="login-field-group">
+                <label className="login-label">
+                  تأكيد كلمة المرور الجديدة <span className="login-required">*</span>
+                </label>
+                <div className="login-password-field">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    className={`login-input ${errors.confirmPassword?.message ? "input-error" : ""}`}
+                    placeholder="********"
+                    {...register("confirmPassword")}
+                  />
+                  <button
+                    type="button"
+                    className="login-toggle-password"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {errors.confirmPassword?.message && (
+                  <p className="login-field-error">{errors.confirmPassword?.message}</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="login-field-group">
+              <label className="login-label">
+                كلمة المرور <span className="login-required">*</span>
+              </label>
+              <div className="login-password-field">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className={`login-input ${errors.password?.message ? "input-error" : ""}`}
+                  placeholder="........"
+                  {...register("password")}
+                />
+                <button
+                  type="button"
+                  className="login-toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password?.message && (
+                <p className="login-field-error">{errors.password?.message}</p>
+              )}
             </div>
-            {errors.password?.message && (
-              <p className="field-error">{errors.password?.message}</p>
-            )}
-          </div>
+          )}
 
-          {(token && id) &&
-          <div className="form-group">
-            <label>
-             كود التفعيل <span className="required-star">*</span>
-            </label>
-            <input
-              type="text"
-              name="activationCode"
-              className={errors.activationCode?.message ? "error" : ""}
-              placeholder="........"
-              {...register("activationCode")}
-            />
-            {errors.activationCode?.message && (
-              <p className="field-error">{errors.activationCode?.message}</p>
-            )}
-          </div>}
-
-          <div className="form-options">
-            <label className="remember-me">
+          <div className="login-form-options">
+            <label className="login-remember-me">
               <input
                 type="checkbox"
-                name="rememberMe"
                 {...register("rememberMe")}
-                style={{"margin-left": "5px"}}
               />
               تذكرني (لمدة 30 يوماً)
             </label>
-            {/* اللينك اللى بيربط ب الريسيت  */}
-            <Link
-              to="/reset-password"
-              name="reset-password-link"
-              className="forgot-password"
-            >
-              نسيت كلمة المرور؟
-            </Link>
+            {!isActivationFlow && (
+              <Link to="/reset-password" className="login-forgot-password">
+                نسيت كلمة المرور؟
+              </Link>
+            )}
           </div>
 
-          <button type="submit" className="submit-btn">
-            تسجيل الدخول &larr; {/* html character for left arrow icon*/}
+          <button type="submit" className="login-submit-btn">
+            {isActivationFlow ? "تفعيل الحساب ←" : "تسجيل الدخول ←"}
           </button>
+
+          {isActivationFlow && (
+            <div className="login-resend-section">
+              <span className="login-resend-text">لم يصلك كود التفعيل؟</span>
+              <button 
+                type="button" 
+                className="login-resend-btn"
+                onClick={handleResendActivation}
+                disabled={isResending}
+              >
+                {isResending ? "جاري الإرسال..." : "إعادة إرسال كود التفعيل"}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

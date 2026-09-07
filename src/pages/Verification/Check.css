@@ -3,19 +3,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--خلفية-الصفحة);
+  background: var(--bg-page);
   padding: 20px;
+  transition: background 0.3s ease;
 }
 
 .verification-card {
-  width: var(--عرض-البطاقة);
+  width: var(--card-width);
   max-width: 100%;
-  background: var(--خلفية-البطاقة);
-  border-radius: var(--راديوس-البطاقة);
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
   padding: 48px 32px;
   text-align: center;
-  box-shadow: var(--ظل-البطاقة);
-  border: 1px solid var(--حد-واضح);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-subtle);
+  animation: fadeInUp 0.6s ease-out;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .verification-icon {
@@ -28,57 +31,138 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: var(--بنفسجي-خافت);
+  background: var(--primary-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--بنفسجي);
+  color: var(--primary-main);
+  transition: all 0.3s ease;
+}
+
+.icon-circle.loading {
+  background: var(--primary-subtle);
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .verification-title {
-  color: var(--نص-رئيسي);
+  color: var(--text-primary);
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 16px 0;
   line-height: 1.3;
 }
 
 .verification-text {
-  color: var(--نص-ثانوي);
+  color: var(--text-secondary);
   font-size: 15px;
-  line-height: 1.6;
-  margin: 0 0 32px 0;
+  line-height: 1.8;
+  margin: 0 0 24px 0;
 }
 
+/* Status Messages */
+.success-message {
+  color: var(--success-main);
+  background-color: var(--success-subtle);
+  padding: 12px 16px;
+  border-radius: var(--input-radius);
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  border: 1px solid var(--success-subtle);
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-message {
+  color: var(--error-main);
+  background-color: var(--error-subtle);
+  padding: 12px 16px;
+  border-radius: var(--input-radius);
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  border: 1px solid var(--error-subtle);
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Buttons */
+.verification-button {
+  width: 100%;
+  min-height: var(--button-height);
+  padding: 14px 24px;
+  border: none;
+  border-radius: var(--button-radius);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 8px 0;
+  font-family: inherit;
+}
+
+.verification-button.primary {
+  background: var(--bg-button);
+  color: #ffffff;
+  box-shadow: var(--shadow-button);
+}
+
+.verification-button.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: var(--bg-button-hover);
+  filter: brightness(1.05);
+}
+
+.verification-button.primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.verification-button.primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.verification-button.secondary {
+  background: var(--primary-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-prominent);
+}
+
+.verification-button.secondary:hover:not(:disabled) {
+  background: var(--border-prominent);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+/* Action links */
 .verification-action {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 32px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--حد-خافت);
+  margin-top: 16px;
+  margin-bottom: 12px;
+  padding: 16px 0 12px 0;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .action-text {
-  color: var(--نص-خافت);
+  color: var(--text-muted);
   font-size: 14px;
 }
 
-.retry-link, .resend-link {
+.retry-link {
   background: none;
   border: none;
-  color: var(--بنفسجي);
+  color: var(--primary-main);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   padding: 0;
   text-decoration: none;
-  transition: opacity 0.2s ease;
+  transition: all 0.3s ease;
 }
 
-.retry-link:hover, .resend-link:hover {
-  opacity: 0.8;
+.retry-link:hover {
+  color: var(--pink-hover);
+  text-decoration: underline;
 }
 
 .resend-section {
@@ -87,13 +171,74 @@
   justify-content: center;
   gap: 8px;
   font-size: 14px;
+  padding-top: 12px;
 }
 
 .resend-label {
-  color: var(--نص-خافت);
+  color: var(--text-muted);
 }
 
-/*   responsive */
+.resend-link {
+  background: none;
+  border: none;
+  color: var(--primary-main);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.resend-link:hover {
+  color: var(--pink-hover);
+  text-decoration: underline;
+}
+
+/* Spinner */
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--primary-subtle);
+  border-top: 3px solid var(--primary-main);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Responsive */
 @media (max-width: 640px) {
   .verification-card {
     padding: 32px 24px;
@@ -115,5 +260,39 @@
   .icon-circle svg {
     width: 36px;
     height: 36px;
+  }
+  
+  .verification-button {
+    font-size: 14px;
+    padding: 12px 20px;
+  }
+  
+  .verification-action,
+  .resend-section {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 400px) {
+  .verification-card {
+    padding: 24px 16px;
+  }
+  
+  .verification-title {
+    font-size: 18px;
+  }
+  
+  .verification-text {
+    font-size: 13px;
+  }
+  
+  .icon-circle {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .icon-circle svg {
+    width: 30px;
+    height: 30px;
   }
 }

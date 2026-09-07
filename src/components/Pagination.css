@@ -1,0 +1,64 @@
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  direction: rtl !important;
+  margin-top: 40px;
+  direction: ltr; /* Keeps arrow direction intuitive regardless of page language */
+}
+
+.pagination-btn {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-prominent, #e2e8f0);
+  color: var(--text-secondary, #64748b);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: var(--shadow-card, 0 2px 4px rgba(0,0,0,0.05));
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--bg-input-focus, #f8fafc);
+  color: var(--text-primary, #0f172a);
+  border-color: var(--border-focus, #cbd5e1);
+  transform: scale(1.05);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-prominent, #cbd5e1);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination-dot.active {
+  background: var(--primary-main, #d946ef);
+  border-radius: 6px;
+}
+
+.pagination-dot:hover:not(.active) {
+  background: var(--text-muted, #94a3b8);
+  transform: scale(1.2);
+}

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   User,
@@ -18,6 +18,7 @@ import {
   EyeOff,
   Building2,
   MapPinned,
+  ArrowLeft,
 } from "lucide-react";
 import {
   registerUser,
@@ -30,8 +31,8 @@ import "./Register.css";
 
 const Register = () => {
   const navigate = useNavigate();
-  const queryParams= new URLSearchParams(window.location.search);
-  const role= queryParams.get("role");
+  const queryParams = new URLSearchParams(window.location.search);
+  const role = queryParams.get("role");
   const [selectedRole, setSelectedRole] = useState(role || "client");
   const [loading, setLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState({
@@ -41,7 +42,6 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Get the appropriate schema based on selected role
   const getCurrentSchema = () => {
     return selectedRole === "client" ? clientSchema : storeOwnerSchema;
   };
@@ -61,7 +61,7 @@ const Register = () => {
       confirmPassword: "",
       phone: "",
       birthdate: "",
-      gender: "",
+      gender: "female",
       address: {
         city: "",
         district: "",
@@ -79,41 +79,33 @@ const Register = () => {
     mode: "onChange",
   });
 
-  // Handle role change
   const handleRoleSelect = (role) => {
     setSelectedRole(role);
-    // Clear errors when switching roles
     responseMessageSetter(false, "", setSubmitMessage);
   };
 
-  // Handle gender selection
   const handleGenderSelect = (gender) => {
     setValue("gender", gender, { shouldValidate: true });
   };
 
-  // Handle address field changes
   const handleAddressChange = (field, value) => {
     setValue(`address.${field}`, value, { shouldValidate: true });
   };
 
-  // Handle store address field changes
   const handleStoreAddressChange = (field, value) => {
     setValue(`store_address.${field}`, value, { shouldValidate: true });
   };
 
-  // Handle regular input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setValue(name, value, { shouldValidate: true });
   };
 
-  // Form submission handler
   const onSubmit = async (formData) => {
     setLoading(true);
     responseMessageSetter(false, "", setSubmitMessage);
 
     try {
-      // Prepare data for API
       const registrationData = {
         role: selectedRole,
         username: formData.username.toLowerCase().trim(),
@@ -122,7 +114,7 @@ const Register = () => {
         confirmPassword: formData.confirmPassword,
         phoneNumber: formData.phone || undefined,
         birthdate: formData.birthdate || undefined,
-        gender: formData.gender || undefined,
+        gender: formData.gender || "female",
         address:
           formData.address?.city ||
           formData.address?.district ||
@@ -135,7 +127,6 @@ const Register = () => {
             : undefined,
       };
 
-      // Add store owner specific data
       if (selectedRole === "store_owner") {
         registrationData.store_name = formData.store_name;
         registrationData.store_email = formData.store_email
@@ -148,37 +139,36 @@ const Register = () => {
           street: formData.store_address.street,
         };
       }
-      const session_id= getSessionId();
+      const session_id = getSessionId();
       registrationData["session_id"] = session_id;
 
-      console.log("Sending data:", registrationData);
       const responseData = await registerUser(registrationData);
 
-      window.scrollTo({ top: 0, behavior: "smooth" });
       responseMessageSetter(
         true,
         responseData.message || "تم إرسال رابط التفعيل إلى بريدك الإلكتروني",
-        setSubmitMessage,
+        setSubmitMessage
       );
 
-      localStorage.removeItem("session_id");
-      localStorage.setItem("user", JSON.stringify(responseData.user));
-      localStorage.setItem("accessToken", responseData.accessToken);
-      localStorage.setItem("refreshToken", responseData.refreshToken);
+      if (responseData.cart_merged) localStorage.removeItem("session_id");
 
-      const role = responseData.user.role;
-      if(role === "store_owner") navigate("/dashboard/store_owner");
-      else navigate("/"); //client usual home
+      if (responseData.authData) {
+        const authData = responseData.authData;
+        localStorage.setItem("user", JSON.stringify(authData.user));
+        localStorage.setItem("accessToken", authData.accessToken);
+        localStorage.setItem("refreshToken", authData.refreshToken);
+      }
+
     } catch (err) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
       console.error("Registration error:", err);
       responseMessageSetter(
         false,
         err.message || "حدث خطأ أثناء التسجيل",
-        setSubmitMessage,
+        setSubmitMessage
       );
     } finally {
       setLoading(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -190,191 +180,217 @@ const Register = () => {
     }
   };
 
-  return (
-    <div className="register-container">
-      <div className="role-selection">
-        <button
-          className={`role-btn client ${selectedRole === "client" ? "active" : ""}`}
-          onClick={() => handleRoleSelect("client")}
-          type="button"
-          tabIndex={0}
-        >
-          عميل
-        </button>
+  // BroadcastChannel listener for email verification
+  useEffect(() => {
+    // Check if verification was completed in another tab
+    const checkVerificationStatus = () => {
+      const verified = localStorage.getItem('emailVerified');
+      const timestamp = localStorage.getItem('verificationTimestamp');
+      
+      if (verified === 'true' && timestamp) {
+        const time = parseInt(timestamp);
+        // Check if verification happened within the last 10 seconds
+        if (Date.now() - time < 10 * 1000) {
+          console.log('📧 Email verification detected on Register page!');
+          
+          // Clear the flags to prevent duplicate messages
+          localStorage.removeItem('emailVerified');
+          localStorage.removeItem('verificationTimestamp');
+          
+          responseMessageSetter(
+            true,
+            "تم التحقق من البريد الإلكتروني بنجاح! يمكنك الآن تسجيل الدخول.",
+            setSubmitMessage
+          );
 
-        <button
-          className={`role-btn owner ${selectedRole === "store_owner" ? "active" : ""}`}
-          onClick={() => handleRoleSelect("store_owner")}
-          type="button"
-          tabIndex={0}
-        >
-          صاحب محل
-        </button>
+          setTimeout(() => {
+            navigate('/login', { 
+              state: { 
+                message: "تم التحقق من بريدك الإلكتروني بنجاح. يرجى تسجيل الدخول."
+              } 
+            });
+          }, 3000);
+        }
+      }
+    };
+
+    // Check on mount
+    checkVerificationStatus();
+
+    // Listen for storage changes (when verification tab updates localStorage)
+    const handleStorageChange = (event) => {
+      if (event.key === 'emailVerified' && event.newValue === 'true') {
+        console.log('📧 Storage event: email verified!');
+        checkVerificationStatus();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Listen for BroadcastChannel messages from verification tab
+    const channel = new BroadcastChannel('email_verification_channel');
+    
+    channel.onmessage = (event) => {
+      if (event.data.type === 'EMAIL_VERIFIED') {
+        console.log('📧 BroadcastChannel: Email verified in another tab!', event.data);
+        
+        responseMessageSetter(
+          true,
+          "تم التحقق من البريد الإلكتروني بنجاح! يمكنك الآن تسجيل الدخول.",
+          setSubmitMessage
+        );
+        
+        // Clear localStorage flags if they exist
+        localStorage.removeItem('emailVerified');
+        localStorage.removeItem('verificationTimestamp');
+        
+        setTimeout(() => {
+          navigate('/login', { 
+            state: { 
+              message: "تم التحقق من بريدك الإلكتروني بنجاح. يرجى تسجيل الدخول."
+            } 
+          });
+        }, 3000);
+      }
+    };
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      channel.close();
+    };
+  }, [navigate]); 
+
+  return (
+    <div className="register-page-wrapper">
+      {/* Header Section */}
+      <div className="register-header">
+        <div className="register-header-icon">
+          {selectedRole === "client" ? (
+            <User size={28} />
+          ) : (
+            <Store size={28} />
+          )}
+        </div>
+        <h1>مرحباً بك في Glam Qena</h1>
+        <p>سجل حسابك الجديد لتبدأ رحلتك معنا</p>
       </div>
 
-      <div className="registration-form-container">
-        <div className="form-header">
-          <div className={`role-indicator ${selectedRole}`}>
-            {selectedRole === "client" ? (
-              <>
-                <User size={24} />
-                <span>
-                  تسجيل كـ <strong>عميل</strong>
-                </span>
-              </>
-            ) : (
-              <>
-                <Store size={24} />
-                <span>
-                  تسجيل كـ <strong>صاحب محل</strong>
-                </span>
-              </>
-            )}
-          </div>
-          <h2>أنشئ حسابك الجديد</h2>
+      {/* Main Registration Form Card */}
+      <div className="register-card">
+        {/* Role Selection Tabs */}
+        <div className="register-role-tabs">
+          <button
+            className={`register-tab-btn ${
+              selectedRole === "client" ? "active" : ""
+            }`}
+            onClick={() => handleRoleSelect("client")}
+            type="button"
+          >
+            <User size={18} />
+            <span>حساب عميل</span>
+          </button>
+          <button
+            className={`register-tab-btn ${
+              selectedRole === "store_owner" ? "active" : ""
+            }`}
+            onClick={() => handleRoleSelect("store_owner")}
+            type="button"
+          >
+            <Store size={18} />
+            <span>صاحب محل</span>
+          </button>
         </div>
 
         {submitMessage.message && (
           <div
-            className={`${submitMessage.success ? "success-message" : "error-message"}`}
+            className={`register-alert ${
+              submitMessage.success ? "alert-success" : "alert-error"
+            }`}
           >
             {submitMessage.message}
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="registration-form">
+        <form onSubmit={handleSubmit(onSubmit)} className="register-form">
           {/* Username Field */}
-          <div className="form-group">
-            <label>
+          <div className="register-field-group">
+            <label className="register-label">
               <UserIcon size={18} /> اسم المستخدم{" "}
-              <span className="required-star">*</span>
+              <span className="register-required">*</span>
             </label>
             <input
               type="text"
               name="username"
               {...register("username")}
               onChange={handleInputChange}
-              placeholder="أدخل اسم المستخدم (أحرف إنجليزية صغيرة)"
+              placeholder="اسم المستخدم"
               disabled={loading}
-              className={errors.username ? "error" : ""}
+              className={`register-input ${
+                errors.username ? "input-error" : ""
+              }`}
             />
             {errors.username && (
-              <span className="field-error">{errors.username.message}</span>
-            )}
-            <small className="field-hint">
-              يمكن استخدام الأحرف الإنجليزية الصغيرة والأرقام والشرطة السفلية
-              فقط
-            </small>
-          </div>
-
-          {/* Email Field */}
-          <div className="form-group">
-            <label>
-              <Mail size={18} /> البريد الإلكتروني{" "}
-              <span className="required-star">*</span>
-            </label>
-            <input
-              type="email"
-              name="email"
-              {...register("email")}
-              onChange={handleInputChange}
-              placeholder="example@domain.com"
-              disabled={loading}
-              className={errors.email ? "error" : ""}
-            />
-            {errors.email && (
-              <span className="field-error">{errors.email.message}</span>
-            )}
-          </div>
-
-          {/* Password Field */}
-          <div className="form-group">
-            <label>
-              <Lock size={18} /> كلمة المرور{" "}
-              <span className="required-star">*</span>
-            </label>
-            <div className="password-input-wrapper">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                {...register("password")}
-                onChange={handleInputChange}
-                placeholder="٨ أحرف على الأقل"
-                disabled={loading}
-                className={errors.password ? "error" : ""}
-              />
-              <button
-                type="button"
-                className="eye-icon"
-                onClick={() => togglePasswordVisibility("password")}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            {errors.password && (
-              <span className="field-error">{errors.password.message}</span>
-            )}
-            <small className="field-hint">
-              يجب أن تحتوي على حرف كبير وحرف صغير ورقم على الأقل
-            </small>
-          </div>
-
-          {/* Confirm Password Field */}
-          <div className="form-group">
-            <label>
-              <Lock size={18} /> تأكيد كلمة المرور{" "}
-              <span className="required-star">*</span>
-            </label>
-            <div className="password-input-wrapper">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                {...register("confirmPassword")}
-                onChange={handleInputChange}
-                placeholder="أعد إدخال كلمة المرور"
-                disabled={loading}
-                className={errors.confirmPassword ? "error" : ""}
-              />
-              <button
-                type="button"
-                className="eye-icon"
-                onClick={() => togglePasswordVisibility("confirm")}
-              >
-                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <span className="field-error">
-                {errors.confirmPassword.message}
+              <span className="register-field-error">
+                {errors.username.message}
               </span>
             )}
+            <small className="register-field-hint">
+              يمكن استخدام الأحرف الإنجليزية الصغيرة والأرقام والشرطة السفلية فقط
+            </small>
           </div>
 
-          {/* Phone Field */}
-          <div className="form-group">
-            <label>
-              <Phone size={18} /> رقم الهاتف{" "}
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              {...register("phone")}
-              onChange={handleInputChange}
-              placeholder="مثال: 01234567890"
-              disabled={loading}
-              className={errors.phone ? "error" : ""}
-            />
-            {errors.phone && (
-              <span className="field-error">{errors.phone.message}</span>
-            )}
-            <small className="field-hint">
-              رقم مصري صحيح (010, 011, 012, 015 ثم 8 أرقام)
-            </small>
+          {/* Contact Row: Email & Phone */}
+          <div className="register-form-row">
+            <div className="register-field-group half-width">
+              <label className="register-label">
+                <Mail size={18} /> البريد الإلكتروني{" "}
+                <span className="register-required">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                {...register("email")}
+                onChange={handleInputChange}
+                placeholder="example@email.com"
+                disabled={loading}
+                className={`register-input ${
+                  errors.email ? "input-error" : ""
+                }`}
+              />
+              {errors.email && (
+                <span className="register-field-error">
+                  {errors.email.message}
+                </span>
+              )}
+            </div>
+
+            <div className="register-field-group half-width">
+              <label className="register-label">
+                <Phone size={18} /> رقم الهاتف
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                {...register("phone")}
+                onChange={handleInputChange}
+                placeholder="01XXXXXXXXX"
+                disabled={loading}
+                className={`register-input ${
+                  errors.phone ? "input-error" : ""
+                }`}
+              />
+              {errors.phone && (
+                <span className="register-field-error">
+                  {errors.phone.message}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Birthdate Field */}
-          <div className="form-group">
-            <label>
+          <div className="register-field-group">
+            <label className="register-label">
               <Calendar size={18} /> تاريخ الميلاد
             </label>
             <input
@@ -384,47 +400,55 @@ const Register = () => {
               onChange={handleInputChange}
               disabled={loading}
               max={new Date().toISOString().split("T")[0]}
+              className="register-input"
             />
           </div>
 
           {/* Gender Selection */}
-          <div className="form-group">
-            <label>
-              <VenusAndMars size={18} /> الجنس
+          <div className="register-field-group">
+            <label className="register-label">
+              <VenusAndMars size={18} /> الجنس{" "}
+              <span className="register-required">*</span>
             </label>
-            <div className="gender-buttons">
+            <div className="register-gender-selector">
               <button
                 type="button"
-                className={`gender-btn ${getValues("gender") === "male" ? "active" : ""}`}
-                onClick={() => handleGenderSelect("male")}
+                className={`register-gender-btn ${
+                  getValues("gender") === "female" ? "active" : ""
+                }`}
+                onClick={() => handleGenderSelect("female")}
               >
-                <Mars size={20} />
-                <span>ذكر</span>
+                <Venus size={18} />
+                <span>أنثى</span>
               </button>
               <button
                 type="button"
-                className={`gender-btn ${getValues("gender") === "female" ? "active" : ""}`}
-                onClick={() => handleGenderSelect("female")}
+                className={`register-gender-btn ${
+                  getValues("gender") === "male" ? "active" : ""
+                }`}
+                onClick={() => handleGenderSelect("male")}
               >
-                <Venus size={20} />
-                <span>أنثى</span>
+                <Mars size={18} />
+                <span>ذكر</span>
               </button>
             </div>
             {errors.gender && (
-              <span className="field-error">{errors.gender.message}</span>
+              <span className="register-field-error">
+                {errors.gender.message}
+              </span>
             )}
           </div>
 
-          {/* Optional Address Section */}
-          <div className="form-section-divider">
+          {/* Address Divider */}
+          <div className="register-section-divider">
             <span>
               <MapPin size={16} /> العنوان (اختياري)
             </span>
           </div>
 
-          <div className="form-row">
-            <div className="form-group half">
-              <label>
+          <div className="register-form-row">
+            <div className="register-field-group half-width">
+              <label className="register-label">
                 <Building2 size={18} /> المدينة
               </label>
               <input
@@ -434,17 +458,19 @@ const Register = () => {
                 onChange={(e) => handleAddressChange("city", e.target.value)}
                 placeholder="المدينة"
                 disabled={loading}
-                className={errors.address?.city ? "error" : ""}
+                className={`register-input ${
+                  errors.address?.city ? "input-error" : ""
+                }`}
               />
               {errors.address?.city && (
-                <span className="field-error">
+                <span className="register-field-error">
                   {errors.address.city.message}
                 </span>
               )}
             </div>
 
-            <div className="form-group half">
-              <label>
+            <div className="register-field-group half-width">
+              <label className="register-label">
                 <MapPinned size={18} /> المنطقة
               </label>
               <input
@@ -456,18 +482,20 @@ const Register = () => {
                 }
                 placeholder="المنطقة"
                 disabled={loading}
-                className={errors.address?.district ? "error" : ""}
+                className={`register-input ${
+                  errors.address?.district ? "input-error" : ""
+                }`}
               />
               {errors.address?.district && (
-                <span className="field-error">
+                <span className="register-field-error">
                   {errors.address.district.message}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="form-group">
-            <label>
+          <div className="register-field-group">
+            <label className="register-label">
               <MapPin size={18} /> الشارع
             </label>
             <input
@@ -475,30 +503,103 @@ const Register = () => {
               name="address.street"
               value={getValues("address.street") || ""}
               onChange={(e) => handleAddressChange("street", e.target.value)}
-              placeholder="الشارع"
+              placeholder="المدينة، الشارع..."
               disabled={loading}
-              className={errors.address?.street ? "error" : ""}
+              className={`register-input ${
+                errors.address?.street ? "input-error" : ""
+              }`}
             />
             {errors.address?.street && (
-              <span className="field-error">
+              <span className="register-field-error">
                 {errors.address.street.message}
               </span>
             )}
           </div>
 
-          {/* Store Owner Specific Fields */}
+          {/* Password Row */}
+          <div className="register-form-row">
+            <div className="register-field-group half-width">
+              <label className="register-label">
+                <Lock size={18} /> كلمة المرور{" "}
+                <span className="register-required">*</span>
+              </label>
+              <div className="register-password-field">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  {...register("password")}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  disabled={loading}
+                  className={`register-input ${
+                    errors.password ? "input-error" : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  className="register-toggle-password"
+                  onClick={() => togglePasswordVisibility("password")}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && (
+                <span className="register-field-error">
+                  {errors.password.message}
+                </span>
+              )}
+            </div>
+
+            <div className="register-field-group half-width">
+              <label className="register-label">
+                <Lock size={18} /> تأكيد كلمة المرور{" "}
+                <span className="register-required">*</span>
+              </label>
+              <div className="register-password-field">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  {...register("confirmPassword")}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  disabled={loading}
+                  className={`register-input ${
+                    errors.confirmPassword ? "input-error" : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  className="register-toggle-password"
+                  onClick={() => togglePasswordVisibility("confirm")}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <span className="register-field-error">
+                  {errors.confirmPassword.message}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Store Owner Specific Section */}
           {selectedRole === "store_owner" && (
             <>
-              <div className="form-section-divider">
+              <div className="register-section-divider">
                 <span>
                   <Store size={16} /> معلومات المحل
                 </span>
               </div>
 
-              <div className="form-group">
-                <label>
+              <div className="register-field-group">
+                <label className="register-label">
                   <Store size={18} /> اسم المحل{" "}
-                  <span className="required-star">*</span>
+                  <span className="register-required">*</span>
                 </label>
                 <input
                   type="text"
@@ -507,73 +608,77 @@ const Register = () => {
                   onChange={handleInputChange}
                   placeholder="أدخل اسم المحل"
                   disabled={loading}
-                  className={errors.store_name ? "error" : ""}
+                  className={`register-input ${
+                    errors.store_name ? "input-error" : ""
+                  }`}
                 />
                 {errors.store_name && (
-                  <span className="field-error">
+                  <span className="register-field-error">
                     {errors.store_name.message}
                   </span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label>
-                  <Mail size={18} /> البريد الإلكتروني للمحل{" "}
-                  <span className="required-star">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="store_email"
-                  {...register("store_email")}
-                  onChange={handleInputChange}
-                  placeholder="store@example.com"
-                  disabled={loading}
-                  className={errors.store_email ? "error" : ""}
-                />
-                {errors.store_email && (
-                  <span className="field-error">
-                    {errors.store_email.message}
-                  </span>
-                )}
+              <div className="register-form-row">
+                <div className="register-field-group half-width">
+                  <label className="register-label">
+                    <Mail size={18} /> بريد المحل{" "}
+                    <span className="register-required">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="store_email"
+                    {...register("store_email")}
+                    onChange={handleInputChange}
+                    placeholder="store@example.com"
+                    disabled={loading}
+                    className={`register-input ${
+                      errors.store_email ? "input-error" : ""
+                    }`}
+                  />
+                  {errors.store_email && (
+                    <span className="register-field-error">
+                      {errors.store_email.message}
+                    </span>
+                  )}
+                </div>
+
+                <div className="register-field-group half-width">
+                  <label className="register-label">
+                    <Phone size={18} /> هاتف المحل{" "}
+                    <span className="register-required">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    name="store_phone"
+                    {...register("store_phone")}
+                    onChange={handleInputChange}
+                    placeholder="01XXXXXXXXX"
+                    disabled={loading}
+                    className={`register-input ${
+                      errors.store_phone ? "input-error" : ""
+                    }`}
+                  />
+                  {errors.store_phone && (
+                    <span className="register-field-error">
+                      {errors.store_phone.message}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>
-                  <Phone size={18} /> هاتف المحل{" "}
-                  <span className="required-star">*</span>
-                </label>
-                <input
-                  type="tel"
-                  name="store_phone"
-                  {...register("store_phone")}
-                  onChange={handleInputChange}
-                  placeholder="مثال: 01234567890"
-                  disabled={loading}
-                  className={errors.store_phone ? "error" : ""}
-                />
-                {errors.store_phone && (
-                  <span className="field-error">
-                    {errors.store_phone.message}
-                  </span>
-                )}
-                <small className="field-hint">
-                  رقم مصري صحيح (010, 011, 012, 015 ثم 8 أرقام)
-                </small>
-              </div>
-
-              {/* Store Address - Required */}
-              <div className="form-section-divider">
+              <div className="register-section-divider">
                 <span>
                   <MapPin size={16} /> عنوان المحل{" "}
-                  <span className="required-star">*</span>
+                  <span className="register-required">*</span>
                 </span>
               </div>
 
-              <div className="form-row">
-                <div className="form-group half">
-                  <label>
+              <div className="register-form-row">
+                <div className="register-field-group half-width">
+                  <label className="register-label">
                     <Building2 size={18} /> المدينة{" "}
-                    <span className="required-star">*</span>
+                    <span className="register-required">*</span>
                   </label>
                   <input
                     type="text"
@@ -584,19 +689,21 @@ const Register = () => {
                     }
                     placeholder="مدينة المحل"
                     disabled={loading}
-                    className={errors.store_address?.city ? "error" : ""}
+                    className={`register-input ${
+                      errors.store_address?.city ? "input-error" : ""
+                    }`}
                   />
                   {errors.store_address?.city && (
-                    <span className="field-error">
+                    <span className="register-field-error">
                       {errors.store_address.city.message}
                     </span>
                   )}
                 </div>
 
-                <div className="form-group half">
-                  <label>
+                <div className="register-field-group half-width">
+                  <label className="register-label">
                     <MapPinned size={18} /> المنطقة{" "}
-                    <span className="required-star">*</span>
+                    <span className="register-required">*</span>
                   </label>
                   <input
                     type="text"
@@ -607,20 +714,22 @@ const Register = () => {
                     }
                     placeholder="منطقة المحل"
                     disabled={loading}
-                    className={errors.store_address?.district ? "error" : ""}
+                    className={`register-input ${
+                      errors.store_address?.district ? "input-error" : ""
+                    }`}
                   />
                   {errors.store_address?.district && (
-                    <span className="field-error">
+                    <span className="register-field-error">
                       {errors.store_address.district.message}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>
+              <div className="register-field-group">
+                <label className="register-label">
                   <MapPin size={18} /> الشارع{" "}
-                  <span className="required-star">*</span>
+                  <span className="register-required">*</span>
                 </label>
                 <input
                   type="text"
@@ -631,10 +740,12 @@ const Register = () => {
                   }
                   placeholder="شارع المحل"
                   disabled={loading}
-                  className={errors.store_address?.street ? "error" : ""}
+                  className={`register-input ${
+                    errors.store_address?.street ? "input-error" : ""
+                  }`}
                 />
                 {errors.store_address?.street && (
-                  <span className="field-error">
+                  <span className="register-field-error">
                     {errors.store_address.street.message}
                   </span>
                 )}
@@ -642,12 +753,18 @@ const Register = () => {
             </>
           )}
 
-          <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? "جاري إنشاء الحساب..." : "إنشاء الحساب"}
+          {/* Submit Action */}
+          <button
+            type="submit"
+            className="register-submit-btn"
+            disabled={loading}
+          >
+            <span>{loading ? "جاري إنشاء الحساب..." : "إنشاء حساب جديد"}</span>
+            <ArrowLeft size={18} />
           </button>
 
-          <p className="login-link">
-            لديك حساب بالفعل؟ <a href="/login">تسجيل الدخول</a>
+          <p className="register-login-link">
+            لديك حساب بالفعل؟ <Link to="/login">تسجيل الدخول</Link>
           </p>
         </form>
       </div>

@@ -1,15 +1,14 @@
 import { getAccessToken, getSessionId, sid_AuthHeader } from "./authService";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
-const BASE_URL = `${API_BASE_URL}/cart`;
+const BASE_URL = `/cart`;
 
 export const addToCart = async (
   productId,
-  setResponseMessage,
   quantity = 1,
 ) => {
   try {
-    const { sid, headers } = await sid_AuthHeader(setResponseMessage);
+    const { sid, headers } = await sid_AuthHeader();
 
     const res = await fetch(`${BASE_URL}/product`, {
       method: "POST",
@@ -31,10 +30,9 @@ export const removeFromCart = async (
   productId,
   storeId,
   removeAll,
-  setResponseMessage,
 ) => {
   try {
-    const { sid, headers } = await sid_AuthHeader(setResponseMessage);
+    const { sid, headers } = await sid_AuthHeader();
 
     const res = await fetch(`${BASE_URL}/product/${productId}`, {
       method: "DELETE",
@@ -53,9 +51,9 @@ export const removeFromCart = async (
   }
 };
 
-export const getCart = async (setResponseMessage) => {
+export const getCart = async () => {
   try {
-    const { sid, headers } = await sid_AuthHeader(setResponseMessage);
+    const { sid, headers } = await sid_AuthHeader();
 
     const res = await fetch(`${BASE_URL}/?session_id=${sid}`, {
       headers,

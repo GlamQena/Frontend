@@ -1,23 +1,23 @@
 import {createContext, useContext, useState, useEffect} from "react";
 
-const themeContext= createContext();
+const themeContext = createContext();
 
-export const ThemeProvider= ({children})=>{
-    const [theme, setTheme]= useState(()=>{
+export const ThemeProvider = ({children}) => {
+    const [theme, setTheme] = useState(() => {
         const savedTheme = localStorage.getItem("Theme");
-        return savedTheme || "dark";
+        return savedTheme || "pink"; // Default to pink/white theme
     });
 
-    useEffect(()=>{
+    useEffect(() => {
         localStorage.setItem("Theme", theme);
         document.documentElement.setAttribute("data-theme", theme);
     }, [theme]);
 
-    return(
+    return (
         <themeContext.Provider value={{theme, setTheme}}>
             {children}
         </themeContext.Provider>
     );
 }
 
-export const useTheme= ()=> useContext(themeContext);
+export const useTheme = () => useContext(themeContext);

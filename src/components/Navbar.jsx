@@ -1,131 +1,271 @@
-import { Moon, Sun, LogIn, LogOut, User, ShoppingCart, HeartHandshake, HeartIcon } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
-import { useLocation, NavLink } from "react-router-dom";
-import {useEffect} from "react";
+import { useLocation, NavLink, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback } from "react";
 import "./Navbar.css";
 import { isUserLogged, logout } from "../services/authService";
 import { getUserRole, isClient, isStoreOwner } from "../services/users";
 
+// React Icons imports
+import { 
+  FaBars, 
+  FaTimes, 
+  FaUser, 
+  FaShoppingCart, 
+  FaHeart,
+  FaStore,
+  FaList,
+  FaHome,
+  FaUsers,
+  FaSignOutAlt,
+  FaSignInAlt,
+  FaUserPlus,
+  FaBoxOpen,
+} from 'react-icons/fa';
+
 function Navbar() {
   const { theme, setTheme } = useTheme();
   const location = useLocation();
-  let loggedIn= isUserLogged();
-  const userRole = getUserRole();
+  const navigate = useNavigate();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const drawerRef = useRef(null);
+  const hamburgerRef = useRef(null);
+  
+  useEffect(() => {
+    setLoggedIn(isUserLogged());
+    setUserRole(getUserRole());
+  }, [location]);
 
-  console.log("user role => ", userRole);
-  console.log("is user loggedIn => ", loggedIn);
+  const closeDrawer = useCallback(() => {
+    setIsDrawerOpen(false);
+  }, []);
 
-  // ============= تحديد الـ links حسب الـ role =============
+  const toggleDrawer = useCallback(() => {
+    setIsDrawerOpen(prev => !prev);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const isClickOnHamburger = hamburgerRef.current && hamburgerRef.current.contains(event.target);
+      const isClickInsideDrawer = drawerRef.current && drawerRef.current.contains(event.target);
+      
+      if (isDrawerOpen && !isClickInsideDrawer && !isClickOnHamburger) {
+        closeDrawer();
+      }
+    };
+
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && isDrawerOpen) {
+        closeDrawer();
+      }
+    };
+
+    if (isDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
+    } else {
+      document.body.style.overflow = 'unset';
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isDrawerOpen, closeDrawer]);
+
+  useEffect(() => {
+    closeDrawer();
+  }, [location, closeDrawer]);
+
   const getNavLinks = () => {
-    if (!loggedIn) return []; 
-
-    // Customer Links
+    if (!loggedIn) return [];
     if (isClient()) {
       return [
-        { name: "المتاجر", path: "/stores" },
-        { name: "طلباتي", path: "/orders" }
+        { name: "المتاجر", path: "/stores", icon: FaStore },
+        { name: "طلباتي", path: "/orders", icon: FaList }
       ];
     }
-
-    // Store Owner Links
     if (isStoreOwner()) {
       return [
-        { name: "الرئيسية", path: "/dashboard/store_owner/" },
-        { name: "الطلبات", path: "/dashboard/store_owner/orders" },
-        { name: "المنتجات", path: "/dashboard/store_owner/products" },
-        { name: "العملاء المتفاعلين", path: "/dashboard/store_owner/active_clients" }
+        { name: "الرئيسية", path: "/dashboard/store_owner/", icon: FaHome },
+        { name: "الطلبات", path: "/dashboard/store_owner/orders", icon: FaList },
+        { name: "المنتجات", path: "/dashboard/store_owner/products", icon: FaBoxOpen },
+        { name: "العملاء المتفاعلين", path: "/dashboard/store_owner/active_clients", icon: FaUsers }
       ];
     }
-
     return [];
   };
 
   const navLinks = getNavLinks();
+  const shouldShowCart = () => isClient() || !loggedIn;
+  const shouldShowWishlist = () => loggedIn && isClient();
+
+  const handleLogout = async () => {
+    await logout();
+    setLoggedIn(false);
+    closeDrawer();
+    navigate("/login");
+  };
 
   return (
-    <div className="navbar-container" dir="rtl">
-      <nav className="nav-bar">
-
-        {/* ===== Logo ===== */}
-        <a href="/" className="nav-logo">
-          <span className="logo-glam">Glam</span>
-          <span className="logo-qena">Qena</span>
-          <div className="logo-dot" />
-          <span className="logo-ar">قنا</span>
-        </a>
-
-        {/* ===== Navigation Links  ===== */}
-        <div className="nav-links">
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.path}
-              to={link.path}
-              className={({ isActive }) => 
-                isActive ? "nav-link active" : "nav-link"
-              }
-            >
-              {link.name}
-            </NavLink>
-          ))}
-        </div>
-
-        {/* ===== Actions ===== */}
-        <div className="nav-actions">
-
-          {/* زر دخول -   for guest */}
-          {!loggedIn && location.pathname !== "/login" && (
-            <NavLink to="/login" className="nav-btn-login">
-              <LogIn size={18} />
-              <span>دخول</span>
-            </NavLink>
-          )}
-
-          {/* زر إنشاء حساب - for guest */}
-          {!loggedIn && location.pathname !== "/register" && (
-            <NavLink to="/register" className="nav-btn-signup">
-              إنشاء حساب
-            </NavLink>
-          )}
-
-        
-          {(
-            <NavLink to="/cart" title="السلة" className="nav-icon">
-              <ShoppingCart size={20} />
-            </NavLink>
-          )}
-
-          {(
-            <NavLink to="/wishlist" title="قائمة الرغبات" className="nav-icon">
-              <HeartIcon size={20} />
-            </NavLink>
-          )}
-         
-          {loggedIn && (
-            <NavLink to="/profile" title="الملف الشخصي" className="nav-icon">
-              <User size={20} />
-            </NavLink>
-          )}
-
-          
-          {loggedIn && (
-            <button className="nav-icon" title="تسجيل الخروج" onClick={async () => await logout()}>
-              <LogOut size={20} />
-            </button>
-          )}
-
-          {/* تبديل المظهر  */}
-          <button
-            className="mode-toggler"
-            title="تبديل المظهر"
-            onClick={() => setTheme(p => p === "dark" ? "light" : "dark")}
+    <>
+      <div className="navbar-container" dir="rtl">
+        <nav className="nav-bar">
+          <button 
+            ref={hamburgerRef}
+            className="nav-hamburger" 
+            onClick={toggleDrawer} 
+            aria-label="القائمة"
           >
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            <FaBars className="nav-icon-color" size={24} />
+          </button>
+
+          <a href={isStoreOwner() ? "/dashboard/store_owner/" : "/"} className="nav-logo">
+            <span className="logo-glam">Glam</span>
+            <span className="logo-qena">Qena</span>
+            <div className="logo-dot" />
+            <span className="logo-ar">قنا</span>
+          </a>
+
+          <div className="nav-actions">
+            {/* Cart - Visible for clients and guests */}
+            {shouldShowCart() && (
+              <NavLink to="/cart" title="السلة" className="nav-icon">
+                <FaShoppingCart className="nav-icon-color" size={20} />
+              </NavLink>
+            )}
+
+            {/* Wishlist - only for clients */}
+            {shouldShowWishlist() && (
+              <NavLink to="/wishlist" title="قائمة الرغبات" className="nav-icon">
+                <FaHeart className="nav-icon-color" size={20} />
+              </NavLink>
+            )}
+
+            {/* Profile - only when logged in */}
+            {loggedIn && (
+              <NavLink to="/profile" title="الملف الشخصي" className="nav-icon">
+                <FaUser className="nav-icon-color" size={20} />
+              </NavLink>
+            )}
+          </div>
+        </nav>
+      </div>
+
+      {/* Side Drawer */}
+      <div 
+        className={`drawer-overlay ${isDrawerOpen ? 'active' : ''}`} 
+        onClick={closeDrawer}
+      />
+      <div 
+        className={`side-drawer ${isDrawerOpen ? 'open' : ''}`} 
+        ref={drawerRef}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="drawer-header">
+          <a href={isStoreOwner() ? "/dashboard/store_owner/" : "/"} className="drawer-logo" onClick={closeDrawer}>
+            <span className="logo-glam">Glam</span>
+            <span className="logo-qena">Qena</span>
+            <div className="logo-dot" />
+          </a>
+          <button className="drawer-close" onClick={toggleDrawer}>
+            <FaTimes className="nav-icon-color" size={24} />
           </button>
         </div>
-      </nav>
-    </div>
+
+        <div className="drawer-divider" />
+
+        <div className="drawer-links">
+          {!loggedIn && (
+            <>
+              <NavLink to="/login" className="drawer-link" onClick={closeDrawer}>
+                <FaSignInAlt className="drawer-icon" size={18} />
+                <span>تسجيل الدخول</span>
+              </NavLink>
+              <NavLink to="/register" className="drawer-link" onClick={closeDrawer}>
+                <FaUserPlus className="drawer-icon" size={18} />
+                <span>إنشاء حساب</span>
+              </NavLink>
+              <div className="drawer-divider" />
+            </>
+          )}
+
+          {navLinks.length > 0 && (
+            <>
+              {navLinks.map((link) => {
+                const IconComponent = link.icon;
+                return (
+                  <NavLink
+                    key={link.path}
+                    to={link.path}
+                    className={({ isActive }) => `drawer-link ${isActive ? 'active' : ''}`}
+                    onClick={closeDrawer}
+                  >
+                    <IconComponent className="drawer-icon" size={18} />
+                    <span>{link.name}</span>
+                  </NavLink>
+                );
+              })}
+              <div className="drawer-divider" />
+            </>
+          )}
+
+          {userRole !== "client" && 
+            <NavLink to="/stores" className="drawer-link" onClick={closeDrawer}>
+              <FaStore className="drawer-icon" size={18} />
+              <span>المتاجر</span>
+            </NavLink>
+          }
+
+          {/* Cart Tab in Drawer */}
+          {shouldShowCart() && (
+            <NavLink to="/cart" className="drawer-link" onClick={closeDrawer}>
+              <FaShoppingCart className="drawer-icon" size={18} />
+              <span>السلة</span>
+            </NavLink>
+          )}
+
+          {shouldShowWishlist() && (
+            <NavLink to="/wishlist" className="drawer-link" onClick={closeDrawer}>
+              <FaHeart className="drawer-icon" size={18} />
+              <span>قائمة الرغبات</span>
+            </NavLink>
+          )}
+
+          <div className="drawer-divider" />
+
+          {loggedIn && (
+            <>
+              <NavLink to="/profile" className="drawer-link" onClick={closeDrawer}>
+                <FaUser className="drawer-icon" size={18} />
+                <span>الملف الشخصي</span>
+              </NavLink>
+              <button className="drawer-link drawer-logout" onClick={handleLogout}>
+                <FaSignOutAlt className="drawer-icon-logout" size={18} />
+                <span>تسجيل الخروج</span>
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Drawer Footer with Theme Toggle */}
+        <div className="drawer-footer">
+          <button
+            className="drawer-theme-toggle"
+            onClick={() => setTheme(p => p === "purple" ? "pink" : "purple")}
+          >
+            <span className="theme-half-circle" />
+            <span>{theme === "purple" ? "مظهر الوردي/الأبيض" : "مظهر الأسود/الأرجواني"}</span>
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
 export default Navbar;
-

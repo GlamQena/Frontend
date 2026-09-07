@@ -1,43 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './ResetPassword.css';
-import {useForm} from "react-hook-form";
-import {yupResolver} from "@hookform/resolvers/yup";
-import {emailField, resetPasswordSchema, sendOtp, verifyOtp, resetPassword} from "../../services/authService";
-import { EyeOff, Eye } from 'lucide-react';
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { emailField, resetPasswordSchema, sendOtp, verifyOtp, resetPassword } from "../../services/authService";
+import { EyeOff, Eye, KeyRound, ShieldCheck, Lock, ArrowRight } from 'lucide-react';
 
-const ResetPassword = (isDark) => {
+const ResetPassword = () => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(600);
   const [timerActive, setTimerActive] = useState(false);
-  const [submitMessage, setSubmitMessage]= useState({form: "", success: false, message: "", nextStep: false});
-  const navigate= useNavigate();
+  const [submitMessage, setSubmitMessage] = useState({ form: "", success: false, message: "", nextStep: false });
+  const navigate = useNavigate();
   const inputRefs = useRef([]);
 
-  const validateEmail= async(value)=>{
-    try{
+  const validateEmail = async (value) => {
+    try {
       await emailField.validate(value);
       setEmailError("");
-
-    }catch(error){
-
+    } catch (error) {
       setEmailError(error.message);
     }
-  }
+  };
 
-  const onEmailChange= (e)=>{
-    const value= e.target.value;
+  const onEmailChange = (e) => {
+    const value = e.target.value;
     setEmail(value);
     validateEmail(value);
-  }
+  };
 
-  const {register, handleSubmit, formState: { errors }} = useForm({
-    defaultValues:{
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
       "newPassword": "",
       "confirmPassword": "",
     },
@@ -59,46 +57,44 @@ const ResetPassword = (isDark) => {
 
   const sendVerification = async (e) => {
     e.preventDefault();
+    if (!email || emailError) {
+      setEmailError(emailError || "البريد الإلكتروني مطلوب");
+      return;
+    }
 
-    try{
-      const response= await fetch("http://127.0.0.1:8080/auth/password/send-otp", 
-        {method: "POST", headers:{"Content-Type": "application/json"}, 
-        body: JSON.stringify({"email": email})});
+    try {
+      const response = await sendOtp({ "email": email });
+      const data = await response.json();
 
-      const data= await response.json();
-      console.log("send-otp data-> ", data);
-
-      if(!response.ok)
+      if (!response.ok)
         return submitMessageSetter("send-otp", false, data.message);
 
       goToPage2();
-
-    }catch(error){
-        submitMessageSetter("send-otp", false, error.message);
+    } catch (error) {
+      submitMessageSetter("send-otp", false, error.message);
     }
   };
 
-  function submitMessageSetter(form, success, message, stepNext=false){
-    setSubmitMessage({form, success, message, stepNext});
+  function submitMessageSetter(form, success, message, stepNext = false) {
+    setSubmitMessage({ form, success, message, stepNext });
   }
 
-  useEffect(()=>{
-    if(submitMessage.message){
-      const timer= setTimeout(()=>{
-        setSubmitMessage({form: submitMessage.form, success: false, message: ""});
+  useEffect(() => {
+    if (submitMessage.message) {
+      const timer = setTimeout(() => {
+        setSubmitMessage({ form: submitMessage.form, success: false, message: "" });
 
-        if(submitMessage.form === "reset-password" && submitMessage.success)
+        if (submitMessage.form === "reset-password" && submitMessage.success)
           navigate("/login");
 
-        else if(submitMessage.stepNext && step<3)
-          setStep(prevStep => prevStep+1);
+        else if (submitMessage.stepNext && step < 3)
+          setStep(prevStep => prevStep + 1);
 
-      }, 4000);
+      }, 3500);
 
-      return ()=>{clearTimeout(timer);} //executed when the component will unmount
+      return () => { clearTimeout(timer); };
     }
-  }
-  , [submitMessage.message]);
+  }, [submitMessage.message]);
 
   const goToPage1 = () => {
     setStep(1);
@@ -109,21 +105,17 @@ const ResetPassword = (isDark) => {
   const goToPage2 = () => {
     setStep(2);
     setTimerActive(true);
-    setTimeLeft(60);
+    setTimeLeft(600);
   };
 
-  const timerFormatter= ()=> {
-    if(timeLeft===60)
-      return "01:00"
-    else if(timeLeft<10)
-      return `00:0${timeLeft}`;
-    else
-      return `00:${timeLeft}`;
-  }
+  const timerFormatter = () => {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  };
 
   const handleCodeChange = (index, value) => {
     if (value.length > 1) return;
-    
     if (value && !/^\d$/.test(value)) return;
     
     const newCode = [...code];
@@ -137,152 +129,160 @@ const ResetPassword = (isDark) => {
 
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1].focus(); //the Backspace affect the previous digit input which in-turn will trigger te onChange event
+      inputRefs.current[index - 1].focus();
     }
   };
 
-  // إعادة إرسال الرمز
   const resendCode = async (e) => {
     e.preventDefault();
     if (timeLeft > 0) {
-      // alert('الرجاء الانتظار حتى انتهاء الوقت');
       return submitMessageSetter("verify-otp", false, 'الرجاء الانتظار حتى انتهاء الوقت');
     }
     
-    try{
-      const response= await sendOtp({"email": email});
+    try {
+      const response = await sendOtp({ "email": email });
+      const data = await response.json();
 
-      const data= await response.json();
-      console.log("verify otp data-> ", data);
-
-      if(!response.ok)
+      if (!response.ok)
         return submitMessageSetter("verify-otp", false, data.message);
       
-      // alert('تم إرسال رمز جديد');
       setTimerActive(true);
-      setTimeLeft(60);
+      setTimeLeft(600);
       setCode(['', '', '', '', '', '']);
-      inputRefs.current[0].focus();
+      if (inputRefs.current[0]) inputRefs.current[0].focus();
 
       submitMessageSetter("verify-otp", true, data.message);
-    }catch(error){
-        submitMessageSetter("verify-otp", false, error.message);
+    } catch (error) {
+      submitMessageSetter("verify-otp", false, error.message);
     }
   };
 
-  // التحقق من الرمز
   const verifyCode = async (e) => {
     e.preventDefault();
     if (code.some(digit => digit === '')) {
-      // alert('الرجاء إدخال رمز التحقق كاملاً');
       return submitMessageSetter("verify-otp", false, 'الرجاء إدخال رمز التحقق كاملاً');
     }
 
-    try{
-      console.log("entered otp-> ", code.join(""));
+    try {
+      const response = await verifyOtp({ "email": email, "otp": code.join("") });
+      const data = await response.json();
 
-      const response= await verifyOtp({"email": email, "otp": code.join("")});
-
-      const data= await response.json();
-      console.log("verify otp data-> ", data);
-
-      if(!response.ok)
+      if (!response.ok)
         return submitMessageSetter("verify-otp", false, data.message);
 
       submitMessageSetter("verify-otp", true, data.message, true);
-    }catch(error){
-        submitMessageSetter("verify-otp", false, error.message);
+    } catch (error) {
+      submitMessageSetter("verify-otp", false, error.message);
     }
   };
 
-  // تغيير كلمة المرور
   const resetPasswordHandler = async (formData) => {
-    console.log("formData-> ", formData);
-    const {newPassword, confirmPassword} = formData;
+    const { newPassword, confirmPassword } = formData;
 
     if (newPassword !== confirmPassword) {
-      // alert('كلمتا المرور غير متطابقتين');
-      submitMessageSetter("reset-password", false,' كلمتا المرور غير متطابقتين', false);
+      submitMessageSetter("reset-password", false, 'كلمتا المرور غير متطابقتين', false);
       return;
     }
 
-    try{
-      const response= await resetPassword({"email": email, "newPassword": newPassword, "confirmPassword": confirmPassword});
+    try {
+      const bodyData= { "email": email, "newPassword": newPassword, "confirmPassword": confirmPassword };
+      console.log(`reset password request bodyData: ${bodyData}`);
 
-      const data= await response.json();
-      console.log("reset-password data-> ", data);
+      const response = await resetPassword(bodyData);
+      const data = await response.json();
 
-      if(!response.ok)
+      if (!response.ok)
         return submitMessageSetter("reset-password", false, data.message);
 
-      submitMessageSetter("reset-password", true, data.message); 
-      // alert('✅ تم تغيير كلمة المرور بنجاح');
-      
-    }catch(error){
-        submitMessageSetter("reset-password", false, error.message);
+      submitMessageSetter("reset-password", true, data.message);
+    } catch (error) {
+      submitMessageSetter("reset-password", false, error.message);
     }
   };
 
   return (
-    <div className={`container ${isDark? "dark-mode" : "light-mode"}`}>
-      <div className="header">
-        {step === 1 && <React.Fragment>
-        <img src="images/forget-password.png"/>
-        <h1>نسيت كلمة المرور</h1>
-        <p>أدخل بريدك الإلكتروني لإرسال رمز التحقق</p>
-        </React.Fragment>}
+    <div className="reset-page-wrapper">
+      <div className="reset-header">
+        {step === 1 && (
+          <>
+            <div className="reset-avatar-icon">
+              <KeyRound size={30} />
+            </div>
+            <h2>نسيت كلمة المرور</h2>
+            <p className="reset-hint">أدخل بريدك الإلكتروني لإرسال رمز التحقق</p>
+          </>
+        )}
 
-        {step === 2 && <React.Fragment>
-        <img src="images/verify-otp.png"/>
-        <h1>أدخل رمز التحقق</h1>
-        </React.Fragment>}
+        {step === 2 && (
+          <>
+            <div className="reset-avatar-icon">
+              <ShieldCheck size={30} />
+            </div>
+            <h2>أدخل رمز التحقق</h2>
+            <p className="reset-hint">تم إرسال رمز مكون من 6 أرقام إلى بريدك الإلكتروني</p>
+          </>
+        )}
 
-        {step === 3 && <React.Fragment>
-        <img src="images/reset-password.png"/>
-        <h1>تعيين كلمة مرور جديدة</h1>
-        <p>أدخل كلمة المرور الجديدة للدخول إلى حسابك</p>
-        </React.Fragment>}
+        {step === 3 && (
+          <>
+            <div className="reset-avatar-icon">
+              <Lock size={30} />
+            </div>
+            <h2>تعيين كلمة مرور جديدة</h2>
+            <p className="reset-hint">أدخل كلمة المرور الجديدة للدخول إلى حسابك</p>
+          </>
+        )}
       </div>
 
-      <div className="content">
-        {/*form 1 */}
+      <div className="reset-card">
+        {/* Step 1: Send OTP */}
         <form className={`step ${step === 1 ? 'active' : ''}`} onSubmit={sendVerification}>
-          {submitMessage.form==="send-otp"  && submitMessage.message && <p className={`${submitMessage.success? "success-message" : "error-message"}`}>{submitMessage.message}</p>}
+          {submitMessage.form === "send-otp" && submitMessage.message && (
+            <p className={`reset-alert ${submitMessage.success ? "alert-success" : "alert-error"}`}>
+              {submitMessage.message}
+            </p>
+          )}
           
-          <div className="form-group">
-            <label>البريد الإلكتروني</label>
+          <div className="reset-field-group">
+            <label className="reset-label">البريد الإلكتروني <span className="reset-required">*</span></label>
             <input 
               type="email" 
               value={email}
               onChange={onEmailChange}
-              className= {emailError? "error": ""}
+              className={`reset-input ${emailError ? "input-error" : ""}`}
               placeholder="example@domain.com"
             />
-            {emailError && <span className="field-error">{emailError}</span>}
+            {emailError && <span className="reset-field-error">{emailError}</span>}
           </div>
 
-          <button type="submit" className="btn-primary">
+          <button type="submit" className="reset-submit-btn">
             إرسال رمز التحقق ←
           </button>
 
-          <div className="links">
-            <p>تذكرت كلمة المرور؟</p>
-            <span className="separator">|</span>
-            <a href="/login">تسجيل دخول</a>
+          <div className="reset-links">
+            <span>تذكرت كلمة المرور؟</span>
+            <span className="reset-separator">|</span>
+            <Link to="/login">تسجيل الدخول</Link>
           </div>
         </form>
 
-        {/*  form 2 */}
+        {/* Step 2: Verify OTP */}
         <form className={`step ${step === 2 ? 'active' : ''}`} onSubmit={verifyCode}>
-          {submitMessage.form==="verify-otp" && submitMessage.message && <p className={`${submitMessage.success? "success-message" : "error-message"}`}>{submitMessage.message}</p>}
+          {submitMessage.form === "verify-otp" && submitMessage.message && (
+            <p className={`reset-alert ${submitMessage.success ? "alert-success" : "alert-error"}`}>
+              {submitMessage.message}
+            </p>
+          )}
 
-          <button type="button" className="back-btn" onClick={goToPage1}>
-            <span>→</span> رجوع
+          <button type="button" className="reset-back-btn" onClick={goToPage1}>
+            <ArrowRight size={18} /> رجوع
           </button>
 
           <div className="verification-info">
             <p>تم إرسال رمز التحقق إلى</p>
-            <div className="email-highlight">{email}</div>
+            <a href={`mailto:${email}`} className="email-highlight">
+              {email}
+            </a>
             <div className="timer">{timerFormatter()}</div>
             <div className="resend">
               <span>لم تستلم الرمز؟</span>
@@ -290,7 +290,7 @@ const ResetPassword = (isDark) => {
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="reset-field-group">
             <div className="verification-code" dir="ltr">
               {code.map((digit, index) => (
                 <input
@@ -307,70 +307,61 @@ const ResetPassword = (isDark) => {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary">
-            تأكيد الرمز 
+          <button type="submit" className="reset-submit-btn">
+            تأكيد الرمز ←
           </button>
         </form>
 
-        {/*   form  3 */}
+        {/* Step 3: New Password */}
         <form className={`step ${step === 3 ? 'active' : ''}`} onSubmit={handleSubmit(resetPasswordHandler)}>
-          {submitMessage.form==="reset-password"  && submitMessage.message && <p className={`${submitMessage.success? "success-message" : "error-message"}`}>{submitMessage.message}</p>}
+          {submitMessage.form === "reset-password" && submitMessage.message && (
+            <p className={`reset-alert ${submitMessage.success ? "alert-success" : "alert-error"}`}>
+              {submitMessage.message}
+            </p>
+          )}
 
-          {/* <button type="button" className="back-btn" onClick={goToPage2}>
-            <span>→</span> رجوع
-          </button> */}
-
-          <div className="form-group">
-            <label>كلمة المرور الجديدة *</label>
+          <div className="reset-field-group">
+            <label className="reset-label">كلمة المرور الجديدة <span className="reset-required">*</span></label>
             <div className="password-input-wrapper">
               <input 
-                type={showPassword? "text": "password"}
-                className= {errors.newPassword?.message? "error": ""}
+                type={showPassword ? "text" : "password"}
+                className={`reset-input ${errors.newPassword?.message ? "input-error" : ""}`}
                 placeholder="********"
                 {...register("newPassword")}
               />
               <button
                 type="button"
-                className="eye-icon"
+                className="reset-toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {errors.newPassword?.message && <span className="field-error">{errors.newPassword?.message}</span>}
+            {errors.newPassword?.message && <span className="reset-field-error">{errors.newPassword?.message}</span>}
           </div>
 
-          <div className="form-group">
-            <label>تأكيد كلمة المرور الجديدة *</label>
+          <div className="reset-field-group">
+            <label className="reset-label">تأكيد كلمة المرور الجديدة <span className="reset-required">*</span></label>
             <div className="password-input-wrapper">
               <input 
-                type={showConfirmPassword? "text": "password"}
-                className= {errors.confirmPassword?.message? "error": ""}
+                type={showConfirmPassword ? "text" : "password"}
+                className={`reset-input ${errors.confirmPassword?.message ? "input-error" : ""}`}
                 placeholder="********"
                 {...register("confirmPassword")}
               />
               <button
                 type="button"
-                className="eye-icon"
+                className="reset-toggle-password"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} />
-                ) : (
-                  <Eye size={20} />
-                )}
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-
-            {errors.confirmPassword?.message && <span className="field-error">{errors.confirmPassword?.message}</span>}
+            {errors.confirmPassword?.message && <span className="reset-field-error">{errors.confirmPassword?.message}</span>}
           </div>
 
-          <button type="submit" className="btn-primary">
-            تأكيد وتغيير كلمة المرور
+          <button type="submit" className="reset-submit-btn">
+            تأكيد وتغيير كلمة المرور ←
           </button>
         </form>
       </div>

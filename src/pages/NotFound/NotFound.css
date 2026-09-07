@@ -1,0 +1,527 @@
+
+.not-found-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-page);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  direction: rtl;
+}
+
+/* =============================================
+   Background Decorative Circles
+   ============================================= */
+.not-found-bg-circle {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: var(--primary-subtle);
+  top: -200px;
+  right: -200px;
+  opacity: 0.3;
+  animation: floatCircle 20s ease-in-out infinite;
+}
+
+.not-found-bg-circle-2 {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: var(--primary-subtle);
+  bottom: -100px;
+  left: -100px;
+  opacity: 0.2;
+  animation: floatCircle 25s ease-in-out infinite reverse;
+}
+
+.not-found-bg-circle-3 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: var(--gold-subtle);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.15;
+  animation: pulseCircle 8s ease-in-out infinite;
+}
+
+@keyframes floatCircle {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.95); }
+}
+
+@keyframes pulseCircle {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.15; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.25; }
+}
+
+/* =============================================
+   Floating Icons
+   ============================================= */
+.not-found-float-icon {
+  position: absolute;
+  font-size: 32px;
+  opacity: 0.15;
+  animation: floatIcon 15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.icon-1 {
+  top: 10%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.icon-2 {
+  top: 20%;
+  right: 15%;
+  animation-delay: 3s;
+  font-size: 40px;
+}
+
+.icon-3 {
+  bottom: 25%;
+  left: 15%;
+  animation-delay: 6s;
+  font-size: 28px;
+}
+
+.icon-4 {
+  bottom: 15%;
+  right: 10%;
+  animation-delay: 9s;
+  font-size: 36px;
+}
+
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+/* =============================================
+   Main Container
+   ============================================= */
+.not-found-container {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  width: 100%;
+  text-align: center;
+  padding: 40px;
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
+  border: 1px solid var(--border-prominent);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.not-found-container:hover {
+  border-color: var(--border-focus);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+/* =============================================
+   404 Number
+   ============================================= */
+.not-found-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 120px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 10px;
+  font-family: 'Manrope', 'Tajawal', sans-serif;
+  letter-spacing: -4px;
+  user-select: none;
+}
+
+.not-found-digit {
+  background: var(--bg-button);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: pulseDigit 3s ease-in-out infinite;
+}
+
+.not-found-digit-zero {
+  color: var(--text-primary);
+  -webkit-text-fill-color: var(--text-primary);
+  animation: pulseZero 3s ease-in-out infinite;
+  font-size: 140px;
+}
+
+@keyframes pulseDigit {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+}
+
+@keyframes pulseZero {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+}
+
+/* =============================================
+   Divider
+   ============================================= */
+.not-found-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+
+.not-found-divider-line {
+  flex: 1;
+  max-width: 80px;
+  height: 2px;
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+
+.not-found-divider-icon {
+  color: var(--primary-main);
+  font-size: 18px;
+  animation: spinStar 8s linear infinite;
+}
+
+@keyframes spinStar {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* =============================================
+   Title & Description
+   ============================================= */
+.not-found-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+  font-family: 'Tajawal', sans-serif;
+  line-height: 1.3;
+}
+
+.not-found-description {
+  font-size: 16px;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 32px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.not-found-description br {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* =============================================
+   Action Buttons
+   ============================================= */
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.not-found-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: var(--button-radius);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Tajawal', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 2px solid transparent;
+  text-decoration: none;
+  min-height: 48px;
+}
+
+.not-found-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.not-found-btn:hover svg {
+  transform: scale(1.1);
+}
+
+/* Primary Button */
+.not-found-btn.primary {
+  background: var(--bg-button);
+  color: #ffffff;
+  box-shadow: var(--shadow-button);
+}
+
+.not-found-btn.primary:hover {
+  background: var(--bg-button-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 105, 180, 0.35);
+}
+
+.not-found-btn.primary:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Secondary Button */
+.not-found-btn.secondary {
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.not-found-btn.secondary:hover {
+  background: var(--bg-input-focus);
+  border-color: var(--border-prominent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.not-found-btn.secondary:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Outline Button */
+.not-found-btn.outline {
+  background: transparent;
+  color: var(--primary-main);
+  border-color: var(--primary-main);
+}
+
+.not-found-btn.outline:hover {
+  background: var(--primary-subtle);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(255, 105, 180, 0.15);
+}
+
+.not-found-btn.outline:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* =============================================
+   Help Text
+   ============================================= */
+.not-found-help {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+  font-family: 'Tajawal', sans-serif;
+}
+
+.not-found-help-link {
+  color: var(--primary-main);
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.not-found-help-link:hover {
+  color: var(--pink-hover);
+  text-decoration: none;
+}
+
+/* =============================================
+   Responsive Design
+   ============================================= */
+@media (max-width: 768px) {
+  .not-found-container {
+    padding: 30px 24px;
+    border-radius: 24px;
+  }
+
+  .not-found-number {
+    font-size: 80px;
+  }
+
+  .not-found-digit-zero {
+    font-size: 100px;
+  }
+
+  .not-found-title {
+    font-size: 26px;
+  }
+
+  .not-found-description {
+    font-size: 15px;
+    padding: 0 10px;
+  }
+
+  .not-found-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .not-found-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+    min-height: 44px;
+  }
+
+  .not-found-bg-circle {
+    width: 400px;
+    height: 400px;
+    top: -150px;
+    right: -150px;
+  }
+
+  .not-found-bg-circle-2 {
+    width: 300px;
+    height: 300px;
+    bottom: -80px;
+    left: -80px;
+  }
+
+  .not-found-float-icon {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .not-found-page {
+    padding: 12px;
+  }
+
+  .not-found-container {
+    padding: 24px 16px;
+    border-radius: 20px;
+  }
+
+  .not-found-number {
+    font-size: 60px;
+    gap: 4px;
+  }
+
+  .not-found-digit-zero {
+    font-size: 76px;
+  }
+
+  .not-found-title {
+    font-size: 22px;
+  }
+
+  .not-found-description {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .not-found-btn {
+    font-size: 14px;
+    padding: 10px 16px;
+    min-height: 40px;
+  }
+
+  .not-found-divider-icon {
+    font-size: 14px;
+  }
+
+  .not-found-divider-line {
+    max-width: 50px;
+  }
+
+  .not-found-help {
+    font-size: 13px;
+  }
+
+  .not-found-bg-circle {
+    width: 250px;
+    height: 250px;
+    top: -100px;
+    right: -100px;
+  }
+
+  .not-found-bg-circle-2 {
+    width: 200px;
+    height: 200px;
+    bottom: -60px;
+    left: -60px;
+  }
+
+  .not-found-bg-circle-3 {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* =============================================
+   Dark Theme Specific Adjustments
+   ============================================= */
+:root[data-theme="purple"] .not-found-container {
+  background: var(--bg-card);
+  border-color: var(--border-prominent);
+}
+
+:root[data-theme="purple"] .not-found-btn.primary {
+  background: var(--bg-button);
+}
+
+:root[data-theme="purple"] .not-found-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme="purple"] .not-found-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* =============================================
+   Pink Theme Specific Adjustments
+   ============================================= */
+:root[data-theme="pink"] .not-found-container {
+  background: var(--bg-card);
+  border-color: var(--border-prominent);
+}
+
+:root[data-theme="pink"] .not-found-btn.primary {
+  background: var(--bg-button);
+}
+
+:root[data-theme="pink"] .not-found-btn.outline {
+  color: var(--primary-main);
+  border-color: var(--primary-main);
+}
+
+/* =============================================
+   Reduced Motion Preferences
+   ============================================= */
+@media (prefers-reduced-motion: reduce) {
+  .not-found-bg-circle,
+  .not-found-bg-circle-2,
+  .not-found-bg-circle-3,
+  .not-found-float-icon,
+  .not-found-digit,
+  .not-found-digit-zero,
+  .not-found-divider-icon,
+  .not-found-btn {
+    animation: none;
+    transition: none;
+  }
+
+  .not-found-btn:hover {
+    transform: none !important;
+  }
+
+  .not-found-btn:hover svg {
+    transform: none !important;
+  }
+}

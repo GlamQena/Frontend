@@ -11,25 +11,28 @@
   text-align: center;
   font-size: 1rem;
   padding: 2rem;
-  color: var(--نص-خافت);
-  background: var(--خلفية-البطاقة);
-  border-radius: 24px;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
   margin: 2rem auto;
   max-width: 400px;
 }
 
-/* Header Card */
+/* ============================================
+   HEADER CARD
+   ============================================ */
 .profile-header-card {
-  background: var(--خلفية-البطاقة);
-  border-radius: 28px;
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
   padding: 24px 32px;
   margin-bottom: 24px;
-  border: 1px solid var(--حد-واضح);
+  border: 1px solid var(--border-prominent);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
+  box-shadow: var(--shadow-card);
 }
 
 .user-main-info {
@@ -38,96 +41,362 @@
   gap: 24px;
 }
 
-/* Avatar Styles */
+/* ============================================
+   AVATAR STYLES - FIXED HEIGHT
+   ============================================ */
+/* Container sizing & layout */
 .profile-avatar {
-  position: relative;
   width: 80px;
   height: 80px;
   border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
+  transition: all 0.2s ease;
 }
 
-.profile-avatar img {
+.profile-avatar-icon {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  background: var(--خلفية-البطاقة);
+  display: block;
 }
 
-/* Avatar upload overlay */
+/* Base / Dark Mode (Purple Tinted Background + Soft Pink Icon) */
+.profile-avatar-icon .avatar-bg {
+  /* Uses primary purple variable with low opacity for background tint */
+  fill: var(--primary-purple-glow, rgba(147, 51, 234, 0.15));
+  transition: fill 0.2s ease;
+}
+
+.profile-avatar-icon .avatar-fg {
+  /* Uses brand pink variable for icon shapes and outlines */
+  fill: var(--accent-pink, #ec4899);
+  stroke: var(--accent-pink, #ec4899);
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+/* Hover effect */
+.profile-avatar:hover .avatar-bg {
+  fill: var(--primary-purple-glow-hover, rgba(147, 51, 234, 0.25));
+}
+
+/* Light Mode Theme Overrides */
+[data-theme='light'] .profile-avatar,
+.light .profile-avatar {
+  border-color: var(--border-color-light, rgba(147, 51, 234, 0.2));
+}
+
+[data-theme='light'] .profile-avatar-icon .avatar-bg,
+.light .profile-avatar-icon .avatar-bg {
+  fill: var(--primary-purple-light-bg, #f3e8ff); /* Soft purple tint */
+}
+
+[data-theme='light'] .profile-avatar-icon .avatar-fg,
+.light .profile-avatar-icon .avatar-fg {
+  fill: var(--accent-pink-dark, #db2777); /* Deeper pink for contrast on light background */
+  stroke: var(--accent-pink-dark, #db2777);
+}
+
+/* Avatar upload wrapper */
 .avatar-upload-wrapper {
   position: relative;
-  width: 80px;
-  height: 80px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
+  width: 80px;
 }
 
 .avatar-upload-wrapper .profile-avatar {
-  width: 100%;
-  height: 100%;
+  width: 80px;
+  height: 80px;
 }
 
+/* Avatar upload label */
 .avatar-upload-label {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 10px;
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
-  padding: 6px;
-  text-align: center;
+  border-radius: var(--button-radius);
   cursor: pointer;
-  border-radius: 0 0 40px 40px;
   transition: all 0.3s ease;
   z-index: 2;
+  height: 22px;
+  min-height: 22px;
+  max-height: 22px;
+  white-space: nowrap;
 }
 
 .avatar-upload-label:hover {
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.05);
 }
 
 .avatar-upload-label span {
-  font-size: 10px;
-  color: white;
-  font-family: 'Tajawal', sans-serif;
-  display: block;
+  font-size: 9px;
+  color: #ffffff;
+  font-family: inherit;
+  line-height: 1;
+}
+
+.avatar-upload-label svg {
+  width: 12px;
+  height: 12px;
+  color: #ffffff;
+  flex-shrink: 0;
 }
 
 .avatar-input-hidden {
   display: none;
 }
 
+/* ============================================
+   AVATAR DELETE BUTTON
+   ============================================ */
+.avatar-delete-btn {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--error-main);
+  color: #ffffff;
+  border: 2px solid var(--bg-card);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+  z-index: 5;
+  backdrop-filter: blur(4px);
+}
+
+.avatar-delete-btn:hover:not(:disabled) {
+  background: var(--error-main);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px var(--error-subtle);
+}
+
+.avatar-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.avatar-delete-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+}
+
+/* ============================================
+   STORE LOGO SECTION
+   ============================================ */
+.store-logo-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--bg-input);
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+}
+
+.store-logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.store-logo-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+}
+
+.store-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--border-prominent);
+  background: var(--bg-input);
+  display: block;
+}
+
+.store-logo-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px dashed var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: var(--bg-input);
+  gap: 4px;
+}
+
+.store-logo-placeholder svg {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.store-logo-placeholder span {
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text-muted);
+}
+
+.store-logo-delete-btn {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  padding: 0;
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.store-logo-delete-btn:hover:not(:disabled) {
+  background: var(--error-main);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px var(--error-subtle);
+  border-color: var(--error-main);
+}
+
+.store-logo-delete-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.store-logo-delete-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+}
+
+.store-logo-upload-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 16px;
+  background: var(--bg-button);
+  color: #ffffff;
+  border-radius: var(--button-radius);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  height: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  white-space: nowrap;
+}
+
+.store-logo-upload-label:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-button);
+}
+
+.store-logo-upload-label svg {
+  width: 14px;
+  height: 14px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.store-logo-input-hidden {
+  display: none;
+}
+
+/* ============================================
+   SPINNER FOR BUTTONS
+   ============================================ */
+.spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   USER TEXT
+   ============================================ */
 .user-text {
   flex: 1;
+  min-width: 200px;
 }
 
 .user-text h2 {
   font-size: 22px;
   font-weight: 700;
-  color: var(--نص-رئيسي);
+  color: var(--text-primary);
   margin: 0 0 8px 0;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
 }
 
+.last-seen {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 8px 0 0 0;
+  font-family: inherit;
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
 .status-badges {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   margin-top: 4px;
 }
 
-/* Badge Styles */
 .badge-green {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
-  color: var(--أخضر-نجاح);
+  background: var(--success-subtle);
+  color: var(--success-main);
   padding: 5px 14px;
-  border-radius: 999px;
-  font-size: 11px;
+  border-radius: var(--button-radius);
+  font-size: 12px;
   font-weight: 600;
-  font-family: 'Tajawal', sans-serif;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  font-family: inherit;
+  border: 1px solid var(--success-main);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -141,14 +410,14 @@
 }
 
 .badge-red {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.08));
-  color: var(--أحمر-خطأ);
+  background: var(--error-subtle);
+  color: var(--error-main);
   padding: 5px 14px;
-  border-radius: 999px;
-  font-size: 11px;
+  border-radius: var(--button-radius);
+  font-size: 12px;
   font-weight: 600;
-  font-family: 'Tajawal', sans-serif;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-family: inherit;
+  border: 1px solid var(--error-main);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -161,26 +430,52 @@
   font-weight: bold;
 }
 
-.last-seen {
+.badge-red.clickable {
+  cursor: pointer;
+  background: rgba(239, 68, 68, 0.1); /* Low-opacity soft red tint */
+  color: #ef4444; /* Crisp red text */
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 4px 10px;
+  border-radius: var(--button-radius);
   font-size: 12px;
-  color: var(--نص-خافت);
-  margin: 8px 0 0 0;
-  font-family: 'Tajawal', sans-serif;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
 }
 
-/* Quick Stats */
+.badge-red.clickable::before {
+  content: "✗";
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.badge-red.clickable:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.badge-red.clickable:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   QUICK STATS
+   ============================================ */
 .quick-stats {
   display: flex;
   gap: 32px;
-  background: var(--خلفية-2);
+  background: var(--bg-input);
   padding: 12px 28px;
   border-radius: 20px;
-  border: 1px solid var(--حد-خافت);
+  border: 1px solid var(--border-subtle);
   transition: all 0.3s ease;
 }
 
 .quick-stats:hover {
-  border-color: var(--بنفسجي-خافت);
+  border-color: var(--border-prominent);
   transform: translateY(-2px);
 }
 
@@ -191,73 +486,91 @@
 .quick-stats .stat span {
   display: block;
   font-size: 12px;
-  color: var(--نص-خافت);
+  color: var(--text-muted);
   margin-bottom: 6px;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
 }
 
 .quick-stats .stat strong {
   font-size: 22px;
   font-weight: 700;
-  color: var(--بنفسجي);
-  font-family: 'Epilogue', sans-serif;
+  color: var(--primary-main);
+  font-family: inherit;
 }
 
-/* Success/Error Messages */
+/* ============================================
+   SUCCESS/ERROR MESSAGES
+   ============================================ */
 .success-message,
 .error-message {
   padding: 12px 20px;
-  border-radius: 12px;
+  border-radius: var(--input-radius);
   font-size: 14px;
   text-align: center;
   margin: 0 0 24px 0;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
 }
 
 .success-message {
-  background: var(--أخضر-خافت);
-  color: var(--أخضر-نجاح);
-  border: 1px solid var(--أخضر-نجاح);
+  background: var(--success-subtle);
+  color: var(--success-main);
+  border: 1px solid var(--success-main);
 }
 
 .error-message {
-  background: var(--أحمر-خافت);
-  color: var(--أحمر-خطأ);
-  border: 1px solid var(--أحمر-خطأ);
+  background: var(--error-subtle);
+  color: var(--error-main);
+  border: 1px solid var(--error-main);
 }
 
-/* Grid Layout */
+/* ============================================
+   GRID LAYOUT
+   ============================================ */
 .profile-content-grid {
   display: grid;
   grid-template-columns: 1fr 340px;
   gap: 24px;
 }
 
-/* Form Cards */
+/* ============================================
+   FORM CARDS
+   ============================================ */
 .form-card {
-  background: var(--خلفية-البطاقة);
-  border-radius: 28px;
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
   padding: 28px;
   margin-bottom: 24px;
-  border: 1px solid var(--حد-واضح);
+  border: 1px solid var(--border-prominent);
   transition: all 0.3s ease;
+  box-shadow: var(--shadow-card);
 }
 
 .form-card:hover {
-  border-color: var(--بنفسجي-خافت);
+  border-color: var(--border-focus);
 }
 
 .form-card h3 {
   font-size: 18px;
   font-weight: 700;
-  color: var(--نص-رئيسي);
+  color: var(--text-primary);
   margin: 0 0 24px 0;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
   padding-right: 14px;
-  border-right: 3px solid var(--بنفسجي);
+  border-right: 3px solid var(--primary-main);
   text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+.form-card h3 svg {
+  flex-shrink: 0;
+  color: var(--primary-main);
+}
+
+/* ============================================
+   INPUTS GRID
+   ============================================ */
 .inputs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -268,92 +581,129 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 10px;
 }
 
 .input-field label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--نص-خافت);
-  font-family: 'Tajawal', sans-serif;
+  color: var(--text-muted);
+  font-family: inherit;
+  text-align: right;
+}
+
+.input-field label svg {
+  flex-shrink: 0;
+  color: var(--primary-main);
 }
 
 .input-field input,
-input:not([type="checkbox"]):not([type="radio"]),
-textarea,
-select {
-  padding: 12px 16px;
-  border: 1.5px solid var(--حد-خافت);
-  border-radius: 14px;
+.input-field textarea,
+.input-field select {
+  height: var(--input-height);
+  padding: var(--input-padding);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--input-radius);
   font-size: 14px;
-  background: var(--خلفية-2);
-  color: var(--نص-رئيسي);
-  font-family: 'Tajawal', sans-serif;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: inherit;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-field input::placeholder {
+  color: var(--text-placeholder);
 }
 
 .input-field input:focus,
-input:not([type="checkbox"]):focus,
-textarea:focus,
-select:focus {
+.input-field textarea:focus,
+.input-field select:focus {
   outline: none;
-  border-color: var(--بنفسجي);
-  box-shadow: 0 0 0 3px var(--بنفسجي-خافت);
+  background: var(--bg-input-focus);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
 }
 
-input[readonly] {
-  background: var(--خلفية-3);
+.input-field input[readonly] {
+  background: var(--bg-page);
   cursor: default;
   opacity: 0.7;
 }
 
-/* Gender Toggle */
+/* ============================================
+   GENDER TOGGLE
+   ============================================ */
 .gender-toggle {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   margin-top: 20px;
-  padding-top: 12px;
   flex-wrap: wrap;
 }
 
 .gender-toggle p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--نص-خافت);
+  color: var(--text-muted);
   margin: 0;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
 }
 
 .gender-toggle button {
-  padding: 8px 28px;
-  border: 1.5px solid var(--حد-خافت);
-  border-radius: 999px;
-  background: var(--خلفية-2);
-  color: var(--نص-ثانوي);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 24px;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--button-radius);
+  background: var(--bg-input);
+  color: var(--text-secondary);
   font-size: 14px;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+.gender-toggle button svg {
+  flex-shrink: 0;
+}
+
+.gender-toggle button:hover:not(.active):not(:disabled) {
+  border-color: var(--primary-main);
+  color: var(--text-primary);
+  background: var(--pink-subtle);
+}
+
 .gender-toggle button.active {
-  background: linear-gradient(135deg, #CC97FF, #9C48EA);
-  color: white;
+  background: var(--bg-button);
+  color: #ffffff;
   border: none;
 }
 
-.gender-toggle button:not(.active):hover {
-  border-color: var(--بنفسجي);
-  color: var(--نص-رئيسي);
-  background: var(--بنفسجي-خافت);
+.gender-toggle button.active svg {
+  color: #ffffff;
 }
 
 .gender-toggle button:disabled {
   cursor: default;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
-/* Address Fields */
+/* ============================================
+   ADDRESS FIELDS
+   ============================================ */
+.address-heading {
+  margin-top: 30px !important;
+}
+
 .address-fields h3 {
   margin: 8px 0 20px 0;
   font-size: 16px;
@@ -365,7 +715,9 @@ input[readonly] {
   gap: 16px;
 }
 
-/* Skin Care Section */
+/* ============================================
+   SKIN CARE SECTION
+   ============================================ */
 .skin-types,
 .skin-interests {
   margin-bottom: 24px;
@@ -375,19 +727,20 @@ input[readonly] {
 .skin-interests p {
   font-size: 14px;
   font-weight: 600;
-  color: var(--نص-رئيسي);
+  color: var(--text-primary);
   margin: 0 0 14px 0;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
+  text-align: right;
 }
 
 .chip {
   padding: 7px 18px;
-  border: 1.5px solid var(--حد-خافت);
-  border-radius: 999px;
-  background: var(--خلفية-2);
-  color: var(--نص-ثانوي);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--button-radius);
+  background: var(--bg-input);
+  color: var(--text-secondary);
   font-size: 13px;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
   margin: 0 6px 10px 0;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -395,14 +748,14 @@ input[readonly] {
 }
 
 .chip.active {
-  background: linear-gradient(135deg, #CC97FF, #9C48EA);
-  color: white;
+  background: var(--bg-button);
+  color: #ffffff;
   border: none;
 }
 
 .chip:not(.active):hover {
-  border-color: var(--بنفسجي);
-  color: var(--نص-رئيسي);
+  border-color: var(--primary-main);
+  color: var(--text-primary);
   transform: translateY(-2px);
 }
 
@@ -412,7 +765,9 @@ input[readonly] {
   transform: none;
 }
 
-/* Store Owner Section */
+/* ============================================
+   STORE OWNER SECTION
+   ============================================ */
 .store_address {
   margin-top: 16px;
 }
@@ -420,9 +775,10 @@ input[readonly] {
 .store_address p {
   font-size: 14px;
   font-weight: 600;
-  color: var(--نص-رئيسي);
+  color: var(--text-primary);
   margin: 0 0 14px 0;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
+  text-align: right;
 }
 
 textarea {
@@ -430,28 +786,32 @@ textarea {
   min-height: 90px;
   resize: vertical;
   margin-top: 16px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  border: 1.5px solid var(--حد-خافت);
-  background: var(--خلفية-2);
-  color: var(--نص-رئيسي);
-  font-family: 'Tajawal', sans-serif;
+  padding: var(--input-padding);
+  border-radius: var(--input-radius);
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
 textarea:focus {
   outline: none;
-  border-color: var(--بنفسجي);
-  box-shadow: 0 0 0 3px var(--بنفسجي-خافت);
+  background: var(--bg-input-focus);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
 }
 
 hr {
   margin: 24px 0;
   border: none;
   height: 1px;
-  background: var(--حد-خافت);
+  background: var(--border-subtle);
 }
 
-/* Sidebar Styles */
+/* ============================================
+   SIDEBAR STYLES
+   ============================================ */
 .sidebar-form-content {
   display: flex;
   flex-direction: column;
@@ -463,7 +823,9 @@ hr {
   transition: all 0.3s ease;
 }
 
-/* Action Buttons in Sidebar */
+/* ============================================
+   ACTION BUTTONS IN SIDEBAR
+   ============================================ */
 .sidebar-actions {
   display: flex;
   flex-direction: column;
@@ -474,11 +836,12 @@ hr {
 .sidebar-actions .btn-secondary,
 .sidebar-actions .btn-danger {
   width: 100%;
-  padding: 12px 24px;
-  border-radius: 999px;
+  height: var(--button-height);
+  padding: 0 24px;
+  border-radius: var(--button-radius);
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Tajawal', sans-serif;
+  font-family: inherit;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
@@ -489,41 +852,44 @@ hr {
 }
 
 .sidebar-actions .btn-primary {
-  background: linear-gradient(135deg, #CC97FF, #9C48EA);
+  background: var(--bg-button);
   border: none;
-  color: white;
-  box-shadow: 0 2px 8px rgba(156, 72, 234, 0.2);
+  color: #ffffff;
+  box-shadow: var(--shadow-button);
 }
 
 .sidebar-actions .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(156, 72, 234, 0.3);
+  background: var(--bg-button-hover);
+  opacity: 0.95;
 }
 
 .sidebar-actions .btn-secondary {
   background: transparent;
-  border: 1.5px solid var(--حد-واضح);
-  color: var(--نص-ثانوي);
+  border: 1.5px solid var(--border-prominent);
+  color: var(--text-secondary);
 }
 
 .sidebar-actions .btn-secondary:hover {
-  border-color: var(--بنفسجي);
-  color: var(--نص-رئيسي);
-  background: var(--بنفسجي-خافت);
+  border-color: var(--primary-main);
+  color: var(--text-primary);
+  background: var(--pink-subtle);
 }
 
 .sidebar-actions .btn-danger {
   background: transparent;
-  border: 1.5px solid var(--أحمر-خطأ);
-  color: var(--أحمر-خطأ);
+  border: 1.5px solid var(--error-main);
+  color: var(--error-main);
 }
 
 .sidebar-actions .btn-danger:hover {
-  background: var(--أحمر-خافت);
+  background: var(--error-subtle);
   transform: translateY(-2px);
 }
 
-/* Checkbox Items */
+/* ============================================
+   CHECKBOX ITEMS
+   ============================================ */
 .checkbox-item {
   display: flex;
   align-items: center;
@@ -531,30 +897,31 @@ hr {
   margin-bottom: 18px;
   cursor: pointer;
   padding: 12px 16px;
-  background: var(--خلفية-2);
-  border-radius: 16px;
+  background: var(--bg-input);
+  border-radius: var(--input-radius);
   transition: all 0.2s ease;
-  border: 1px solid var(--حد-خافت);
+  border: 1px solid var(--border-subtle);
 }
 
 .checkbox-item:hover {
-  background: var(--خلفية-3);
-  border-color: var(--بنفسجي);
-  transform: translateX(5px);
+  background: var(--bg-input-focus);
+  border-color: var(--primary-main);
+  transform: translateX(-5px);
 }
 
 .checkbox-item input {
   width: 18px;
   height: 18px;
-  accent-color: var(--بنفسجي);
+  accent-color: var(--primary-main);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .checkbox-item span {
   font-size: 14px;
   font-weight: 500;
-  color: var(--نص-ثانوي);
-  font-family: 'Tajawal', sans-serif;
+  color: var(--text-secondary);
+  font-family: inherit;
 }
 
 .checkbox-item:has(input:disabled) {
@@ -566,18 +933,29 @@ hr {
   transform: none;
 }
 
-/* Password Section */
+/* ============================================
+   PASSWORD SECTION
+   ============================================ */
 .password-section {
   margin-top: 0;
-  background: var(--خلفية-البطاقة);
-  border-radius: 28px;
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
   padding: 28px;
-  border: 1px solid var(--حد-واضح);
+  border: 1px solid var(--border-prominent);
   transition: all 0.3s ease;
+  box-shadow: var(--shadow-card);
 }
 
 .password-section:hover {
-  border-color: var(--بنفسجي-خافت);
+  border-color: var(--border-focus);
+}
+
+.password-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-family: inherit;
 }
 
 .password-toggle {
@@ -586,18 +964,24 @@ hr {
   align-items: center;
   padding: 14px 0;
   cursor: pointer;
-  color: var(--بنفسجي);
-  font-family: 'Tajawal', sans-serif;
+  color: var(--primary-main);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 500;
-  border-bottom: 1px solid var(--حد-خافت);
+  border-bottom: 1px solid var(--border-subtle);
   transition: all 0.2s ease;
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  width: 100%;
+  text-align: right;
 }
 
 .password-toggle:hover {
-  color: var(--وردي);
+  color: var(--pink-hover);
   padding-right: 8px;
-  border-bottom-color: var(--بنفسجي);
+  border-bottom-color: var(--primary-main);
 }
 
 .password-toggle span {
@@ -616,77 +1000,314 @@ hr {
   font-size: 12px;
 }
 
-.password-change-form {
-  margin-top: 20px;
-  animation: slideDown 0.3s ease;
-}
-
-.password-change-form input {
-  width: 100%;
-  padding: 12px 16px;
-  margin-bottom: 14px;
-  border: 1.5px solid var(--حد-خافت);
-  border-radius: 14px;
-  background: var(--خلفية-2);
-  color: var(--نص-رئيسي);
-  font-family: 'Tajawal', sans-serif;
-  font-size: 13px;
-  transition: all 0.2s ease;
-}
-
-.password-change-form input:focus {
-  outline: none;
-  border-color: var(--بنفسجي);
-  box-shadow: 0 0 0 3px var(--بنفسجي-خافت);
-  background: var(--خلفية-3);
-}
-
-.password-change-form input::placeholder {
-  color: var(--نص-خافت);
-  font-size: 12px;
-}
-
-.password-change-form button,
-.password-submit-btn {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #CC97FF, #9C48EA);
-  border: none;
-  border-radius: 999px;
-  color: white;
-  font-family: 'Tajawal', sans-serif;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.password-disabled-message {
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 12px 0;
+  text-align: center;
+  background: var(--bg-subtle);
+  border-radius: 8px;
   margin-top: 8px;
 }
 
-.password-change-form button:hover,
-.password-submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(156, 72, 234, 0.3);
+/* ==========================================
+   PASSWORD SECTION
+   ========================================== */
+.password-section {
+  margin-top: 0;
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
+  padding: 28px;
+  border: 1px solid var(--border-prominent);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-card);
+}
+
+.password-section:hover {
+  border-color: var(--border-focus);
+}
+
+.password-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.password-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  cursor: pointer;
+  color: var(--primary-main);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: all 0.2s ease;
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  width: 100%;
+  text-align: right;
+}
+
+.password-toggle:hover {
+  color: var(--pink-hover);
+  padding-right: 8px;
+  border-bottom-color: var(--primary-main);
+}
+
+.password-toggle span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.password-toggle span::before {
+  content: "🔒";
+  font-size: 14px;
+}
+
+.password-toggle i {
+  transition: transform 0.3s ease;
+  font-size: 12px;
 }
 
 .password-disabled-message {
-  color: var(--نص-خافت);
-  font-size: 12px;
-  padding: 14px;
-  background: var(--خلفية-2);
-  border-radius: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 12px 0;
   text-align: center;
-  font-family: 'Tajawal', sans-serif;
-  margin-top: 12px;
-  border: 1px solid var(--حد-خافت);
+  background: var(--bg-input);
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid var(--border-subtle);
 }
 
-/* Not Auth Message */
+/* ==========================================
+   PASSWORD SECTION
+   ========================================== */
+.password-section {
+  margin-top: 0;
+  background: var(--bg-card);
+  border-radius: var(--card-radius);
+  padding: 28px;
+  border: 1px solid var(--border-prominent);
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-card);
+}
+
+.password-section:hover {
+  border-color: var(--border-focus);
+}
+
+.password-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+/* Modernized Toggler (Card Style) */
+.password-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--input-radius);
+  transition: all 0.3s ease;
+  width: 100%;
+  text-align: right;
+}
+
+.password-toggle:hover {
+  background: var(--primary-subtle);
+  border-color: var(--primary-main);
+  color: var(--primary-main);
+}
+
+.password-toggle span {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.password-toggle span::before {
+  content: "🔒";
+  font-size: 16px;
+}
+
+.password-toggle i {
+  transition: transform 0.3s ease;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.password-toggle:hover i {
+  color: var(--primary-main);
+}
+
+.password-disabled-message {
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 14px;
+  text-align: center;
+  background: var(--bg-input);
+  border-radius: var(--input-radius);
+  margin-top: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+/* ==========================================
+   PASSWORD CHANGE FORM & INPUT WRAPPERS
+   ========================================== */
+.password-change-form {
+  margin-top: 16px;
+  padding: 24px;
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--input-radius);
+  animation: slideDown 0.3s ease;
+  direction: rtl;
+}
+
+/* Password Input Wrapper */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 18px;
+  direction: rtl;
+}
+
+/* Password Input Styling using Root Variables */
+.password-input {
+  width: 100%;
+  height: var(--input-height);
+  padding: var(--input-padding);
+  padding-left: 48px; /* Leave space for the absolute eye toggle button on the left (RTL) */
+  border: 1.5px solid var(--border-prominent);
+  border-radius: var(--input-radius);
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  direction: rtl;
+}
+
+.password-input:focus {
+  outline: none;
+  background: var(--bg-input-focus);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+
+.password-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--bg-page);
+}
+
+.password-input::placeholder {
+  color: var(--text-placeholder);
+  font-size: 13px;
+}
+
+/* Password Toggle Eye Button Styling */
+.password-toggle-btn {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+}
+
+.password-toggle-btn:hover {
+  color: var(--primary-main);
+  background: var(--primary-subtle);
+}
+
+.password-toggle-btn:focus {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.eye-icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+  color: currentColor;
+}
+
+.password-toggle-btn:hover .eye-icon {
+  transform: scale(1.1);
+}
+
+/* Password Submit Button */
+.password-submit-btn {
+  width: 100%;
+  height: var(--button-height);
+  padding: 0 20px;
+  background: var(--bg-button);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--button-radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+  font-family: inherit;
+  box-shadow: var(--shadow-button);
+}
+
+.password-submit-btn:hover:not(:disabled) {
+  background: var(--bg-button-hover);
+  transform: translateY(-2px);
+}
+
+.password-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================
+   NOT AUTH MESSAGE
+   ============================================ */
 .notAuth-message {
   text-align: center;
   padding: 60px 20px;
 }
 
-/* Animations */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -713,22 +1334,81 @@ hr {
   animation: slideIn 0.4s ease-out;
 }
 
-/* Responsive Design */
+/* ============================================
+   DATE INPUT STYLING
+   ============================================ */
+input[type="date"] {
+  position: relative;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 4px;
+  width: 20px;
+  height: 20px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+input[type="date"]::-moz-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 4px;
+  width: 20px;
+  height: 20px;
+}
+
+input[type="date"]::-moz-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 1200px) {
+  .profile-content-grid {
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+  }
+}
+
 @media (max-width: 992px) {
   .profile-content-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
   
   .inputs-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
   }
   
   .address-inputs {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
   }
   
   .sidebar-form-content {
-    gap: 20px;
+    gap: 16px;
+  }
+  
+  .form-card {
+    padding: 20px;
+  }
+  
+  .profile-header-card {
+    padding: 20px 24px;
+  }
+  
+  .quick-stats {
+    gap: 24px;
+    padding: 10px 20px;
   }
 }
 
@@ -741,12 +1421,15 @@ hr {
   .profile-header-card {
     flex-direction: column;
     text-align: center;
-    padding: 20px;
+    padding: 18px 16px;
+    border-radius: 20px;
   }
   
   .user-main-info {
     flex-direction: column;
     text-align: center;
+    gap: 16px;
+    width: 100%;
   }
   
   .status-badges {
@@ -756,18 +1439,43 @@ hr {
   .quick-stats {
     width: 100%;
     justify-content: center;
+    gap: 20px;
+    padding: 10px 16px;
+    flex-wrap: wrap;
+  }
+  
+  .quick-stats .stat {
+    flex: 1;
+    min-width: 60px;
+  }
+  
+  .inputs-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .address-inputs {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
   
   .form-card {
-    padding: 20px;
+    padding: 16px;
+    border-radius: 20px;
+  }
+  
+  .form-card h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+    padding-right: 10px;
   }
   
   .sidebar-form-content {
-    gap: 16px;
+    gap: 14px;
   }
   
   .sidebar-form-content .form-card {
-    padding: 20px;
+    padding: 16px;
   }
   
   .checkbox-item {
@@ -775,51 +1483,186 @@ hr {
   }
   
   .password-section {
-    padding: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .profile-page-wrapper {
-    margin: 12px auto;
-    padding: 0 12px;
+    padding: 16px;
+    border-radius: 20px;
   }
   
-  .profile-header-card {
-    padding: 16px;
+  .gender-toggle {
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .gender-toggle button {
+    padding: 6px 18px;
+    font-size: 13px;
+  }
+  
+  .avatar-upload-wrapper {
+    width: 70px;
+  }
+  
+  .avatar-upload-wrapper .profile-avatar {
+    width: 70px;
+    height: 70px;
   }
   
   .profile-avatar {
     width: 70px;
     height: 70px;
   }
+}
+
+@media (max-width: 576px) {
+  .profile-page-wrapper {
+    margin: 12px auto;
+    padding: 0 12px;
+  }
+  
+  .profile-header-card {
+    padding: 14px 12px;
+    border-radius: 16px;
+  }
+  
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .avatar-upload-wrapper {
+    width: 60px;
+  }
+  
+  .avatar-upload-wrapper .profile-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .avatar-upload-label {
+    height: 20px;
+    min-height: 20px;
+    max-height: 20px;
+    padding: 2px 8px;
+  }
+  
+  .avatar-upload-label span {
+    font-size: 8px;
+  }
+  
+  .avatar-upload-label svg {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .avatar-delete-btn {
+    width: 20px;
+    height: 20px;
+    top: -3px;
+    right: -3px;
+  }
+  
+  .avatar-delete-btn svg {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .store-logo-wrapper,
+  .store-logo-placeholder {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .store-logo-delete-btn {
+    width: 20px;
+    height: 20px;
+    top: -3px;
+    right: -3px;
+  }
+  
+  .store-logo-delete-btn svg {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .store-logo-upload-label {
+    height: 26px;
+    min-height: 26px;
+    max-height: 26px;
+    font-size: 11px;
+    padding: 3px 12px;
+  }
+  
+  .store-logo-upload-label svg {
+    width: 12px;
+    height: 12px;
+  }
   
   .user-text h2 {
     font-size: 18px;
-  }
-  
-  .quick-stats {
-    gap: 20px;
-    padding: 10px 20px;
   }
   
   .quick-stats .stat strong {
     font-size: 18px;
   }
   
+  .quick-stats .stat span {
+    font-size: 11px;
+  }
+  
   .form-card {
-    padding: 16px;
-    margin-bottom: 16px;
+    padding: 14px;
+    margin-bottom: 14px;
+    border-radius: 16px;
+    max-width: 100%;
   }
   
   .form-card h3 {
-    font-size: 16px;
-    margin-bottom: 16px;
+    font-size: 15px;
+    margin-bottom: 14px;
+    padding-right: 10px;
+  }
+  
+  .inputs-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .address-inputs {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .input-field label {
+    font-size: 12px;
+  }
+  
+  .input-field input,
+  .input-field textarea,
+  .input-field select {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: var(--input-radius);
+  }
+  
+  .gender-toggle {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .gender-toggle p {
+    font-size: 12px;
+  }
+  
+  .gender-toggle .gender-btn-group {
+    display: flex;
+    gap: 8px;
   }
   
   .gender-toggle button {
-    padding: 6px 20px;
+    padding: 6px 16px;
     font-size: 13px;
+    flex: 1;
+    justify-content: center;
   }
   
   .chip {
@@ -832,12 +1675,13 @@ hr {
   }
   
   .sidebar-form-content .form-card {
-    padding: 16px;
+    padding: 14px;
   }
   
   .checkbox-item {
     padding: 8px 12px;
     margin-bottom: 8px;
+    border-radius: var(--input-radius);
   }
   
   .checkbox-item span {
@@ -845,13 +1689,13 @@ hr {
   }
   
   .password-section {
-    padding: 16px;
+    padding: 14px;
+    border-radius: 16px;
   }
   
   .password-section h3 {
     font-size: 15px;
     margin-bottom: 14px;
-    padding-right: 10px;
   }
   
   .password-toggle {
@@ -860,7 +1704,7 @@ hr {
   }
   
   .password-change-form {
-    margin-top: 16px;
+    margin-top: 14px;
   }
   
   .password-change-form input {
@@ -878,5 +1722,35 @@ hr {
   .password-disabled-message {
     padding: 10px;
     font-size: 11px;
+  }
+  
+  .badge-green,
+  .badge-red,
+  .badge-red.clickable {
+    font-size: 10px;
+    padding: 3px 10px;
+  }
+  
+  .sidebar-actions .btn-primary,
+  .sidebar-actions .btn-secondary,
+  .sidebar-actions .btn-danger {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 18px;
+    height: 18px;
+    padding: 3px;
+  }
+
+  .input-field label svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .form-card h3 svg {
+    width: 16px;
+    height: 16px;
   }
 }

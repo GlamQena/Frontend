@@ -1,12 +1,14 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import {useEffect} from "react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 
 // Public pages
 import Home from "./pages/Home/Home";
 
 // Store & products
 import Stores from "./pages/Stores/Stores"; // client store listing
-import StoreProducts from "./pages/StoreProducts/Store";
+import StoreProducts from "./pages/StoreProducts/StoreProducts.jsx";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 
 // Shopping
@@ -29,12 +31,16 @@ import StoreOwnerProducts from "./pages/StoreOwnerDashboard/Products/Products";
 import StoreOwnerOrders from "./pages/StoreOwnerDashboard/Orders/Orders";
 import StoreOwnerActiveClients from "./pages/StoreOwnerDashboard/ActiveClients/ActiveClients";
 
+// Admin
+import AdminOrders from "./pages/AdminDashboard/Orders/Orders";
+import AdminOrderDetails from "./pages/AdminDashboard/Orders/OrderDetails";
+
 // 404
 import NotFound from "./pages/NotFound/NotFound";
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <Navbar />
       <Routes>
         {/* ── Public ── */}
@@ -42,7 +48,7 @@ function App() {
 
         {/* ── Store & Products ── */}
         <Route path="/stores" element={<Stores />} />
-        <Route path="/stores/:storeId/products" element={<StoreProducts />} />
+        <Route path="/stores/:storeId" element={<StoreProducts />} />
         <Route path="/products/:productId" 
           element={<ProductDetails />} />
 
@@ -67,10 +73,15 @@ function App() {
         <Route path="/dashboard/store_owner/orders/:id" element={<OrderDetails />} />
         <Route path="/dashboard/store_owner/active_clients" element={<StoreOwnerActiveClients />} />
 
+        {/* ── AdminDashboard ── */}
+        <Route path="/dashboard/admin/orders" element={<AdminOrders />} />
+        <Route path="/dashboard/admin/orders/:id" element={<AdminOrderDetails />} />
+
         {/* ── Fallback ── */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+      <Footer />
+    </>
   );
 }
 

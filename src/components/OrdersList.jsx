@@ -3,46 +3,66 @@ import { useState, useRef, useEffect } from "react";
 import "./OrdersList.css";
 import { getUserRole } from "../services/users";
 import { api, isUserLogged } from "../services/authService";
+
 const STATUS_CONFIG = {
-  pending: {
+  "قيد الانتظار": {
     label: "قيد الانتظار",
-    color: "#D4AF37",
+    color: "#f59e0b",
+    bg: "rgba(245, 158, 11, 0.12)",
+    lightBg: "rgba(245, 158, 11, 0.06)",
     cls: "ol-status--pending",
+    icon: "⏳",
     aliases: ["قيد الانتظار", "pending"],
   },
-  preparing: {
+  "جاري التجهيز": {
     label: "جاري التجهيز",
-    color: "#A855F7",
+    color: "#a855f7",
+    bg: "rgba(168, 85, 247, 0.12)",
+    lightBg: "rgba(168, 85, 247, 0.06)",
     cls: "ol-status--preparing",
+    icon: "⚙️",
     aliases: ["جاري التجهيز", "preparing"],
   },
-  ready: {
+  "جاهز للتوصيل": {
     label: "جاهز للتوصيل",
     color: "#e610c6",
+    bg: "rgba(230, 16, 198, 0.12)",
+    lightBg: "rgba(230, 16, 198, 0.06)",
     cls: "ol-status--ready",
+    icon: "📦",
     aliases: ["جاهز للتوصيل", "ready"],
   },
-  shipping: {
+  "قيد التوصيل": {
     label: "قيد التوصيل",
-    color: "#3B82F6",
+    color: "#3b82f6",
+    bg: "rgba(59, 130, 246, 0.12)",
+    lightBg: "rgba(59, 130, 246, 0.06)",
     cls: "ol-status--shipping",
+    icon: "🚚",
     aliases: ["قيد التوصيل", "shipping"],
   },
-  delivered: {
+  "تم التوصيل": {
     label: "تم التوصيل",
-    color: "#16a34a",
+    color: "#22c55e",
+    bg: "rgba(34, 197, 94, 0.12)",
+    lightBg: "rgba(34, 197, 94, 0.06)",
     cls: "ol-status--delivered",
+    icon: "✅",
     aliases: ["تم التوصيل", "delivered"],
   },
-  cancelled: {
-    label: "ملغى",
+  "ملغي": {
+    label: "ملغي",
     color: "#ef4444",
+    bg: "rgba(239, 68, 68, 0.12)",
+    lightBg: "rgba(239, 68, 68, 0.06)",
     cls: "ol-status--cancelled",
+    icon: "❌",
     aliases: ["ملغي", "ملغى", "cancelled"],
   },
 };
+
 const normalizeStatus = (raw) => {
-  if (!raw) return "pending";
+  if (!raw) return "قيد الانتظار";
 
   const value = String(raw).trim();
 
@@ -52,9 +72,13 @@ const normalizeStatus = (raw) => {
     }
   }
 
-  console.log("UNKNOWN STATUS:", raw);
+  // If raw status is already in Arabic and matches a key
+  if (STATUS_CONFIG[value]) {
+    return value;
+  }
 
-  return "pending";
+  console.log("UNKNOWN STATUS:", raw);
+  return "قيد الانتظار";
 };
 
 const STORE_STATUS_OPTIONS = Object.entries(STATUS_CONFIG).map(
@@ -62,7 +86,7 @@ const STORE_STATUS_OPTIONS = Object.entries(STATUS_CONFIG).map(
     value,
     label: config.label,
     color: config.color,
-  }),
+  })
 );
 
 function StatusDropdown({ currentKey, orderId, onStatusChange }) {
@@ -78,7 +102,6 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
     }
 
     document.addEventListener("mousedown", handleClick);
-
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
@@ -88,7 +111,7 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
     STORE_STATUS_OPTIONS.find((o) => o.value === currentKey) ||
     STORE_STATUS_OPTIONS[0];
 
-  const lockedStatuses = ["shipping", "delivered", "cancelled"];
+  const lockedStatuses = ["قيد التوصيل", "تم التوصيل", "ملغي"];
   const isLocked = lockedStatuses.includes(currentKey);
 
   async function changeStatus(newStatus) {
@@ -99,18 +122,20 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
     setUpdating(true);
 
     try {
+      const statusMap = {
+        "قيد الانتظار": "قيد الانتظار",
+        "جاري التجهيز": "جاري التجهيز",
+        "جاهز للتوصيل": "جاهز للتوصيل",
+      };
+
       await api.patch(
         `/order/${orderId}/status`,
         {},
         {
           params: {
-            status: {
-              pending: "قيد الانتظار",
-              preparing: "جاري التجهيز",
-              ready: "جاهز للتوصيل",
-            }[newStatus],
+            status: statusMap[newStatus] || newStatus,
           },
-        },
+        }
       );
 
       onStatusChange?.(orderId, newStatus);
@@ -138,9 +163,7 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
           onClick={() => !updating && setOpen((o) => !o)}
         >
           <span className="sd-dot" style={{ background: current.color }} />
-
           {updating ? "جاري..." : current.label}
-
           <svg
             className={`sd-arrow${open ? " sd-arrow--open" : ""}`}
             width="12"
@@ -162,12 +185,11 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
       {open && (
         <div className="sd-menu">
           <p className="sd-menu-title">تغيير الحالة</p>
-
           {STORE_STATUS_OPTIONS.filter(
             (opt) =>
-              opt.value !== "shipping" &&
-              opt.value !== "delivered" &&
-              opt.value !== "cancelled",
+              opt.value !== "قيد التوصيل" &&
+              opt.value !== "تم التوصيل" &&
+              opt.value !== "ملغي"
           ).map((opt) => (
             <button
               key={opt.value}
@@ -175,7 +197,6 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
               onClick={() => changeStatus(opt.value)}
             >
               <span className="sd-dot" style={{ background: opt.color }} />
-
               <span style={{ color: opt.color }}>{opt.label}</span>
             </button>
           ))}
@@ -185,39 +206,41 @@ function StatusDropdown({ currentKey, orderId, onStatusChange }) {
   );
 }
 
-const ALL_FILTERS = [
-  { label: "الكل", value: "all" },
-
-  ...Object.entries(STATUS_CONFIG).map(([value, config]) => ({
-    label: config.label,
-    value,
-  })),
-];
-
 const PAYMENT_STATUS_CONFIG = {
-  pending: {
-    label: "مؤجل",
+  "قيد الانتظار": {
+    label: "قيد الانتظار",
     cls: "ol-payment--pending",
+    color: "#f59e0b",
+    bg: "rgba(245, 158, 11, 0.10)",
+    icon: "⏳",
   },
-
-  processing: {
+  "قيد المعالجة": {
     label: "قيد المعالجة",
     cls: "ol-payment--processing",
+    color: "#3b82f6",
+    bg: "rgba(59, 130, 246, 0.10)",
+    icon: "🔄",
   },
-
-  completed: {
+  "مكتمل": {
     label: "مكتمل",
     cls: "ol-payment--completed",
+    color: "#22c55e",
+    bg: "rgba(34, 197, 94, 0.10)",
+    icon: "✅",
   },
-
-  failed: {
+  "فشل": {
     label: "فشل",
     cls: "ol-payment--failed",
+    color: "#ef4444",
+    bg: "rgba(239, 68, 68, 0.10)",
+    icon: "❌",
   },
-
-  refunded: {
-    label: "مسترجع",
+  "تم الاسترداد": {
+    label: "تم الاسترداد",
     cls: "ol-payment--refunded",
+    color: "#a855f7",
+    bg: "rgba(168, 85, 247, 0.10)",
+    icon: "↩️",
   },
 };
 
@@ -225,47 +248,38 @@ const normalizePaymentStatus = (payment, orderStatus) => {
   const method = payment?.method;
   const rawStatus = payment?.status;
 
-  const value = String(rawStatus || "").trim();
+  if (!rawStatus) return "قيد الانتظار";
 
-  // CASH LOGIC
+  const value = String(rawStatus).trim();
+
+  const directMap = {
+    "قيد الانتظار": "قيد الانتظار",
+    "تم الاسترداد": "تم الاسترداد",
+    "فشل": "فشل",
+    "مكتمل": "مكتمل",
+    "قيد المعالجة": "قيد المعالجة",
+  };
+
+  // If the status is already one of the backend values, return it as-is
+  if (directMap[value]) {
+    return value;
+  }
+
+  // CASH LOGIC - but keep the same status keys
   if (method === "cash") {
-    // cancelled after payment
-    if (orderStatus === "cancelled" && ["completed", "paid"].includes(value)) {
-      return "refunded";
-    }
-
-    // delivered cash order = completed
-    if (orderStatus === "delivered") {
-      return "completed";
-    }
-
-    // any other cash order = pending
-    return "pending";
+    if (orderStatus === "ملغي") return "تم الاسترداد";
+    if (orderStatus === "تم التوصيل") return "مكتمل";
+    return "قيد الانتظار";
   }
 
-  // CARD / WALLET
-  switch (value) {
-    case "قيد المعالجة":
-      return "processing";
-    case "مكتمل":
-      return "completed";
-    case "فشل":
-      return "failed";
-    case "مسترجع":
-      return "refunded";
-    case "مؤجل":
-    default:
-      return "pending";
-  }
+  // CARD / WALLET - fallback to pending
+  return "قيد الانتظار";
 };
 
 function formatDate(str) {
   if (!str) return "—";
-
   const d = new Date(str);
-
   if (isNaN(d)) return "—";
-
   return d.toLocaleDateString("ar-EG", {
     day: "numeric",
     month: "long",
@@ -273,18 +287,26 @@ function formatDate(str) {
   });
 }
 
+function formatTime(str) {
+  if (!str) return "—";
+  const d = new Date(str);
+  if (isNaN(d)) return "—";
+  return d.toLocaleTimeString("ar-EG", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function countProducts(order) {
   if (order.products) {
     return order.products.reduce(
       (acc, s) => acc + (s.products?.length || 0),
-      0,
+      0
     );
   }
-
   if (order.store_products) {
     return order.store_products.length;
   }
-
   return 0;
 }
 
@@ -294,83 +316,37 @@ export default function OrdersList({
   onStatusChange,
   headerTitle = "الطلبات",
   loading = true,
-}) {
-  const [filter, setFilter] = useState("all");
-  const [cancellingId, setCancellingId] = useState(null);
-
-  const [search, setSearch] = useState("");
+}) { 
   const navigate = useNavigate();
-
   const role = getUserRole();
-
   const storeMode = role === "store_owner";
   const clientMode = role === "client";
+  const isAdmin = role === "admin";
 
   const filtered = ordersProp
-    .filter((o) => {
-      const statusMatch =
-        filter === "all" ||
-        normalizeStatus(o.status || o.order_status) === filter;
-
-      const searchValue = search.toLowerCase();
-
-      const searchMatch =
-        search === "" ||
-        String(o._id || o.order_id || "")
-          .toLowerCase()
-          .includes(searchValue) ||
-        (storeMode && o.customer?.name?.toLowerCase().includes(searchValue)) ||
-        (storeMode &&
-          o.store_products?.some((item) =>
-            item.product_name?.toLowerCase().includes(searchValue),
-          )) ||
-        (clientMode &&
-          o.products?.some((store) =>
-            store.products?.some((item) =>
-              item.name?.toLowerCase().includes(searchValue),
-            ),
-          )) ||
-        (clientMode &&
-          o.products?.some(
-            (store) =>
-              store.owner_store_id?.store_name
-                ?.toLowerCase()
-                .includes(searchValue) ||
-              store.products?.some((item) =>
-                item.name?.toLowerCase().includes(searchValue),
-              ),
-          ));
-
-      return statusMatch && searchMatch;
-    })
+    .filter((o) => o) // Remove null/undefined
     .sort((a, b) => {
       const dateA = new Date(
-        a.createdAt || a.order_date || a.order_created_at || 0,
+        a.createdAt || a.order_date || a.order_created_at || 0
       );
       const dateB = new Date(
-        b.createdAt || b.order_date || b.order_created_at || 0,
+        b.createdAt || b.order_date || b.order_created_at || 0
       );
       return dateB - dateA;
     });
 
   async function cancelOrder(orderId) {
     if (!window.confirm("هل أنتِ متأكدة من إلغاء الطلب؟")) return;
-
-    setCancellingId(orderId);
-
     try {
       await api.patch(`/order/${orderId}/cancel`);
       onCancelSuccess?.(orderId);
     } catch (err) {
       alert(err.response?.data?.message || "فشل إلغاء الطلب");
-    } finally {
-      setCancellingId(null);
     }
   }
 
   async function reorder(order) {
     if (!window.confirm("هل أنتِ متأكدة من إعادة الطلب؟")) return;
-
     try {
       await api.post(`/order/${order._id}/reorder`);
       navigate("/shipping/info", {
@@ -393,15 +369,20 @@ export default function OrdersList({
 
   const formattedImage = (imgPath) => {
     if (!imgPath) return null;
-    return imgPath.replace(/\\/g, "//").replace("uploads", api);
+    if(imgPath.includes("uploads")){
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
+      return imgPath.replace(/\\/g, "//").replace("uploads", apiUrl);
+    }
+    return imgPath;
   };
 
-  if (!isUserLogged())
+  if (!isUserLogged()) {
     return (
       <div className="response-message error-message">
-        your session ended, please login
+        انتهت جلستك، يرجى تسجيل الدخول مرة أخرى
       </div>
     );
+  }
 
   if (loading) {
     return (
@@ -412,7 +393,7 @@ export default function OrdersList({
     );
   }
 
-  if (!ordersProp.length) {
+  if (!ordersProp || ordersProp.length === 0) {
     return (
       <div className="ol-empty">
         <span className="ol-empty-icon">🛍️</span>
@@ -422,313 +403,390 @@ export default function OrdersList({
   }
 
   return (
-    <div className="ol-root" dir="rtl" >
-      <div className="Page-Header">
-        <h1>{headerTitle}</h1>
-        <div className="so-search-wrap">
-          <input
-            className="so-search"
-            type="text"
-            placeholder="بحث عن طلب..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+    <div className="ol-root" dir="rtl">
+      {filtered.length === 0 ? (
+        <div className="ol-empty">
+          <span className="ol-empty-icon">📭</span>
+          <p>لا يوجد طلبات في هذه الفئة</p>
         </div>
-      </div>
+      ) : (
+        <>
+          {(clientMode || storeMode) && (
+            <div className="ol-list">
+              {filtered.map((order) => {
+                const id = order._id || order.order_id;
+                const rawStatus = order.status || order.order_status;
+                const key = normalizeStatus(rawStatus);
+                const cfg = STATUS_CONFIG[key] || STATUS_CONFIG["قيد الانتظار"];
+                const isPendingOrPreparing =
+                  key === "قيد الانتظار" || key === "جاري التجهيز";
+                const isCancelled = key === "ملغي";
+                const prodCount = countProducts(order);
+                const total = order.total_price || order.store_subtotal || 0;
+                const paymentMethod = order.payment?.method;
+                const paymentStatusKey = storeMode
+                  ? normalizePaymentStatus(
+                      {
+                        status: order.payment?.status,
+                        method: order.payment?.method,
+                      },
+                      key
+                    )
+                  : normalizePaymentStatus(order.payment, key);
+                const paymentCfg =
+                  PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
+                  PAYMENT_STATUS_CONFIG["قيد الانتظار"];
 
-      <div className="ol-filters">
-        {ALL_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            className={`ol-filter-btn${filter === f.value ? " ol-filter-btn--active" : ""}`}
-            onClick={() => setFilter(f.value)}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+                const canCompletePayment =
+                  clientMode &&
+                  ["wallet", "card"].includes(paymentMethod) &&
+                  ["pending", "processing", "failed"].includes(
+                    paymentStatusKey
+                  ) &&
+                  !isCancelled;
 
-      {/* Orders */}
-      <div className="ol-list">
-        {filtered.length === 0 ? (
-          <div className="ol-empty">
-            <span className="ol-empty-icon">📭</span>
-            <p>لا يوجد طلبات في هذه الفئة</p>
-          </div>
-        ) : (
-          filtered.map((order) => {
-            const id = order._id || order.order_id;
-            const rawStatus = order.status || order.order_status;
-            const key = normalizeStatus(rawStatus);
-            const cfg = STATUS_CONFIG[key] || STATUS_CONFIG.pending;
-            const isPendingOrPreparing =
-              key === "pending" || key === "preparing";
-            const isCancelled = key === "cancelled";
-            const prodCount = countProducts(order);
-            const total = order.total_price || order.store_subtotal || 0;
-            const paymentMethod = order.payment?.method;
+                const isCompletedPayment =
+                  paymentStatusKey === "completed" ||
+                  (paymentMethod === "cash" && key === "تم التوصيل");
 
-            const paymentStatusKey = storeMode
-              ? normalizePaymentStatus(
-                  {
-                    status: order.payment_status,
-                    method: order.payment_method,
-                  },
-                  key,
-                )
-              : normalizePaymentStatus(order.payment, key);
-            const paymentCfg =
-              PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
-              PAYMENT_STATUS_CONFIG.pending;
+                return (
+                  <div className="ol-card" key={id}>
+                    {/* Card Header */}
+                    <div className="ol-card-header">
+                      <div className="ol-card-header-left">
+                        {/* Status Badge */}
+                        {storeMode ? (
+                          <StatusDropdown
+                            currentKey={key}
+                            orderId={id}
+                            onStatusChange={onStatusChange}
+                          />
+                        ) : (
+                          <span className={`ol-status ${cfg.cls}`}>
+                            <span className="ol-dot" />
+                            {cfg.label}
+                          </span>
+                        )}
 
-            const canCompletePayment =
-              clientMode &&
-              ["wallet", "card"].includes(paymentMethod) &&
-              ["pending", "processing", "failed"].includes(paymentStatusKey) &&
-              !isCancelled;
+                        {/* Payment Status */}
+                        <span className={`ol-payment-badge ${paymentCfg.cls}`}>
+                          <svg
+                            className="bedge-svg"
+                            width="22"
+                            height="16"
+                            viewBox="0 0 22 16"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M13 9C12.1667 9 11.4583 8.70833 10.875 8.125C10.2917 7.54167 10 6.83333 10 6C10 5.16667 10.2917 4.45833 10.875 3.875C11.4583 3.29167 12.1667 3 13 3C13.8333 3 14.5417 3.29167 15.125 3.875C15.7083 4.45833 16 5.16667 16 6C16 6.83333 15.7083 7.54167 15.125 8.125C14.5417 8.70833 13.8333 9 13 9ZM6 12C5.45 12 4.97917 11.8042 4.5875 11.4125C4.19583 11.0208 4 10.55 4 10V2C4 1.45 4.19583 0.979167 4.5875 0.5875C4.97917 0.195833 5.45 0 6 0H20C20.55 0 21.0208 0.195833 21.4125 0.5875C21.8042 0.979167 22 1.45 22 2V10C22 10.55 21.8042 11.0208 21.4125 11.4125C21.0208 11.8042 20.55 12 20 12H6ZM8 10H18C18 9.45 18.1958 8.97917 18.5875 8.5875C18.9792 8.19583 19.45 8 20 8V4C19.45 4 18.9792 3.80417 18.5875 3.4125C18.1958 3.02083 18 2.55 18 2H8C8 2.55 7.80417 3.02083 7.4125 3.4125C7.02083 3.80417 6.55 4 6 4V8C6.55 8 7.02083 8.19583 7.4125 8.5875C7.80417 8.97917 8 9.45 8 10ZM19 16H2C1.45 16 0.979167 15.8042 0.5875 15.4125C0.195833 15.0208 0 14.55 0 14V3H2V14H19V16ZM6 10V2V10Z"
+                              fill="currentColor"
+                            />
+                          </svg>
+                          {paymentCfg.label}
+                        </span>
+                      </div>
 
-            return (
-              <div className="ol-card" key={id}>
-                {/* Card Header */}
-                <div className="ol-card-header">
-                  {/* Status — store gets dropdown, client gets static badge */}
-                  {storeMode ? (
-                    <StatusDropdown
-                      currentKey={key}
-                      orderId={id}
-                      onStatusChange={onStatusChange}
-                    />
-                  ) : (
-                    <span className={`ol-status ${cfg.cls}`}>
-                      <span className="ol-dot" />
-                      {cfg.label || rawStatus}
-                    </span>
-                  )}
-                  <div>
-                    {/* PAYMENT STATUS */}
-                    <span className={`ol-payment-badge ${paymentCfg.cls}`}>
-                      <svg
-                        className="bedge-svg"
-                        width="22"
-                        height="16"
-                        viewBox="0 0 22 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M13 9C12.1667 9 11.4583 8.70833 10.875 8.125C10.2917 7.54167 10 6.83333 10 6C10 5.16667 10.2917 4.45833 10.875 3.875C11.4583 3.29167 12.1667 3 13 3C13.8333 3 14.5417 3.29167 15.125 3.875C15.7083 4.45833 16 5.16667 16 6C16 6.83333 15.7083 7.54167 15.125 8.125C14.5417 8.70833 13.8333 9 13 9ZM6 12C5.45 12 4.97917 11.8042 4.5875 11.4125C4.19583 11.0208 4 10.55 4 10V2C4 1.45 4.19583 0.979167 4.5875 0.5875C4.97917 
-0.195833 5.45 0 6 0H20C20.55 0 21.0208 0.195833 21.4125 0.5875C21.8042 0.979167 22 1.45 22 2V10C22 10.55 21.8042 11.0208 21.4125 11.4125C21.0208 11.8042 20.55 12 20 12H6ZM8 10H18C18 9.45 18.1958 8.97917 18.5875 8.5875C18.9792 8.19583 19.45 8 20 8V4C19.45 4 18.9792 3.80417 18.5875 3.4125C18.1958 3.02083 18 2.55 18 2H8C8 2.55 7.80417 3.02083 7.4125 3.4125C7.02083 3.80417 6.55 4 6 4V8C6.55 8 7.02083 8.19583 7.4125 8.5875C7.80417 
-8.97917 8 9.45 8 10ZM19 16H2C1.45 16 0.979167 15.8042 0.5875 15.4125C0.195833 15.0208 0 14.55 0 14V3H2V14H19V16ZM6 10V2V10Z"
-                          fill="#822a91"
-                        />
-                      </svg>
+                      {/* Order Meta */}
+                      <div className="ol-order-meta">
+                        <span className="ol-order-id">
+                          #{storeMode ? "GE" : "GQ"}-
+                          {id?.slice(-4).toUpperCase()}
+                        </span>
+                        <span className="ol-order-date">
+                          {formatDate(
+                            order.createdAt ||
+                              order.order_date ||
+                              order.order_created_at
+                          )}
+                          {" • "}
+                          {formatTime(
+                            order.createdAt ||
+                              order.order_date ||
+                              order.order_created_at
+                          )}
+                        </span>
+                      </div>
+                    </div>
 
-                      {paymentCfg.label}
-                    </span>
-                  </div>
-
-                  <div className="ol-order-meta">
-                    <span className="ol-order-id">
-                      #{storeMode ? "GE" : "GQ"}-{id?.slice(-4).toUpperCase()}
-                    </span>
-                    <span className="ol-order-date">
-                      {formatDate(
-                        order.createdAt ||
-                          order.order_date ||
-                          order.order_created_at,
+                    {/* Card Body */}
+                    <div className="ol-card-body">
+                      {/* CLIENT: Show products */}
+                      {clientMode && (
+                        <div className="ol-items">
+                          {order.products
+                            ?.flatMap(
+                              (store) =>
+                                store.products?.map((item) => ({
+                                  ...item,
+                                  storeName: store.owner_store_id?.store_name,
+                                  storeId: store.owner_store_id?._id,
+                                })) || []
+                            )
+                            .slice(0, 4)
+                            .map((item, j) => {
+                              const src = formattedImage(
+                                item.prod_id?.images?.[0]
+                              );
+                              const productId = item.prod_id?._id;
+                              return (
+                                <div
+                                  className="ol-item"
+                                  key={j}
+                                  onClick={() =>
+                                    navigate(`/products/${productId}`)
+                                  }
+                                >
+                                  <div className="ol-item-img">
+                                    {src ? (
+                                      <img
+                                        src={src}
+                                        alt={item.name}
+                                        onError={(e) => {
+                                          e.target.style.display = "none";
+                                          e.target.parentElement.innerHTML =
+                                            "<span class='ol-img-fb'>🧴</span>";
+                                        }}
+                                      />
+                                    ) : (
+                                      <span className="ol-img-fb">🧴</span>
+                                    )}
+                                  </div>
+                                  <div className="ol-item-info">
+                                    <p className="ol-item-name">{item.name}</p>
+                                    <p className="ol-item-store">
+                                      من: {item.storeName}
+                                    </p>
+                                    <p className="ol-item-qty">
+                                      الكمية: {item.quantity}
+                                    </p>
+                                  </div>
+                                  <span className="ol-item-price">
+                                    {item.price.toLocaleString("ar-EG")} ج.م
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          {order.products?.flatMap((s) => s.products || [])
+                            .length > 4 && (
+                            <div className="ol-more-items">
+                              +{" "}
+                              {order.products.flatMap((s) => s.products || [])
+                                .length - 4}{" "}
+                              منتجات أخرى
+                            </div>
+                          )}
+                        </div>
                       )}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Card Body */}
-                <div className="ol-card-body">
-                  {/* CLIENT: products */}
-                  {clientMode && (
-                    <div className="ol-items">
-                      {order.products
-                        ?.flatMap(
-                          (store) =>
-                            store.products?.map((item) => ({
-                              ...item,
-                              storeName: store.owner_store_id?.store_name,
-                            })) || [],
-                        )
-                        .slice(0, 3)
-                        .map((item, j) => {
-                          const src = formattedImage(item.prod_id?.images?.[0]);
-                          const productId =  item.prod_id?._id ;
-                          return (
-                            <div
-                              className="ol-item"
-                              key={j}
-                              onClick={() => navigate(`/products/${productId}`)} 
-                            >
-                              <div className="ol-item-img">
-                                {src ? (
-                                  <img
-                                    src={src}
-                                    alt={item.name}
-                                    onError={(e) => {
-                                      e.target.style.display = "none";
-                                      e.target.parentElement.innerHTML =
-                                        "<span class='ol-img-fb'>🧴</span>";
-                                    }}
-                                  />
-                                ) : (
-                                  <span className="ol-img-fb">🧴</span>
-                                )}
-                              </div>
-                              <div className="ol-item-info">
-                                <p className="ol-item-name">{item.name}</p>
-                                <p className="ol-item-store">
-                                  من: {item.storeName}
-                                </p>
-                                <p className="ol-item-qty">
-                                  الكمية: {item.quantity}
-                                </p>
-                              </div>
-                              <span className="ol-item-price">
-                                {item.price} ج.م
+                      {/* STORE: Customer info */}
+                      {storeMode && (
+                        <div className="ol-customer">
+                          {order.customer?.name?.trim() && (
+                            <div className="ol-customer-row">
+                              <span className="ol-customer-label">العميل:</span>
+                              <span className="ol-customer-val">{order.customer.name}</span>
+                            </div>
+                          )}
+                          {order.customer?.phone?.trim() && (
+                            <div className="ol-customer-row">
+                              <span className="ol-customer-label">الهاتف:</span>
+                              <span className="ol-customer-val ol-mono">{order.customer.phone}</span>
+                            </div>
+                          )}
+                          {order.customer?.address?.trim() && (
+                            <div className="ol-customer-row">
+                              <span className="ol-customer-label">العنوان:</span>
+                              <span className="ol-customer-val">{order.customer.address}</span>
+                            </div>
+                          )}
+                          {order.store_products && (
+                            <div className="ol-customer-row">
+                              <span className="ol-customer-label">المنتجات:</span>
+                              <span className="ol-customer-val">
+                                {order.store_products.length} منتج
                               </span>
                             </div>
-                          );
-                        })}
-                    </div>
-                  )}
-
-                  {/* STORE: customer info */}
-                  {storeMode && (
-                    <div className="ol-customer">
-                      {order.customer?.name?.trim() && (
-                        <div className="ol-customer-row">
-                          <span className="ol-customer-label">العميل:</span>
-                          <span className="ol-customer-val">
-                            {order.customer.name}
-                          </span>
-                        </div>
-                      )}
-                      {order.customer?.phone?.trim() && (
-                        <div className="ol-customer-row">
-                          <span className="ol-customer-val ol-mono">
-                            <svg
-                              width="13"
-                              height="13"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.5 11.5 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.01l-2.2 2.21z"
-                                fill="#A855F7"
-                              />
-                            </svg>
-                            {order.customer.phone}
-                          </span>
-                        </div>
-                      )}
-                      {order.customer?.address?.trim() && (
-                        <div className="ol-customer-row">
-                          <span className="ol-customer-val">
-                            <svg
-                              width="11"
-                              height="13"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"
-                                fill="#A855F7"
-                              />
-                            </svg>
-                            {order.customer.address}
-                          </span>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
 
-                {/* Card Footer */}
-                <div className="ol-card-footer">
-                  <div className="ol-foot-btns">
-                    {clientMode && (
-                      <> 
-                      
-                      <Link
-                          to={`/orders/${id}`}
-                          className="ol-btn ol-btn--details"
-                        >
-                          التفاصيل
-                        </Link>
+                    {/* Card Footer */}
+                    <div className="ol-card-footer">
+                      <div className="ol-foot-btns">
+                        {clientMode && (
+                          <>
+                            <Link
+                              to={`/orders/${id}`}
+                              className="ol-btn ol-btn--details"
+                            >
+                              التفاصيل
+                            </Link>
 
+                            {isCancelled && (
+                              <button
+                                className="ol-btn ol-btn--reorder"
+                                onClick={() => reorder(order)}
+                              >
+                                إعادة طلب
+                              </button>
+                            )}
 
-                        {isCancelled && (
-                          <button
-                            className="ol-btn ol-btn--reorder"
-                            onClick={() => reorder(order)}
-                          >
-                            إعادة طلب
-                          </button>
+                            {canCompletePayment && (
+                              <button
+                                className="ol-btn ol-btn--reorder"
+                                onClick={() => {
+                                  navigate("/shipping/info", {
+                                    state: {
+                                      orderId: order._id,
+                                      subtotal: order.subtotal_price,
+                                      shipping: 50,
+                                      total: order.total_price,
+                                    },
+                                  });
+                                }}
+                              >
+                                إكمال الدفع
+                              </button>
+                            )}
+
+                            {isPendingOrPreparing && !isCancelled && (
+                              <button
+                                className="ol-btn ol-btn--cancel"
+                                onClick={() => cancelOrder(id)}
+                              >
+                                إلغاء الطلب
+                              </button>
+                            )}
+                          </>
                         )}
-                        {canCompletePayment && (
-                          <button
-                            className="ol-btn ol-btn--reorder"
-                            onClick={() => {
-                              navigate("/shipping/info", {
-                                state: {
-                                  orderId: order._id,
-                                  subtotal: order.subtotal_price,
-                                  shipping: 50,
-                                  total: order.total_price,
-                                },
-                              });
-                            }}
+
+                        {storeMode && (
+                          <Link
+                            to={`/dashboard/store_owner/orders/${id}`}
+                            className="ol-btn ol-btn--details"
                           >
-                            إكمال الدفع
-                          </button>
+                            تفاصيل الطلب
+                          </Link>
                         )}
+                      </div>
 
-                        {isPendingOrPreparing && (
-                          <button
-                            className="ol-btn ol-btn--cancel"
-                            onClick={() => cancelOrder(id)}
-                            disabled={cancellingId === id}
-                          >
-                            {cancellingId === id
-                              ? "جاري الإلغاء..."
-                              : "إلغاء الطلب"}
-                          </button>
+                      <div className="ol-total-block">
+                        {prodCount > 0 && (
+                          <span className="ol-prod-count">
+                            {prodCount} منتج
+                          </span>
                         )}
-                      </>
-                    )}
-
-                    {storeMode && (
-                      <Link
-                        to={`/dashboard/store_owner/orders/${id}`}
-                        className="ol-btn ol-btn--details"
-                      >
-                        تفاصيل الطلب
-                      </Link>
-                    )}
-                  </div>
-
-                  <div className="ol-total-block">
-                    {prodCount > 0 && (
-                      <span className="ol-prod-count">{prodCount} منتج</span>
-                    )}
-                    <div className="ol-total-row">
-                      <span className="ol-total-label">إجمالي الطلب</span>
-                      <span className="ol-total-val">
-                        {total.toLocaleString("ar-EG")} ج.م
-                      </span>
+                        <div className="ol-total-row">
+                          <span className="ol-total-label">الإجمالي</span>
+                          <span className="ol-total-val">
+                            {total.toLocaleString("ar-EG")} ج.م
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Admin Table View */}
+          {isAdmin && (
+            <div className="ol-table-wrap">
+              <table className="ol-table">
+                <thead>
+                  <tr>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>المتجر</th>
+                    <th>عدد المنتجات</th>
+                    <th>المبلغ</th>
+                    <th>التاريخ</th>
+                    <th>الحالة</th>
+                    <th>الدفع</th>
+                    <th>إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((order) => {
+                    const id = order._id || order.order_id;
+                    const rawStatus = order.status || order.order_status;
+                    const key = normalizeStatus(rawStatus);
+                    const cfg = STATUS_CONFIG[key] || STATUS_CONFIG["قيد الانتظار"];
+                    const total = order.total_price || order.store_subtotal || 0;
+                    const prodCount = countProducts(order);
+                    const paymentStatusKey = normalizePaymentStatus(
+                      order.payment,
+                      key
+                    );
+                    const paymentCfg =
+                      PAYMENT_STATUS_CONFIG[paymentStatusKey] ||
+                      PAYMENT_STATUS_CONFIG.pending;
+                    const paymentMethod = order.payment?.method || "—";
+                    const methodLabel =
+                      paymentMethod === "cash"
+                        ? "نقدي"
+                        : paymentMethod === "card"
+                        ? "بطاقة"
+                        : paymentMethod === "wallet"
+                        ? "محفظة"
+                        : paymentMethod;
+
+                    return (
+                      <tr key={id} className="ol-table-row">
+                        <td className="ol-table-id">
+                          #GQ-{id?.slice(-4).toUpperCase()}
+                        </td>
+                        <td>
+                          {order.user_id?.firstName
+                            ? `${order.user_id.firstName} ${order.user_id.lastName || ""}`.trim()
+                            : order.user_id?.username ||
+                              order.customer?.name ||
+                              "—"}
+                        </td>
+                        <td>
+                          {order.products?.[0]?.owner_store_id?.store_name ||
+                            "—"}
+                        </td>
+                        <td>{prodCount}</td>
+                        <td className="ol-table-amount">
+                          {total.toLocaleString("ar-EG")} ج
+                        </td>
+                        <td>{formatDate(order.createdAt || order.order_created_at)}</td>
+                        <td>
+                          <span className={`ol-status ${cfg.cls}`}>
+                            <span className="ol-dot" />
+                            {cfg.label}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`ol-payment-badge ${paymentCfg.cls}`}>
+                            {paymentCfg.label}
+                          </span>
+                          <br />
+                          <small style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+                            {methodLabel}
+                          </small>
+                        </td>
+                        <td>
+                          <Link
+                            to={`/dashboard/admin/orders/${id}`}
+                            className="ol-btn ol-btn--details"
+                          >
+                            تفاصيل
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

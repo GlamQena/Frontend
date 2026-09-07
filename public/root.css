@@ -1,123 +1,112 @@
-/*global*/
+/* ==========================================
+   GLOBAL BRAND CONSTANTS
+   ========================================== */
 :root {
-  --بنفسجي: #a855f7; /* الأوركيد — اللون الرئيسي    */
-  --بنفسجي-خافت: rgba(168, 85, 247, 0.13); /* بنفسجي شفاف                 */
-  --وردي: #ff69b4; /* للأزرار والتدرجات           */
-  --وردي-خافت: #db7093; /* للنقاط الزخرفية             */
-  --ذهبي: #d4af37; /* النقطة في الشعار            */
-  --ذهبي-خافت: #e9c3491a; /* خلفية بانر الذهبي           */
-  --أخضر-نجاح: #22c55e; /* صفحات النجاح                */
-  --أحمر-خطأ: #ef4444; /* رسائل الخطأ والأدمن         */
-  --أحمر-خافت: rgba(239, 68, 68, 0.1); /* خلفية بانر الخطأ            */
-  --أخضر-خافت: rgba(34, 197, 94, 0.1); /* خلفية بانر النجاح            */
+  /* Brand Core */
+  --purple-brand-logo: #6b008a;                 /* Logo Letter 'G' */
+  --purple-dark: #7e00a6;                       /* Rich Royal Purple (Dark Mode Hero) */
+  --pink-main: #ff69b4;                         /* Vibrant Cosmetic Pink (Light Mode Hero) */
+  --pink-subtle: rgba(255, 105, 180, 0.12);
+  --pink-hover: #ff479d;
+  --gold-main: #d4af37;                         /* Gold Accent */
+  --gold-subtle: rgba(212, 175, 55, 0.15);
 
-  /*  borders    */
-  --حد-واضح: rgba(168, 85, 247, 0.22); /* حد البطاقات                 */
-  --حد-خافت: rgba(168, 85, 247, 0.09); /* حد الحقول العادية           */
-  --حد-تركيز: #a855f7; /* حد الحقل عند الكتابة        */
+  /* Status Colors */
+  --success-main: #22c55e;
+  --success-subtle: rgba(34, 197, 94, 0.1);
+  --error-main: #ef4444;
+  --error-subtle: rgba(239, 68, 68, 0.1);
 
-  /*    التدرجات */
-  --تدرج-الأزرار: 
-  linear-gradient(
-    135deg,
-    #ff69b4,
-    #a855f7
-  );
-   /* وردي ← بنفسجي       */
-  /* linear-gradient(111.02deg, #CC97FF 0%, #9C48EA 100%); */
+  /* Shared Sizing */
+  --card-width: 500px;
+  --card-radius: 28px;
+  --card-margin: 80px auto 20px;
+  --input-radius: 10px;
+  --button-radius: 9999px;
+  --input-height: 44px;
+  --button-height: 48px;
+  --input-padding: 10px 13px;
+  --navbar-height: 64px;
 
-  --تدرج-ذهبي: linear-gradient(
-    135deg,
-    #d4af37,
-    #b76e79
-  ); /* أيقونة نسيت المرور  */
-  --تدرج-نجاح: linear-gradient(
-    135deg,
-    #22c55e,
-    #16a34a
-  ); /* أيقونة النجاح       */
-  --تدرج-خطأ: linear-gradient(
-    135deg,
-    #ef4444,
-    #dc2626
-  ); /* أيقونة الأدمن       */
-
-  /*     مقاسات البطاقة والحقول   */
-  --عرض-البطاقة: 500px;
-  --راديوس-البطاقة: 28px;
-  --مارجن-البطاقة: 100px auto 10px;
-  --راديوس-الحقل: 10px;
-  --راديوس-الزر: 9999px; /* دائري تماماً */
-  --ارتفاع-الحقل: 44px;
-  --ارتفاع-الزر: 48px;
-  --padding-الحقل: 10px 13px;
+  /* Avatar SVG tokens*/
+  --avatar-bg: rgba(236, 72, 153, 0.1); /* Soft pink/purple tint */
+  --avatar-fg: #db2777;                 /* Primary pink accent */
 }
 
-/* dark mode */
+/* ==========================================
+   PURPLE THEME (Black & Deep Royal Purple Degree)
+   ========================================== */
+:root[data-theme="purple"] {
+  --primary-main: var(--purple-dark);
+  --primary-subtle: rgba(126, 0, 166, 0.15);
 
-:root[data-theme="dark"] {
-  /*             النصوص                             */
-  --نص-رئيسي: #f2e8ff; /* أبيض بنفسجي  — العناوين         */
-  --نص-ثانوي: #c8aadf; /* بنفسجي فاتح  — نص مساعد         */
-  --نص-خافت: #7a5a9a; /* بنفسجي رمادي — Labels            */
-  --نص-placeholder: #452a64; /* بنفسجي داكن  — Placeholder       */
+  --text-primary: #f8f7fa;
+  --text-secondary: #cbaedc;
+  --text-muted: #79578c;
+  --text-placeholder: #452857;
 
-  /* back grounds  */
-  --خلفية-الصفحة: #07040f; /* أسود بنفسجي  — الصفحة كلها     */
-  --خلفية-2: #0e0819; /* بنفسجي داكن  — خلفية الحقول    */
-  --خلفية-3: #160c26; /*  (focus)بنفسجي       — الحقل عند استخدام  */
-  --خلفية-البطاقة: #1a0e2e; /* بنفس       — البطاقة          */
-  --خلفية-الزر: #ddb7ff; /* بنفسجي فاتح  — الأزرار        */
+  --bg-page: #07040f;
+  --bg-input: #0e0516;
+  --bg-input-focus: #180824;
+  --bg-card: #1c0a2b;
+  --bg-button: linear-gradient(135deg, var(--pink-main), var(--purple-dark));
+  --bg-button-hover: linear-gradient(135deg, #ff82c4, #9200c2);
 
-  /*     Navbar            */
-  --ناف-بار-خلفية: rgba(7, 4, 15, 0.8); /* أسود شفاف مع ضبابية */
-  --ناف-بار-حد: rgba(168, 85, 247, 0.09);
-  --ناف-بار-ارتفاع: 64px;
+  --border-prominent: rgba(126, 0, 166, 0.25);
+  --border-subtle: rgba(126, 0, 166, 0.1);
+  --border-focus: var(--purple-dark);
 
-  /*  shadows */
-  --ظل-البطاقة: 0 20px 60px rgba(75, 0, 130, 0.5);
-  --ظل-الزر: 0 4px 18px rgba(168, 85, 247, 0.35);
-  --ظل-الأيقونة: 0 8px 28px rgba(168, 85, 247, 0.35);
-  --ظل-تركيز-الحقل: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  --bg-navbar: rgba(7, 4, 15, 0.85);
+  --border-navbar: rgba(126, 0, 166, 0.15);
+  --bg-header: #1c0a2b;
+  --bg-footer: #0e0516;
 
-  --خلفية-الهيدر: #2d2836;
-  --خلفية-الفوتر: #1e1927;
-  --خلفية-هيدر-الاوردر: #1e1a2e; /* خلفية الهيدر في صفحة تفاصيل الطلب */
-  --خلفية-الكارت: #1e1927;
-  --خلفية-الاوردرات: #221d2b;
-  --خلفية-حالات-الاوردرات: ##2d2836;
+  --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-button: 0 4px 18px rgba(126, 0, 166, 0.35);
+  --shadow-focus: 0 0 0 3px rgba(126, 0, 166, 0.2);
+
+  --avatar-bg: #2e1065;                 /* Deep royal purple depth */
+  --avatar-fg: #f472b6;                 /* Light pink/purple contrast */
 }
 
-/* light mode */
-:root[data-theme="light"] {
-  /* backgrounds  */
-  --خلفية-الصفحة: #f7f2ff; /* لافندر فاتح  — الصفحة كلها      */
-  --خلفية-2: #eee5ff; /* لافندر       — خلفية الحقول     */
-  --خلفية-3: #e5d8fa; /*  (focus)لافندر أغمق  — الحقل عند استخدام */
-  --خلفية-البطاقة: #ffffff; /* أبيض         — البطاقة           */
-  --خلفية-الزر: #9a7ab0; /* بنفسجي رمادي  — الأزرار         */
+/* ==========================================
+   PINK THEME (Cosmetic Pink & White Degree)
+   ========================================== */
+:root[data-theme="pink"] {
+  --primary-main: var(--pink-main);             /* Pink is now the primary UI hero color */
+  --primary-subtle: rgba(255, 105, 180, 0.1);
 
-  /* navbar */
-  --ناف-بار-خلفية: rgba(247, 242, 255, 0.88);
-  --ناف-بار-حد: rgba(168, 85, 247, 0.1);
-  --ناف-بار-ارتفاع: 64px;
+  --text-primary: #251030;                       /* Soft Slate Dark Purple for High Readability */
+  --text-secondary: #68487a;
+  --text-muted: #a084b3;
+  --text-placeholder: #d1bfdd;
 
-  /*  النصوص     */
-  --نص-رئيسي: #2d1b47; /* بنفسجي داكن  — العناوين          */
-  --نص-ثانوي: #5a3a7a; /* بنفسجي       — نص مساعد          */
-  --نص-خافت: #9a7ab0; /* بنفسجي رمادي — Labels             */
-  --نص-placeholder: #c0a8d0; /* بنفسجي فاتح  — Placeholder        */
+  --bg-page: #fff8fb;                           /* Warm Soft Pink Tinted White */
+  --bg-input: #fdf0f6;                           /* Delicate Soft Pink Input */
+  --bg-input-focus: #fbe2ef;
+  --bg-card: #ffffff;                           /* Pure Clean White Surface */
+  --bg-button: linear-gradient(135deg, var(--pink-main), #ff8da1); /* All-Pink Dynamic Gradient */
+  --bg-button-hover: linear-gradient(135deg, #ff52a5, #ff758d);
 
-  /*  الظلال   */
-  --ظل-البطاقة: 0 20px 60px rgba(106, 27, 154, 0.12); /* أخف من الداكن  */
-  --ظل-الزر: 0 4px 18px rgba(168, 85, 247, 0.35);
-  --ظل-الأيقونة: 0 8px 28px rgba(106, 27, 154, 0.12);
-  --ظل-تركيز-الحقل: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  --border-prominent: rgba(255, 105, 180, 0.25); /* Pink Borders */
+  --border-subtle: rgba(255, 105, 180, 0.1);
+  --border-focus: var(--pink-main);
 
-  --خلفية-الهيدر: #f3f3f3;
-  --خلفية-الفوتر: #dbdada;
-  --خلفية-هيدر-الاوردر: #ffffff; /* خلفية الهيدر في صفحة تفاصيل الطلب */
-  --خلفية-الكارت: #ffffff; /* خلفية الطلب في صفحة تفاصيل الطلب */
-  --خلفية-الاوردرات: #ffffff;
-  --خلفية-حالات-الاوردرات: #ffffff;
+  --bg-navbar: rgba(255, 248, 251, 0.9);
+  --border-navbar: rgba(255, 105, 180, 0.12);
+  --bg-header: #fdf0f6;
+  --bg-footer: #f8e4ee;
+
+  --shadow-card: 0 20px 60px rgba(255, 105, 180, 0.08);
+  --shadow-button: 0 4px 18px rgba(255, 105, 180, 0.35);
+  --shadow-focus: 0 0 0 3px rgba(255, 105, 180, 0.25);
+}
+
+.avatar-bg-token {
+  fill: var(--avatar-bg);
+}
+
+.avatar-fg-token {
+  fill: var(--avatar-fg);
+  stroke: var(--avatar-fg);
 }

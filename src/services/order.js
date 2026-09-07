@@ -1,102 +1,123 @@
 import { getAccessToken } from "./authService";
-import axios from "axios";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
-const BASE_URL = `${API_BASE_URL}/order`;
+const BASE_URL = `/order`;
 
-export const placeOrder = async (setResponseMessage) => {
-  try {
-    const accessToken = await getAccessToken(setResponseMessage);
-    const res = await fetch(`${BASE_URL}/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({}),
-      credentials: "include",
-    });
-    return res;
-  } catch (error) {
-    throw error;
-  }
+// Helper function to create auth errors
+const createAuthError = () => {
+  const error = new Error("Your session has expired. Please login again.");
+  error.code = "AUTH_EXPIRED";
+  return error;
 };
 
-export const checkoutPayment = async (orderId, body, setResponseMessage) => {
-  try {
-    const accessToken = await getAccessToken(setResponseMessage);
-
-    const res = await fetch(`${BASE_URL}/${orderId}/payment`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body,
-      credentials: "include",
-    });
-
-    return res;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const getOrdersHistory = async (setResponseMessage) => {
-  try {
-    const accessToken = await getAccessToken(setResponseMessage);
-
-    const res = await axios.get(`${BASE_URL}/history`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      withCredentials: true,
-    });
-    return res.data;
-  } catch (error) {
-    if (error.response && error.response.data) {
-      throw error.response.data;
+// Helper function to handle fetch responses
+const handleResponse = async (response) => {
+  if (response.status === 401) {
+    const error = createAuthError();
+    // Try to get the response message for additional context
+    try {
+      const data = await response.json();
+      error.message = data.message || error.message;
+    } catch (e) {
+      // If response doesn't have JSON body, use default message
     }
-    throw new Error("خطأ فى جلب سجل الطلبات");
+    throw error;
   }
+  return response;
 };
 
-export const getOrderDetails = async (orderId, setResponseMessage) => {
-  try {
-    const accessToken = await getAccessToken(setResponseMessage);
+export const placeOrder = async () => {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw createAuthError();
+  }
+  
+  const res = await fetch(`${BASE_URL}/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({}),
+    credentials: "include",
+  });
+  
+  return handleResponse(res);
+};
 
-    const res = await axios.get(`${BASE_URL}/${orderId}`, {
+export const checkoutPayment = async (orderId, body) => {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw createAuthError();
+  }
+
+  const res = await fetch(`${BASE_URL}/${orderId}/payment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body,
+    credentials: "include",
+  });
+
+  return handleResponse(res);
+};
+
+export const getOrdersHistory = async () => {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw createAuthError();
+  }
+
+  const res = await fetch(`${BASE_URL}/history`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    withCredentials: true,
+  });
+
+  return handleResponse(res);
+};
+
+export const getOrderDetails = async (orderId) => {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw createAuthError();
+  }
+
+  const res = await fetch(`${BASE_URL}/${orderId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    withCredentials: true,
+  });
+  
+  return handleResponse(res);
+};
+
+export const cancelOrder = async (orderId, body) => {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    throw createAuthError();
+  }
+
+  const res = await fetch(
+    `http://localhost:8080/order/${orderId}/cancel`,
+    {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
       withCredentials: true,
-    });
+    },
+    body,
+  );
 
-    return res.data;
-  } catch (error) {
-    throw error.response.data;
-  }
-};
-
-export const cancelOrder = async (orderId, body, setResponseMessage) => {
-  try {
-    const accessToken = await getAccessToken(setResponseMessage);
-    const response = await axios.patch(
-      `http://localhost:8080/order/${orderId}/cancel`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        withCredentials: true,
-      },
-      body,
-    );
-
-    return response.data;
-  } catch (error) {
-    throw error.response.data;
-  }
+  return handleResponse(res);
 };

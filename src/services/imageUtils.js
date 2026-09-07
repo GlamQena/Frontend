@@ -1,5 +1,5 @@
-export const buildImgSrc = (imagePath) => {
-    if (!imagePath) {
+export const buildImgSrc = (imagePath, type = "product") => {
+    if (!imagePath && (type === "product" || type === "store")) {
         return '/images/default-product.png';
     }
     
