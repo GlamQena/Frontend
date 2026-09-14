@@ -560,11 +560,11 @@
     gap: 14px;
   }
 
-  .orders-filter-row--search {
+  /* .orders-filter-row--search {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-  }
+  } */
 
   .orders-search-group {
     min-width: auto;
@@ -606,8 +606,6 @@
   }
 
   .orders-status-buttons {
-    overflow-x: auto;
-    flex-wrap: nowrap;
     padding-bottom: 4px;
     -webkit-overflow-scrolling: touch;
     gap: 6px;
@@ -732,6 +730,12 @@
     height: 16px;
   }
 
+  .orders-filter-row--search {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
   .orders-filter-row-label {
     font-size: 12px;
   }

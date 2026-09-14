@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./OrderDetailsList.css";
 import { getUserRole } from "../services/users";
@@ -146,9 +146,46 @@ function buildImgSrc(imgPath) {
   if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
     return imgPath;
   }
-  const baseURL = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
+  const baseURL =
+    process.env.REACT_APP_API_URL || "https://glamqena-backend.vercel.app";
   const path = imgPath.replace(/\\/g, "/").replace(/^\/+/, "");
   return `/${path}`;
+}
+
+/**
+ * Normalize the payment status into a stable English key.
+ * Matches the logic used by OrdersList so both views agree.
+ */
+function resolvePaymentStatusKey(order, normalizedOrderStatus) {
+  const method = order?.payment?.method;
+  const rawStatus = order?.payment?.status;
+
+  const directMap = {
+    "قيد الانتظار": "pending",
+    "قيد المعالجة": "processing",
+    مكتمل: "completed",
+    فشل: "failed",
+    "تم الاسترداد": "refunded",
+    // English fallbacks in case backend ever returns them
+    pending: "pending",
+    processing: "processing",
+    completed: "completed",
+    failed: "failed",
+    refunded: "refunded",
+  };
+
+  if (rawStatus && directMap[String(rawStatus).trim()]) {
+    return directMap[String(rawStatus).trim()];
+  }
+
+  // Cash overrides — display-only (server remains source of truth)
+  if (method === "cash") {
+    if (normalizedOrderStatus === "cancelled") return "refunded";
+    if (normalizedOrderStatus === "delivered") return "completed";
+    return "pending";
+  }
+
+  return "pending";
 }
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
@@ -193,6 +230,56 @@ const StarIcon = () => (
       d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z"
       fill="currentColor"
     />
+  </svg>
+);
+
+// ─── Action Icons ────────────────────────────────────────────────────────────
+const ReorderIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+    <path d="M3 3v5h5" />
+  </svg>
+);
+
+const PaymentIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <line x1="2" y1="10" x2="22" y2="10" />
+  </svg>
+);
+
+const CancelCircleIcon = () => (
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <line x1="15" y1="9" x2="9" y2="15" />
+    <line x1="9" y1="9" x2="15" y2="15" />
   </svg>
 );
 
@@ -426,7 +513,6 @@ function ProductsList({
 
               {/* Right Side: Quantity + Price + Review */}
               <div className="od-product-right">
-                {/* Moved Quantity Here */}
                 <span className="od-prod-qty">الكمية: {quantity}</span>
                 <span className="od-prod-price">
                   {formatCurrency(subtotalPrice)}
@@ -462,23 +548,113 @@ function ProductsList({
           />
         </div>
       )}
-
-      {/* Store subtotals (only show for client/admin view)
-      {!isStoreOwner && allStores.length > 0 && (
-        <div className="od-products-subtotals">
-          {allStores.map((store, idx) => (
-            <div key={idx} className="od-store-subtotal">
-              <span>إجمالي {store.owner_store_id?.store_name || order.store_name || "—"}</span>
-              <span className="od-grand-highlight">{formatCurrency(store.store_subtotal || 0)}</span>
-            </div>
-          ))}
-        </div>
-      )} */}
     </div>
   );
 }
 
-// ─── Client Order View ──────────────────────────────────────────────────────
+// ─── Order Actions Bar ──────────────────────────────────────────────────────
+function OrderActionsBar({
+  order,
+  normalizedStatus,
+  isCancelled,
+  paymentStatusKey,
+  onCancel,
+  onReorder,
+  onCompletePayment,
+  actionLoading,
+}) {
+  const isPendingOrPreparing =
+    normalizedStatus === "pending" || normalizedStatus === "preparing";
+
+  const paymentMethod = order.payment?.method;
+
+  const canCompletePayment =
+    ["wallet", "card"].includes(paymentMethod) &&
+    ["pending", "processing", "failed"].includes(paymentStatusKey) &&
+    !isCancelled;
+
+  const showReorder = isCancelled;
+  const showCancel = isPendingOrPreparing && !isCancelled;
+  const showCompletePayment = canCompletePayment;
+
+  const hasAnyAction = showReorder || showCancel || showCompletePayment;
+
+  let actions_info = [];
+  if(showCancel)
+    actions_info.push("يمكنك إلغاء الطلب قبل بدء التجهيز")
+
+  if(showReorder)
+    actions_info.push("يمكنك إعادة طلب نفس المنتجات")
+
+  if(showCompletePayment)
+    actions_info.push("أكمل عملية الدفع لتأكيد الطلب")
+
+  if (!hasAnyAction) return null;
+
+  return (
+    <div className="od-actions-bar" role="region" aria-label="إجراءات الطلب">
+      <div className="od-actions-bar-inner">
+        <div className="od-actions-info">
+          <span className="od-actions-title">الإجراءات المتاحة</span>
+          <ul className="od-actions-list">
+            {actions_info.map((info, i) => (
+              <li key={i} className="od-actions-list-item">
+                {info}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="od-actions-buttons">
+          {showCompletePayment && (
+            <button
+              type="button"
+              className="od-action-btn od-action-btn--payment"
+              onClick={onCompletePayment}
+              disabled={
+                actionLoading === "cancel" || actionLoading === "reorder"
+              }
+            >
+              <PaymentIcon />
+              <span>إكمال الدفع</span>
+            </button>
+          )}
+
+          {showReorder && (
+            <button
+              type="button"
+              className="od-action-btn od-action-btn--reorder"
+              onClick={onReorder}
+              disabled={actionLoading === "reorder"}
+            >
+              <ReorderIcon />
+              <span>
+                {actionLoading === "reorder"
+                  ? "جاري إعادة الطلب..."
+                  : "إعادة الطلب"}
+              </span>
+            </button>
+          )}
+
+          {showCancel && (
+            <button
+              type="button"
+              className="od-action-btn od-action-btn--cancel"
+              onClick={onCancel}
+              disabled={actionLoading === "cancel"}
+            >
+              <CancelCircleIcon />
+              <span>
+                {actionLoading === "cancel" ? "جاري الإلغاء..." : "إلغاء الطلب"}
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Client Order View ──────────────────────────────────────────────────────
 function ClientOrderView({
   order,
@@ -503,7 +679,6 @@ function ClientOrderView({
     PAYMENT_STATUS_CONFIG.pending;
   const customerInfo = order.user_id;
 
-  // Get stores for subtotals
   const allStores = Array.isArray(order.products) ? order.products : [];
   const totalOrderPrice = order.total_price || 0;
 
@@ -694,33 +869,39 @@ function ClientOrderView({
               const storeName = store.owner_store_id?.store_name || "—";
               const storeSubtotal = Number(store.store_subtotal) || 0;
               const productCount = store.products?.length || 0;
+
+              // Percentage/bar only make sense when there are multiple stores to compare
+              const showBreakdown = allStores.length > 1;
               const percentage =
-                totalOrderPrice > 0
+                showBreakdown && totalOrderPrice > 0
                   ? ((storeSubtotal / totalOrderPrice) * 100).toFixed(1)
-                  : 0;
+                  : null;
 
               return (
-                <div key={idx} className="od-subtotal-item">
+                <div
+                  key={idx}
+                  className={`od-subtotal-item${showBreakdown ? "" : " od-subtotal-item--single"}`}
+                >
                   <div className="od-subtotal-item-info">
                     <span className="od-subtotal-item-name">{storeName}</span>
-                    <span className="od-subtotal-item-count">
-                      {productCount} منتج
-                    </span>
+                    <span className="od-subtotal-item-count">{productCount} منتج</span>
                   </div>
                   <div className="od-subtotal-item-value-wrapper">
                     <span className="od-subtotal-item-value">
                       {formatCurrency(storeSubtotal)}
                     </span>
-                    <span className="od-subtotal-item-percentage">
-                      {percentage}%
-                    </span>
+                    {showBreakdown && (
+                      <span className="od-subtotal-item-percentage">{percentage}%</span>
+                    )}
                   </div>
-                  <div className="od-subtotal-item-bar">
-                    <div
-                      className="od-subtotal-item-bar-fill"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
+                  {showBreakdown && (
+                    <div className="od-subtotal-item-bar">
+                      <div
+                        className="od-subtotal-item-bar-fill"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -906,12 +1087,14 @@ function AdminOrderView({ order, normalizedStatus, isCancelled }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function OrderDetailsList() {
   const navigate = useNavigate();
+  const t = useRef(null);
   const { id: orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [review, setReview] = useState(null);
   const [ratedProducts, setRatedProducts] = useState([]);
+  const [actionLoading, setActionLoading] = useState(null); // "cancel" | "reorder" | null
   const role = getUserRole();
 
   const storeMode = role === "store_owner";
@@ -923,6 +1106,10 @@ export default function OrderDetailsList() {
     fetchOrder();
   }, [orderId]);
 
+  useEffect(() => {
+    return () => clearTimeout(t.current);
+  }, []);
+
   const fetchOrder = async () => {
     try {
       setLoading(true);
@@ -930,10 +1117,70 @@ export default function OrderDetailsList() {
       const resData = await res.json();
       setOrder(resData.data);
     } catch (err) {
-      setError("تعذّر تحميل تفاصيل الطلب");
+      console.error("error fetching order details: ", JSON.stringify(err));
+      const msg = String(err?.message || "");
+      if (err?.code === "AUTH_EXPIRED" || msg.includes("session"))
+        setError("انتهت جلستك. يرجى تسجيل الدخول مرة أخرى");
+      else setError("تعذّر تحميل تفاصيل الطلب");
+      t.current = setTimeout(() => {
+        setError("");
+      }, 4000);
     } finally {
       setLoading(false);
     }
+  };
+
+  // ─── Action Handlers ──────────────────────────────────────────────────────
+  const handleCancelOrder = async () => {
+    if (!window.confirm("هل أنتِ متأكدة من إلغاء الطلب؟")) return;
+
+    setActionLoading("cancel");
+    try {
+      await api.patch(`/order/${order._id}/cancel`);
+      // Refresh the order so the tracking steps + badges update
+      await fetchOrder();
+    } catch (err) {
+      alert(err.response?.data?.message || "فشل إلغاء الطلب");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReorder = async () => {
+    if (!window.confirm("هل أنتِ متأكدة من إعادة الطلب؟")) return;
+
+    setActionLoading("reorder");
+    try {
+      await api.post(`/order/${order._id}/reorder`);
+      navigate("/shipping/info", {
+        state: {
+          orderId: order._id,
+          subtotal: order.subtotal_price,
+          shipping: 50,
+          total: order.total_price,
+        },
+      });
+    } catch (err) {
+      const message = err.response?.data?.message;
+      if (err.response?.status === 404 && message) {
+        alert(`❌ ${message}`);
+      } else {
+        alert("فشل إعادة الطلب");
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleCompletePayment = () => {
+    navigate("/shipping/info", {
+      state: {
+        orderId: order._id,
+        subtotal: order.subtotal_price,
+        shipping: 50,
+        total: order.total_price,
+      },
+    });
   };
 
   if (loading) {
@@ -955,6 +1202,7 @@ export default function OrderDetailsList() {
     STATUS_CONFIG[rawStatus] || STATUS_CONFIG["قيد الانتظار"];
   const displayId = order._id || order.order_id;
   const displayDate = order.createdAt || order.order_created_at;
+  const paymentStatusKey = resolvePaymentStatusKey(order, normalizedStatus);
 
   return (
     <div className="od-root" dir="rtl">
@@ -1025,6 +1273,20 @@ export default function OrderDetailsList() {
           order={order}
           normalizedStatus={normalizedStatus}
           isCancelled={isCancelled}
+        />
+      )}
+
+      {/* ─── Actions Bar (client only) ──────────────────────────────────── */}
+      {clientMode && (
+        <OrderActionsBar
+          order={order}
+          normalizedStatus={normalizedStatus}
+          isCancelled={isCancelled}
+          paymentStatusKey={paymentStatusKey}
+          onCancel={handleCancelOrder}
+          onReorder={handleReorder}
+          onCompletePayment={handleCompletePayment}
+          actionLoading={actionLoading}
         />
       )}
 

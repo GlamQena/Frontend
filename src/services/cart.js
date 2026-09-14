@@ -1,14 +1,11 @@
 import { getAccessToken, getSessionId, sid_AuthHeader } from "./authService";
-
-const API_BASE_URL =
-  process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/api/cart`;
+import { apiUrl } from "./apiConfig";
 
 export const addToCart = async (productId, quantity = 1) => {
   try {
     const { sid, headers } = await sid_AuthHeader();
 
-    const res = await fetch(`${BASE_URL}/product`, {
+    const res = await fetch(apiUrl("/cart/product"), {
       method: "POST",
       headers,
       credentials: "include",
@@ -28,7 +25,7 @@ export const removeFromCart = async (productId, storeId, removeAll) => {
   try {
     const { sid, headers } = await sid_AuthHeader();
 
-    const res = await fetch(`${BASE_URL}/product/${productId}`, {
+    const res = await fetch(apiUrl(`/cart/product/${productId}`), {
       method: "DELETE",
       headers,
       credentials: "include",
@@ -49,7 +46,7 @@ export const getCart = async () => {
   try {
     const { sid, headers } = await sid_AuthHeader();
 
-    const res = await fetch(`${BASE_URL}/?session_id=${sid}`, {
+    const res = await fetch(apiUrl(`/cart/?session_id=${sid}`), {
       headers,
       credentials: "include",
     });

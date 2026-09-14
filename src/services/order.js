@@ -1,8 +1,5 @@
 import { getAccessToken } from "./authService";
-
-const API_BASE_URL =
-  process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/api/order`;
+import { apiUrl } from "./apiConfig";
 
 // Helper function to create auth errors
 const createAuthError = () => {
@@ -33,7 +30,7 @@ export const placeOrder = async () => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/`, {
+  const res = await fetch(apiUrl("/order/"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -52,7 +49,7 @@ export const checkoutPayment = async (orderId, body) => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/${orderId}/payment`, {
+  const res = await fetch(apiUrl(`/order/${orderId}/payment`), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -65,13 +62,20 @@ export const checkoutPayment = async (orderId, body) => {
   return handleResponse(res);
 };
 
-export const getOrdersHistory = async () => {
+export const getOrdersHistory = async (params) => {
   const accessToken = await getAccessToken();
   if (!accessToken) {
     throw createAuthError();
   }
+  
+  const cleaned = Object.fromEntries(
+    Object.entries(params || {}).filter(
+      ([, v]) => v !== undefined && v !== null && v !== "",
+    ),
+  );
 
-  const res = await fetch(`${BASE_URL}/history`, {
+  const queryString = new URLSearchParams(cleaned).toString();
+  const res = await fetch(apiUrl(`/order/history?${queryString}`), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -89,7 +93,7 @@ export const getOrderDetails = async (orderId) => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/${orderId}`, {
+  const res = await fetch(apiUrl(`/order/${orderId}`), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -108,7 +112,7 @@ export const cancelOrder = async (orderId, body) => {
   }
 
   const res = await fetch(
-    `${BASE_URL}/${orderId}/cancel`,
+    apiUrl(`/order/${orderId}/cancel`),
     {
       method: "PATCH",
       headers: {

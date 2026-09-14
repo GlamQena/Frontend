@@ -564,7 +564,6 @@
 
 /* ── Breadcrumb Store ────────────────────────────────── */
 .breadcrumb {
-  align-self: flex-end;
   display: flex;
   align-items: center;
   gap: 8px;

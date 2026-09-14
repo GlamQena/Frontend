@@ -12,6 +12,7 @@
   margin: 0 auto;
   padding: 0 16px;
   min-height: 400px;
+  width: 70%;
 }
 
 /* ── List ────────────────────────────────────── */
@@ -521,7 +522,6 @@
   font-size: 20px;
   font-weight: 800;
   color: var(--text-primary);
-  background: var(--bg-card);
   padding: 2px 14px;
   border-radius: 8px;
   border: 1px solid var(--border-subtle);
@@ -713,37 +713,79 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
-  color: var(--text-muted);
-  gap: 12px;
-  background: var(--bg-card);
-  border-radius: var(--card-radius);
-  border: 1px solid var(--border-prominent);
-  min-height: 300px;
+  min-height: 60vh;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 0;
 }
 
 .ol-empty-icon {
-  font-size: 48px;
+  font-size: 72px;
+  margin-bottom: 20px;
   opacity: 0.6;
 }
 
+.ol-empty h2 {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
 .ol-empty p {
+  font-family: 'Tajawal', sans-serif;
   font-size: 16px;
-  font-weight: 600;
-  margin: 0;
   color: var(--text-secondary);
+  margin: 0 0 24px;
+  font-weight: 400;
+}
+
+.ol-empty-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 32px;
+  border: none;
+  border-radius: var(--button-radius);
+  background: var(--bg-button);
+  color: #ffffff;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-button);
+}
+
+.ol-empty-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+/* Compact variant used for loading state */
+.ol-empty--compact {
+  min-height: 200px;
+  padding: 40px 20px;
+}
+
+.ol-empty--compact .ol-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
 }
 
 /* ── Responsive ───────────────────────────────── */
 @media (max-width: 992px) {
   .ol-root {
     padding: 0 12px;
+    width: 80%;
   }
 }
 
 @media (max-width: 768px) {
   .ol-root {
     padding: 0 8px;
+    width: 90%;
   }
 
   .ol-card-header {
@@ -817,12 +859,15 @@
 
   .ol-foot-btns {
     width: 100%;
-    justify-content: stretch;
+    flex-wrap: wrap;                  /* allow rows to wrap */
+    gap: 8px;
+    justify-content: flex-start;
   }
 
   .ol-btn {
-    flex: 1;
-    justify-content: center;
+    flex: 0 1 auto;                   /* was: flex: 1 → natural width, may shrink */
+    min-width: 0;                     /* allow shrink below min-content */
+    max-width: 100%;                  /* never wider than the row */
     height: 34px;
     font-size: 12px;
     padding: 0 14px;
@@ -856,6 +901,7 @@
 @media (max-width: 480px) {
   .ol-root {
     padding: 0 4px;
+    width: 100%;
   }
 
   .ol-card {
@@ -891,7 +937,8 @@
   }
 
   .ol-btn {
-    width: 100%;
+    flex: none;                       /* don't grow in column direction */
+    width: 90%;
     justify-content: center;
   }
 

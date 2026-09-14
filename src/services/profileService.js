@@ -1,8 +1,5 @@
 import { getAccessToken } from "./authService";
-
-const API_BASE_URL =
-  process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/api/profile`;
+import { apiUrl } from "./apiConfig";
 
 // Helper function to create auth errors
 const createAuthError = () => {
@@ -33,7 +30,7 @@ export const getProfile = async () => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/`, {
+  const res = await fetch(apiUrl("/profile/"), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -51,7 +48,7 @@ export const changePassword = async (data) => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/change-password`, {
+  const res = await fetch(apiUrl("/profile/change-password"), {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -70,7 +67,7 @@ export const editAvatar = async (data) => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/avatar`, {
+  const res = await fetch(apiUrl("/profile/avatar"), {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -88,7 +85,7 @@ export const deleteAvatar = async () => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/avatar`, {
+  const res = await fetch(apiUrl("/profile/avatar"), {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -105,7 +102,7 @@ export const editStoreLogo = async (data) => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/store-logo`, {
+  const res = await fetch(apiUrl("/profile/store-logo"), {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -123,7 +120,7 @@ export const deleteStoreLogo = async () => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/store-logo`, {
+  const res = await fetch(apiUrl("/profile/store-logo"), {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -140,7 +137,7 @@ export const editProfile = async (data) => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/edit`, {
+  const res = await fetch(apiUrl("/profile/edit"), {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -159,7 +156,7 @@ export const deleteProfile = async () => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/delete`, {
+  const res = await fetch(apiUrl("/profile/delete"), {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

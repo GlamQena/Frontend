@@ -1524,7 +1524,7 @@
   .delivery-title { font-size: 20px; }
   .delivery-text { font-size: 14px; }
 
-  .footer-image { height: 280px; border-radius: 16px; }
+  .footer-image { height: auto; border-radius: 16px; }
   .footer-image-content { padding-right: 24px; }
   .footer-image-content h3 { font-size: 24px; }
   .footer-image-content p { font-size: 14px; }

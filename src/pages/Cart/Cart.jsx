@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Cart.css";
 import { addToCart, getCart, removeFromCart } from "../../services/cart";
-import { responseMessageSetter } from "../../services/authService";
+import { isUserLogged, responseMessageSetter } from "../../services/authService";
 import { 
   getCurrentUser, 
   isClient, 
@@ -210,6 +210,20 @@ export default function CartPage() {
 
   async function placeOrderHandler() {
     try {
+      if(!isUserLogged()){
+        responseMessageSetter(false, "يرجى تسجيل الدخول أولا لإكمال الشراء", setActionMsg);
+        
+        if (redirectTimeoutRef.current) {
+          clearTimeout(redirectTimeoutRef.current);
+        }
+        
+        redirectTimeoutRef.current = setTimeout(() => {
+          navigate('/login', { state: {returnTo: "/cart"} });
+        }, 2500);
+        
+        return;
+      }
+
       const res = await placeOrder();
       const json = await res.json();
       
@@ -223,7 +237,7 @@ export default function CartPage() {
               total: total
             }
           });
-        }, 2000);
+        }, 500);
       } else {
         responseMessageSetter(false, json.message || "حدث خطأ أثناء تأكيد الطلب", setActionMsg);
       }

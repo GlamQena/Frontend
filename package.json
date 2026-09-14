@@ -1,7 +1,6 @@
 {
-  "name": "reactapp",
+  "name": "glamqena",
   "version": "0.1.0",
-  "proxy": "https://glamqena-backend.vercel.app",
   "private": true,
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -39,5 +38,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "eslint-plugin-jest": "^25.7.0"
   }
 }

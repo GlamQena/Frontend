@@ -147,7 +147,7 @@ const ProductCard = ({
                 </div>
 
                 {/* Client Cart Button */}
-                {isClientUser && onAddToCart && (
+                {(!isLoggedIn || isClientUser) && onAddToCart && (
                     <button 
                         className={`full-width-cart-btn`}
                         onClick={handleAddToCartClick}

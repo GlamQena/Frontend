@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import OrdersList from "../../components/OrdersList";
 import "./Orders.css";
 import "../../components/OrdersList.css";
 import { getOrdersHistory } from "../../services/order";
 import { responseMessageSetter } from "../../services/authService";
-import { Search, X, ArrowUpDown, Filter, CreditCard, Package } from "lucide-react";
+import { Search, X, ArrowUpDown, CreditCard, Package } from "lucide-react";
 import Pagination from "../../components/Pagination";
 
 const SORT_OPTIONS = [
@@ -15,220 +15,209 @@ const SORT_OPTIONS = [
   { value: "price_low", label: "الأقل سعراً" },
 ];
 
-// Status color mapping for buttons
+const ORDER_STATUS_ORDER = [
+  "قيد الانتظار",
+  "جاري التجهيز",
+  "جاهز للتوصيل",
+  "قيد التوصيل",
+  "تم التوصيل",
+  "ملغي",
+];
+
+const PAYMENT_STATUS_ORDER = [
+  "قيد الانتظار",
+  "قيد المعالجة",
+  "مكتمل",
+  "فشل",
+  "تم الاسترداد",
+];
+
 const STATUS_COLORS = {
   "قيد الانتظار": { bg: "rgba(245, 158, 11, 0.12)", border: "#f59e0b", text: "#f59e0b" },
   "جاري التجهيز": { bg: "rgba(168, 85, 247, 0.12)", border: "#a855f7", text: "#a855f7" },
   "جاهز للتوصيل": { bg: "rgba(230, 16, 198, 0.12)", border: "#e610c6", text: "#e610c6" },
-  "قيد التوصيل": { bg: "rgba(59, 130, 246, 0.12)", border: "#3b82f6", text: "#3b82f6" },
-  "تم التوصيل": { bg: "rgba(34, 197, 94, 0.12)", border: "#22c55e", text: "#22c55e" },
-  "ملغي": { bg: "rgba(239, 68, 68, 0.12)", border: "#ef4444", text: "#ef4444" },
+  "قيد التوصيل":  { bg: "rgba(59, 130, 246, 0.12)", border: "#3b82f6", text: "#3b82f6" },
+  "تم التوصيل":   { bg: "rgba(34, 197, 94, 0.12)",  border: "#22c55e", text: "#22c55e" },
+  "ملغي":         { bg: "rgba(239, 68, 68, 0.12)",  border: "#ef4444", text: "#ef4444" },
 };
 
-// Payment status color mapping - MATCHES BACKEND MODEL
 const PAYMENT_STATUS_COLORS = {
   "قيد الانتظار": { bg: "rgba(245, 158, 11, 0.12)", border: "#f59e0b", text: "#f59e0b" },
-  "تم الاسترداد": { bg: "rgba(168, 85, 247, 0.12)", border: "#a855f7", text: "#a855f7" },
-  "فشل": { bg: "rgba(239, 68, 68, 0.12)", border: "#ef4444", text: "#ef4444" },
-  "مكتمل": { bg: "rgba(34, 197, 94, 0.12)", border: "#22c55e", text: "#22c55e" },
   "قيد المعالجة": { bg: "rgba(59, 130, 246, 0.12)", border: "#3b82f6", text: "#3b82f6" },
+  "مكتمل":        { bg: "rgba(34, 197, 94, 0.12)",  border: "#22c55e", text: "#22c55e" },
+  "فشل":          { bg: "rgba(239, 68, 68, 0.12)",  border: "#ef4444", text: "#ef4444" },
+  "تم الاسترداد": { bg: "rgba(168, 85, 247, 0.12)", border: "#a855f7", text: "#a855f7" },
 };
 
-// Payment status list - MATCHES BACKEND MODEL
-const PAYMENT_STATUS_LIST = [
-  { value: "قيد الانتظار", label: "قيد الانتظار" },
-  { value: "تم الاسترداد", label: "تم الاسترداد" },
-  { value: "فشل", label: "فشل" },
-  { value: "مكتمل", label: "مكتمل" },
-  { value: "قيد المعالجة", label: "قيد المعالجة" },
-];
+const FALLBACK_COLOR = {
+  bg: "var(--bg-input)",
+  border: "var(--border-subtle)",
+  text: "var(--text-secondary)",
+};
 
 export default function MyOrders() {
   const navigate = useNavigate();
+  const requestIdRef = useRef(0);
+
   const [orders, setOrders] = useState([]);
-  const [responseMessage, setResponseMessage] = useState({ success: false, message: "" });
+  const [summary, setSummary] = useState({
+    totalOrders: 0,
+    statusCounts: {},
+    paymentStatusCounts: {},
+  });
+  const [responseMessage, setResponseMessage] = useState({
+    success: false,
+    message: "",
+  });
   const [loading, setLoading] = useState(true);
-  
+
   // Search inputs
   const [orderIdSearch, setOrderIdSearch] = useState("");
   const [storeNameSearch, setStoreNameSearch] = useState("");
   const [productNameSearch, setProductNameSearch] = useState("");
-  
+
+  // Debounced mirrors
+  const [debouncedOrderId, setDebouncedOrderId] = useState("");
+  const [debouncedStoreName, setDebouncedStoreName] = useState("");
+  const [debouncedProductName, setDebouncedProductName] = useState("");
+
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Get unique statuses from orders with counts
-  const getStatusCounts = () => {
-    const counts = {};
-    orders.forEach(order => {
-      const status = order.status;
-      if (status) {
-        counts[status] = (counts[status] || 0) + 1;
-      }
-    });
-    return counts;
-  };
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedOrderId(orderIdSearch), 400);
+    return () => clearTimeout(t);
+  }, [orderIdSearch]);
 
-  // Get unique payment statuses from orders with counts
-  const getPaymentStatusCounts = () => {
-    const counts = {};
-    orders.forEach(order => {
-      const paymentStatus = order.payment?.status;
-      if (paymentStatus) {
-        counts[paymentStatus] = (counts[paymentStatus] || 0) + 1;
-      }
-    });
-    return counts;
-  };
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedStoreName(storeNameSearch), 400);
+    return () => clearTimeout(t);
+  }, [storeNameSearch]);
 
-  const statusCounts = getStatusCounts();
-  const paymentStatusCounts = getPaymentStatusCounts();
-  const availableStatuses = Object.keys(statusCounts);
-  const availablePaymentStatuses = Object.keys(paymentStatusCounts);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedProductName(productNameSearch), 400);
+    return () => clearTimeout(t);
+  }, [productNameSearch]);
 
-  // Check if any search filter is active
-  const hasSearchFilters = orderIdSearch || storeNameSearch || productNameSearch;
-
-  const getFilteredOrders = () => {
-    let filtered = [...orders];
-
-    // Order status filter
-    if (selectedStatus) {
-      filtered = filtered.filter(order => order.status === selectedStatus);
-    }
-
-    // Payment status filter - DIRECTLY from order.payment.status
-    if (selectedPaymentStatus) {
-      filtered = filtered.filter(order => order.payment?.status === selectedPaymentStatus);
-    }
-
-    // Search by Order ID
-    if (orderIdSearch.trim()) {
-      const query = orderIdSearch.trim().toLowerCase();
-      filtered = filtered.filter(order => 
-        order._id?.toLowerCase().includes(query)
-      );
-    }
-
-    // Search by Store Name
-    if (storeNameSearch.trim()) {
-      const query = storeNameSearch.trim().toLowerCase();
-      filtered = filtered.filter(order => {
-        if (order.products) {
-          for (const store of order.products) {
-            if (store.owner_store_id?.store_name?.toLowerCase().includes(query)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      });
-    }
-
-    // Search by Product Name
-    if (productNameSearch.trim()) {
-      const query = productNameSearch.trim().toLowerCase();
-      filtered = filtered.filter(order => {
-        if (order.products) {
-          for (const store of order.products) {
-            if (store.products) {
-              for (const product of store.products) {
-                if (product.name?.toLowerCase().includes(query)) {
-                  return true;
-                }
-              }
-            }
-          }
-        }
-        return false;
-      });
-    }
-
-    const sorted = [...filtered];
-    switch (sortBy) {
-      case "newest":
-        sorted.sort((a, b) => new Date(b.createdAt || b.order_date || 0) - new Date(a.createdAt || a.order_date || 0));
-        break;
-      case "oldest":
-        sorted.sort((a, b) => new Date(a.createdAt || a.order_date || 0) - new Date(b.createdAt || b.order_date || 0));
-        break;
-      case "price_high":
-        sorted.sort((a, b) => {
-          // Use Number() and fallback to 0 if undefined/null/NaN
-          const priceA = Number(a.total_price) || 0;
-          const priceB = Number(b.total_price) || 0;
-          return priceB - priceA;
-        });
-        break;
-      case "price_low":
-        sorted.sort((a, b) => {
-          const priceA = Number(a.total_price) || 0;
-          const priceB = Number(b.total_price) || 0;
-          return priceA - priceB;
-        });
-        break;
-      default:
-        break;
-    }
-
-    return sorted;
-  };
-
-  const filteredOrders = getFilteredOrders();
-  const totalFilteredCount = filteredOrders.length;
-  const totalPages = Math.ceil(totalFilteredCount / itemsPerPage);
-
-  const safeCurrentPage = Math.min(currentPage, totalPages || 1);
-
-  const paginatedOrders = filteredOrders.slice(
-    (safeCurrentPage - 1) * itemsPerPage,
-    safeCurrentPage * itemsPerPage
-  );
-  
   const fetchOrders = async () => {
+    const myRequestId = ++requestIdRef.current;
     setLoading(true);
+
     try {
-      const res = await getOrdersHistory();
+      const params = { sortBy };
+      if (selectedStatus)          params.status        = selectedStatus;
+      if (selectedPaymentStatus)   params.paymentStatus = selectedPaymentStatus;
+      if (debouncedOrderId)        params.orderId       = debouncedOrderId;
+      if (debouncedStoreName)      params.storeName     = debouncedStoreName;
+      if (debouncedProductName)    params.productName   = debouncedProductName;
+
+      const res = await getOrdersHistory(params);
+
+      if (myRequestId !== requestIdRef.current) return;
+
+      // getOrdersHistory returns a raw fetch Response, so parse it.
       const resData = await res.json();
-      console.log("Fetched orders history =>", resData.data);
-      setOrders(resData.data || []);
+
+      if (myRequestId !== requestIdRef.current) return;
+
+      if (!res.ok) {
+        setOrders([]);
+        responseMessageSetter(
+          false,
+          resData.message || "خطأ في جلب سجل الطلبات",
+          setResponseMessage,
+        );
+        return;
+      }
+
+      // Backend returns { success, count, summary, data } — but be
+      // defensive against alternative shapes.
+      const list = resData.data || resData.orders || [];
+      setOrders(Array.isArray(list) ? list : []);
+
+      if (resData.summary) {
+        setSummary({
+          totalOrders: resData.summary.totalOrders ?? 0,
+          statusCounts: resData.summary.statusCounts ?? {},
+          paymentStatusCounts: resData.summary.paymentStatusCounts ?? {},
+        });
+      }
     } catch (err) {
-      console.error(err);
-      responseMessageSetter(false, err.message || "خطأ في جلب سجل الطلبات", setResponseMessage);
+      if (myRequestId !== requestIdRef.current) return;
+
+      console.error(
+        "error fetching client orders history: ",
+        JSON.stringify(err),
+      );
+      setOrders([]);
+
+      const msg = String(err?.message || "");
+      if (err?.code === "AUTH_EXPIRED" || msg.includes("session")) {
+        responseMessageSetter(
+          false,
+          "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى",
+          setResponseMessage,
+        );
+      } else {
+        responseMessageSetter(
+          false,
+          msg || "خطأ في جلب سجل الطلبات",
+          setResponseMessage,
+        );
+      }
     } finally {
-      setLoading(false);
+      if (myRequestId === requestIdRef.current) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [
+    sortBy,
+    selectedStatus,
+    selectedPaymentStatus,
+    debouncedOrderId,
+    debouncedStoreName,
+    debouncedProductName,
+  ]);
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [orderIdSearch, storeNameSearch, productNameSearch, selectedStatus, selectedPaymentStatus, sortBy]);
+  }, [
+    debouncedOrderId,
+    debouncedStoreName,
+    debouncedProductName,
+    selectedStatus,
+    selectedPaymentStatus,
+    sortBy,
+  ]);
+
+  const totalFilteredCount = orders.length;
+  const totalPages = Math.ceil(totalFilteredCount / itemsPerPage);
+  const safeCurrentPage = Math.min(currentPage, totalPages || 1);
+
+  const paginatedOrders = orders.slice(
+    (safeCurrentPage - 1) * itemsPerPage,
+    safeCurrentPage * itemsPerPage,
+  );
+
+  const statusCounts = summary.statusCounts;
+  const paymentStatusCounts = summary.paymentStatusCounts;
+  const totalOrders = summary.totalOrders;
 
   const handleStatusChange = (id, status) => {
-    setOrders(prev =>
-      prev.map(o =>
-        o._id === id ? { ...o, status } : o
-      )
+    setOrders((prev) =>
+      prev.map((o) => {
+        const oid = o._id || o.order_id;
+        return oid === id ? { ...o, status } : o;
+      }),
     );
   };
 
-  // Count orders by status for header stats
-  const headerStatusCounts = orders.reduce((acc, order) => {
-    acc[order.status] = (acc[order.status] || 0) + 1;
-    return acc;
-  }, {});
-
-  const totalOrders = orders.length;
-
-  // Clear all filters
   const clearFilters = () => {
     setOrderIdSearch("");
     setStoreNameSearch("");
@@ -238,8 +227,13 @@ export default function MyOrders() {
     setSortBy("newest");
   };
 
-  const hasActiveFilters = orderIdSearch || storeNameSearch || productNameSearch || 
-                          selectedStatus || selectedPaymentStatus || sortBy !== "newest";
+  const hasActiveFilters =
+    orderIdSearch ||
+    storeNameSearch ||
+    productNameSearch ||
+    selectedStatus ||
+    selectedPaymentStatus ||
+    sortBy !== "newest";
 
   return (
     <div className="orders-page">
@@ -255,18 +249,24 @@ export default function MyOrders() {
               </p>
             </div>
           </div>
+
           <div className="orders-header-stats">
             <div className="orders-header-stat">
               <span className="orders-header-stat-value">{totalOrders}</span>
               <span>إجمالي</span>
             </div>
-            {Object.entries(headerStatusCounts).map(([status, count]) => {
-              const color = STATUS_COLORS[status]?.text || "var(--text-secondary)";
+            {ORDER_STATUS_ORDER.map((status) => {
+              const count = statusCounts[status] ?? 0;
+              const color =
+                STATUS_COLORS[status]?.text || "var(--text-secondary)";
               return (
                 <React.Fragment key={status}>
-                  <div className="orders-header-stat-divider"></div>
+                  <div className="orders-header-stat-divider" />
                   <div className="orders-header-stat">
-                    <span className="orders-header-stat-value" style={{ color }}>
+                    <span
+                      className="orders-header-stat-value"
+                      style={{ color }}
+                    >
                       {count}
                     </span>
                     <span>{status}</span>
@@ -292,7 +292,10 @@ export default function MyOrders() {
                   onChange={(e) => setOrderIdSearch(e.target.value)}
                 />
                 {orderIdSearch && (
-                  <button className="orders-search-clear" onClick={() => setOrderIdSearch("")}>
+                  <button
+                    className="orders-search-clear"
+                    onClick={() => setOrderIdSearch("")}
+                  >
                     <X size={14} />
                   </button>
                 )}
@@ -311,7 +314,10 @@ export default function MyOrders() {
                   onChange={(e) => setStoreNameSearch(e.target.value)}
                 />
                 {storeNameSearch && (
-                  <button className="orders-search-clear" onClick={() => setStoreNameSearch("")}>
+                  <button
+                    className="orders-search-clear"
+                    onClick={() => setStoreNameSearch("")}
+                  >
                     <X size={14} />
                   </button>
                 )}
@@ -330,7 +336,10 @@ export default function MyOrders() {
                   onChange={(e) => setProductNameSearch(e.target.value)}
                 />
                 {productNameSearch && (
-                  <button className="orders-search-clear" onClick={() => setProductNameSearch("")}>
+                  <button
+                    className="orders-search-clear"
+                    onClick={() => setProductNameSearch("")}
+                  >
                     <X size={14} />
                   </button>
                 )}
@@ -346,7 +355,7 @@ export default function MyOrders() {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                 >
-                  {SORT_OPTIONS.map(option => (
+                  {SORT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -363,118 +372,125 @@ export default function MyOrders() {
             </div>
           </div>
 
-          {/* Row 2: Order Status Buttons */}
-          {availableStatuses.length > 0 && (
-            <div className="orders-filter-row orders-filter-row--status">
-              <div className="orders-filter-row-label">
-                <Package size={16} />
-                <span>حالة الطلب</span>
-              </div>
-              <div className="orders-status-buttons">
-                <button
-                  className={`orders-status-btn ${!selectedStatus ? "active" : ""}`}
-                  onClick={() => setSelectedStatus("")}
-                >
-                  الكل
-                  <span className="orders-status-count">{totalOrders}</span>
-                </button>
-                {availableStatuses.map(status => {
-                  const colors = STATUS_COLORS[status] || { bg: "var(--bg-input)", border: "var(--border-subtle)", text: "var(--text-secondary)" };
-                  const isActive = selectedStatus === status;
-                  return (
-                    <button
-                      key={status}
-                      className={`orders-status-btn ${isActive ? "active" : ""}`}
-                      onClick={() => setSelectedStatus(isActive ? "" : status)}
+          {/* Row 2: Order Status Buttons — fixed order */}
+          <div className="orders-filter-row orders-filter-row--status">
+            <div className="orders-filter-row-label">
+              <Package size={16} />
+              <span>حالة الطلب</span>
+            </div>
+            <div className="orders-status-buttons">
+              <button
+                className={`orders-status-btn ${!selectedStatus ? "active" : ""}`}
+                onClick={() => setSelectedStatus("")}
+              >
+                الكل
+                <span className="orders-status-count">{totalOrders}</span>
+              </button>
+              {ORDER_STATUS_ORDER.map((status) => {
+                const colors = STATUS_COLORS[status] || FALLBACK_COLOR;
+                const isActive = selectedStatus === status;
+                const count = statusCounts[status] ?? 0;
+                return count !== 0 && (
+                  <button
+                    key={status}
+                    className={`orders-status-btn ${isActive ? "active" : ""}`}
+                    onClick={() => setSelectedStatus(isActive ? "" : status)}
+                    style={{
+                      borderColor: isActive ? colors.border : "transparent",
+                      background: isActive ? colors.bg : "transparent",
+                      color: isActive ? colors.text : "var(--text-secondary)",
+                      opacity: count === 0 && !isActive ? 0.5 : 1,
+                    }}
+                  >
+                    {status}
+                    <span
+                      className="orders-status-count"
                       style={{
-                        borderColor: isActive ? colors.border : "transparent",
-                        background: isActive ? colors.bg : "transparent",
+                        background: isActive ? colors.bg : "var(--bg-input)",
                         color: isActive ? colors.text : "var(--text-secondary)",
                       }}
                     >
-                      {status}
-                      <span 
-                        className="orders-status-count"
-                        style={{
-                          background: isActive ? colors.bg : "var(--bg-input)",
-                          color: isActive ? colors.text : "var(--text-secondary)",
-                        }}
-                      >
-                        {statusCounts[status] || 0}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
 
-          {/* Row 3: Payment Status Buttons */}
-          {availablePaymentStatuses.length > 0 && (
-            <div className="orders-filter-row orders-filter-row--payment">
-              <div className="orders-filter-row-label">
-                <CreditCard size={16} />
-                <span>حالة الدفع</span>
-              </div>
-              <div className="orders-status-buttons">
-                <button
-                  className={`orders-status-btn ${!selectedPaymentStatus ? "active" : ""}`}
-                  onClick={() => setSelectedPaymentStatus("")}
-                >
-                  الكل
-                  <span className="orders-status-count">{totalOrders}</span>
-                </button>
-                {availablePaymentStatuses.map(status => {
-                  const colors = PAYMENT_STATUS_COLORS[status] || { bg: "var(--bg-input)", border: "var(--border-subtle)", text: "var(--text-secondary)" };
-                  const isActive = selectedPaymentStatus === status;
-                  return (
-                    <button
-                      key={status}
-                      className={`orders-status-btn ${isActive ? "active" : ""}`}
-                      onClick={() => setSelectedPaymentStatus(isActive ? "" : status)}
+          {/* Row 3: Payment Status Buttons — fixed order */}
+          <div className="orders-filter-row orders-filter-row--payment">
+            <div className="orders-filter-row-label">
+              <CreditCard size={16} />
+              <span>حالة الدفع</span>
+            </div>
+            <div className="orders-status-buttons">
+              <button
+                className={`orders-status-btn ${!selectedPaymentStatus ? "active" : ""}`}
+                onClick={() => setSelectedPaymentStatus("")}
+              >
+                الكل
+                <span className="orders-status-count">{totalOrders}</span>
+              </button>
+              {PAYMENT_STATUS_ORDER.map((status) => {
+                const colors = PAYMENT_STATUS_COLORS[status] || FALLBACK_COLOR;
+                const isActive = selectedPaymentStatus === status;
+                const count = paymentStatusCounts[status] ?? 0;
+                return count !== 0 &&(
+                  <button
+                    key={status}
+                    className={`orders-status-btn ${isActive ? "active" : ""}`}
+                    onClick={() =>
+                      setSelectedPaymentStatus(isActive ? "" : status)
+                    }
+                    style={{
+                      borderColor: isActive ? colors.border : "transparent",
+                      background: isActive ? colors.bg : "transparent",
+                      color: isActive ? colors.text : "var(--text-secondary)",
+                      opacity: count === 0 && !isActive ? 0.5 : 1,
+                    }}
+                  >
+                    {status}
+                    <span
+                      className="orders-status-count"
                       style={{
-                        borderColor: isActive ? colors.border : "transparent",
-                        background: isActive ? colors.bg : "transparent",
+                        background: isActive ? colors.bg : "var(--bg-input)",
                         color: isActive ? colors.text : "var(--text-secondary)",
                       }}
                     >
-                      {status}
-                      <span 
-                        className="orders-status-count"
-                        style={{
-                          background: isActive ? colors.bg : "var(--bg-input)",
-                          color: isActive ? colors.text : "var(--text-secondary)",
-                        }}
-                      >
-                        {paymentStatusCounts[status] || 0}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
         </div>
 
         {/* Results count */}
         {!loading && (
           <div className="orders-results-count">
-            <span>عرض {paginatedOrders.length} من {filteredOrders.length} طلب</span>
+            <span>
+              عرض {paginatedOrders.length} من {orders.length} طلب
+            </span>
           </div>
         )}
 
         {/* Orders List */}
         <OrdersList
           orders={paginatedOrders}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
           onStatusChange={handleStatusChange}
           loading={loading}
           headerTitle=""
           onCancelSuccess={(orderId) => {
             if (orderId) {
               setOrders((prev) =>
-                prev.map((o) =>
-                  o._id === orderId ? { ...o, status: "ملغي" } : o
-                )
+                prev.map((o) => {
+                  const oid = o._id || o.order_id;
+                  return oid === orderId ? { ...o, status: "ملغي" } : o;
+                }),
               );
             } else {
               fetchOrders();
@@ -483,10 +499,10 @@ export default function MyOrders() {
         />
 
         {/* Pagination */}
-        {!loading && filteredOrders.length > 0 && totalPages > 1 && (
+        {!loading && orders.length > 0 && totalPages > 1 && (
           <div className="orders-pagination-wrapper">
             <Pagination
-              currentPage={currentPage}
+              currentPage={safeCurrentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />

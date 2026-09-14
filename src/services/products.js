@@ -1,23 +1,34 @@
-import { api } from './authService';
-import { getCurrentUser } from './users';
+import { api } from "./authService";
+import { getCurrentUser } from "./users";
 
 const getStoreId = () => {
   const user = getCurrentUser();
   if (!user) return null;
-  return user._id;  
+  return user._id;
 };
 
 // ─────────────────────────────────────────────
-// 1. (GET /stores/:id/products)
+// Store products (with server-side search/filter/sort)
 // ─────────────────────────────────────────────
-export const getProducts = async (storeId) => {
-  // const storeId = getStoreId();
+export const getStoreProducts = async (storeId, params = {}) => {
   if (!storeId) {
-    console.warn('Store ID not found');
-    return { data: { products: [], store: getCurrentUser()} };
+    console.warn("getStoreProducts: missing storeId");
+    return { data: { store: null, products: [] } };
   }
-  
-  const response = await api.get(`/stores/${storeId}`);
+
+  // Strip empty/undefined values so they don't get serialized as "undefined"
+  const cleaned = Object.fromEntries(
+    Object.entries(params).filter(
+      ([, v]) => v !== undefined && v !== null && v !== "" && v !== "all",
+    ),
+  );
+
+  const queryString = new URLSearchParams(cleaned).toString();
+  const url = queryString
+    ? `/stores/${storeId}?${queryString}`
+    : `/stores/${storeId}`;
+
+  const response = await api.get(url);
   return response.data;
 };
 
@@ -25,8 +36,8 @@ export const getProducts = async (storeId) => {
 // 2.(POST /products)
 // ─────────────────────────────────────────────
 export const addProduct = async (formData) => {
-  const response = await api.post('/products', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+  const response = await api.post("/products", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
 };
@@ -36,7 +47,7 @@ export const addProduct = async (formData) => {
 // ─────────────────────────────────────────────
 export const updateProduct = async (id, formData) => {
   const response = await api.put(`/products/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+    headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
 };
@@ -53,30 +64,33 @@ export const deleteProduct = async (id) => {
 // 5.(GET /categories)
 // ─────────────────────────────────────────────
 export const getCategories = async () => {
-  const response = await api.get('/categories?limit=100&page=1&sortBy=name&sortOrder=asc');
+  const response = await api.get(
+    "/categories?limit=100&page=1&sortBy=name&sortOrder=asc",
+  );
   return response.data;
 }; //for admin dashboard
 
 // ─────────────────────────────────────────────
-// 6.   (GET /products/special) - 
+// 6.   (GET /products/special) -
 // ─────────────────────────────────────────────
 export const getSpecialProducts = async (params = {}) => {
   try {
-    const { limit = 4, status = 'قيد الانتظار', start_date, end_date } = params;
-    
+    const { limit = 4, status = "قيد الانتظار", start_date, end_date } = params;
+
     // بناء query string
     const queryParams = new URLSearchParams();
-    queryParams.append('limit', limit);
-    queryParams.append('status', status);
-    if (start_date) queryParams.append('start_date', start_date);
-    if (end_date) queryParams.append('end_date', end_date);
-    
+    queryParams.append("limit", limit);
+    queryParams.append("status", status);
+    if (start_date) queryParams.append("start_date", start_date);
+    if (end_date) queryParams.append("end_date", end_date);
+
     // استخدام الـ api instance
-    const response = await api.get(`/products/special?${queryParams.toString()}`);
+    const response = await api.get(
+      `/products/special?${queryParams.toString()}`,
+    );
     return response.data;
-    
   } catch (error) {
-    console.error('Error in getSpecialProducts:', error);
+    console.error("Error in getSpecialProducts:", error);
     throw error;
   }
 };
@@ -89,13 +103,13 @@ export const getProductById = async (productId) => {
     const response = await api.get(`/products/${productId}`);
     return response.data;
   } catch (error) {
-    console.error('Error in getProductById:', error);
+    console.error("Error in getProductById:", error);
     throw error;
   }
 };
 
 // ─────────────────────────────────────────────
-// 8.   (GET /products) 
+// 8.   (GET /products)
 // ─────────────────────────────────────────────
 export const getAllProducts = async (params = {}) => {
   try {
@@ -103,7 +117,7 @@ export const getAllProducts = async (params = {}) => {
     const response = await api.get(`/products?${queryParams.toString()}`);
     return response.data;
   } catch (error) {
-    console.error('Error in getAllProducts:', error);
+    console.error("Error in getAllProducts:", error);
     throw error;
   }
 };
@@ -114,7 +128,9 @@ export const getAllProducts = async (params = {}) => {
 // ─────────────────────────────────────────────
 export const toggleProductStatus = async (id, isActive) => {
   try {
-    const response = await api.patch(`/products/${id}/activation?activate=${isActive}`);
+    const response = await api.patch(
+      `/products/${id}/activation?activate=${isActive}`,
+    );
     return response.data;
   } catch (error) {
     throw error.response?.data || error;

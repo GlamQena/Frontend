@@ -1,10 +1,7 @@
 import axios from "axios";
 import * as yup from "yup";
 import { getCurrentUser } from "./users";
-import { getProfile } from "./profileService";
-
-const API_BASE_URL = process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/api/auth`;
+import { API_BASE_URL, apiUrl } from "./apiConfig";
 
 // ─────────────────────────────────────────────
 // AXIOS INSTANCE
@@ -104,7 +101,7 @@ const refreshAccessToken = async () => {
       return null;
     }
 
-    const response = await fetch(`${BASE_URL}/refresh-token`, {
+    const response = await fetch(apiUrl("/auth/refresh-token"), {
       method: "GET",
       credentials: "include",
       headers: {
@@ -173,7 +170,7 @@ const beforeUnloadHandler = async () => {
 
 export const registerUser = async (data) => {
   try {
-    const response = await axios.post(`${BASE_URL}/register`, data);
+    const response = await axios.post(apiUrl("/auth/register?platform=web"), data);
     return response.data;
   } catch (error) {
     throw error.response.data;
@@ -184,7 +181,7 @@ export const login = async (bodyData) => {
   try {
     console.log("login fetch entry...");
 
-    const response = await fetch(`${BASE_URL}/login`, {
+    const response = await fetch(apiUrl("/auth/login"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -203,7 +200,7 @@ export const activateAccount = async (bodyData) => {
   try {
     console.log("activate account fetch entry...");
 
-    const response = await fetch(`${BASE_URL}/activation/activate`, {
+    const response = await fetch(apiUrl("/auth/activation/activate"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -222,7 +219,7 @@ export const resendActivationOTP = async (bodyData) => {
   try {
     console.log("resend activation OTP fetch entry...");
 
-    const response = await fetch(`${BASE_URL}/activation/resend-otp`, {
+    const response = await fetch(apiUrl("/auth/activation/resend-otp"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -239,7 +236,7 @@ export const resendActivationOTP = async (bodyData) => {
 
 export const sendOtp = async (data) => {
   try {
-    const response = await fetch(`${BASE_URL}/password/send-otp`, {
+    const response = await fetch(apiUrl("/auth/password/send-otp"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -253,7 +250,7 @@ export const sendOtp = async (data) => {
 
 export const verifyOtp = async (data) => {
   try {
-    const response = await fetch(`${BASE_URL}/password/verify-otp`, {
+    const response = await fetch(apiUrl("/auth/password/verify-otp"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -267,7 +264,7 @@ export const verifyOtp = async (data) => {
 
 export const resetPassword = async (data) => {
   try {
-    const response = await fetch(`${BASE_URL}/password/reset`, {
+    const response = await fetch(apiUrl("/auth/password/reset"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -281,7 +278,7 @@ export const resetPassword = async (data) => {
 
 export const getEmailToken = async (email) => {
   try {
-    const res = await fetch(`${BASE_URL}/email/send-token`, {
+    const res = await fetch(apiUrl("/auth/email/send-token?platform=web"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -297,7 +294,7 @@ export const getEmailToken = async (email) => {
 
 export const verifyEmail = async (email, token) => {
   try {
-    const res = await fetch(`${BASE_URL}/verify/${email}/${token}`, {
+    const res = await fetch(apiUrl("/auth/verify/${email}/${token}"), {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -315,7 +312,7 @@ export const logout = async () => {
     const session_id = localStorage.getItem("session_id");
 
     const response = await fetch(
-      `${BASE_URL}/logout${session_id ? `?session_id=${session_id}` : ""}`,
+      apiUrl(`/auth/logout${session_id ? `?session_id=${session_id}` : ""}`),
       { method: "DELETE" },
     );
 

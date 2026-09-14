@@ -1,8 +1,5 @@
 import { getCurrentUser } from "./users";
-
-const API_BASE_URL =
-  process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/api/stores`;
+import { apiUrl } from "./apiConfig";
 
 // ─────────────────────────────────────────────
 // STORE HELPER
@@ -21,7 +18,7 @@ export const getStoreInfo = () => {
 
 export const getStores = async () => {
   try {
-    const res = await fetch(`${BASE_URL}/`, {
+    const res = await fetch(apiUrl("/stores/"), {
       headers: {
         "Content-Type": "application/json",
       },
@@ -34,7 +31,7 @@ export const getStores = async () => {
 
 export const getStoreProducts = async (store_id) => {
   try {
-    const res = await fetch(`${BASE_URL}/${store_id}/products`, {
+    const res = await fetch(apiUrl(`/stores/${store_id}`), {
       headers: {
         "Content-Type": "application/json",
       },

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+import { ArrowLeft, X } from "lucide-react";
 import "./OrdersList.css";
 import { getUserRole } from "../services/users";
 import { api, isUserLogged } from "../services/authService";
@@ -312,6 +313,8 @@ function countProducts(order) {
 
 export default function OrdersList({
   orders: ordersProp = [],
+  hasActiveFilters = false,
+  onClearFilters,
   onCancelSuccess,
   onStatusChange,
   headerTitle = "الطلبات",
@@ -323,17 +326,7 @@ export default function OrdersList({
   const clientMode = role === "client";
   const isAdmin = role === "admin";
 
-  const filtered = ordersProp
-    .filter((o) => o) // Remove null/undefined
-    .sort((a, b) => {
-      const dateA = new Date(
-        a.createdAt || a.order_date || a.order_created_at || 0,
-      );
-      const dateB = new Date(
-        b.createdAt || b.order_date || b.order_created_at || 0,
-      );
-      return dateB - dateA;
-    });
+  const filtered = ordersProp.filter((o) => o); // Remove null/undefined
 
   async function cancelOrder(orderId) {
     if (!window.confirm("هل أنتِ متأكدة من إلغاء الطلب؟")) return;
@@ -371,8 +364,7 @@ export default function OrdersList({
     if (!imgPath) return null;
     if (imgPath.includes("uploads")) {
       const apiUrl =
-        process.env.EXPRESS_APP_API_URL ||
-        "https://glamqena-backend.vercel.app";
+        process.env.REACT_APP_API_URL || "https://glamqena-backend.vercel.app";
       return imgPath.replace(/\\/g, "//").replace("uploads", apiUrl);
     }
     return imgPath;
@@ -388,7 +380,7 @@ export default function OrdersList({
 
   if (loading) {
     return (
-      <div className="ol-empty">
+      <div className="ol-empty ol-empty--compact">
         <span className="ol-empty-icon">⏳</span>
         <p>جاري التحميل...</p>
       </div>
@@ -396,10 +388,65 @@ export default function OrdersList({
   }
 
   if (!ordersProp || ordersProp.length === 0) {
+    const emptyState = hasActiveFilters
+      ? {
+          icon: "🔍",
+          title: "لا توجد نتائج مطابقة",
+          message:
+            "لم نجد أي طلبات تطابق الفلاتر الحالية. جرّب تعديل البحث أو إعادة ضبط الفلاتر.",
+          cta: onClearFilters
+            ? {
+                label: "مسح الفلاتر",
+                icon: <X size={18} />,
+                onClick: onClearFilters,
+              }
+            : null,
+        }
+      : clientMode
+        ? {
+            icon: "🛍️",
+            title: "لا يوجد طلبات بعد",
+            message:
+              "لم تقم بأي طلب حتى الآن. ابدأ التسوق واكتشف منتجاتنا",
+            cta: {
+              label: "تصفح المنتجات",
+              icon: <ArrowLeft size={18} />,
+              onClick: () => navigate("/stores"),
+            },
+          }
+        : storeMode
+          ? {
+              icon: "📦",
+              title: "لا يوجد طلبات بعد",
+              message:
+                "ستظهر الطلبات هنا بمجرد أن يبدأ العملاء بالشراء من متجرك. تأكد من أن منتجاتك نشطة ومتاحة للعرض.",
+              cta: {
+                label: "إدارة المنتجات",
+                icon: <ArrowLeft size={18} />,
+                onClick: () =>
+                  navigate("/dashboard/store_owner/products"),
+              },
+            }
+          : {
+              icon: "📭",
+              title: "لا يوجد طلبات بعد",
+              message: "لا توجد طلبات لعرضها حالياً",
+              cta: null,
+            };
+
     return (
       <div className="ol-empty">
-        <span className="ol-empty-icon">🛍️</span>
-        <p>لا يوجد طلبات</p>
+        {emptyState.icon && (
+          <span className="ol-empty-icon">{emptyState.icon}</span>
+        )}
+        <h2>{emptyState.title}</h2>
+        <p>{emptyState.message}</p>
+        {emptyState.cta && (
+          <button className="ol-empty-btn" onClick={emptyState.cta.onClick}>
+            {emptyState.cta.icon}
+            <span>{emptyState.cta.label}</span>
+          </button>
+        )}
       </div>
     );
   }

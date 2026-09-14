@@ -20,12 +20,12 @@ export const buildImgSrc = (imagePath, type = "product") => {
     // Remove any leading 'uploads/' to avoid duplication
     formattedPath = formattedPath.replace(/^uploads\//, "");
     // Return full URL with base
-    return `${process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app"}/uploads/${formattedPath}`;
+    return `${process.env.REACT_APP_API_URL || "https://glamqena-backend.vercel.app"}/uploads/${formattedPath}`;
   }
 
   // If it's just a filename
   if (!imagePath.startsWith("/")) {
-    return `${process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app"}/uploads/${imagePath}`;
+    return `${process.env.REACT_APP_API_URL || "https://glamqena-backend.vercel.app"}/uploads/${imagePath}`;
   }
 
   // Default fallback

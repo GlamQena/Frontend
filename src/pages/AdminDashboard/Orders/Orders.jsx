@@ -11,7 +11,7 @@ export default function AdminOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-       const res = await api.get("/order/admin/orders");
+       const res = await api.get("/order/admin");
         setOrders(res.data.data || []);
       } catch (err) {
         if (err.response?.status === 401) navigate("/login");

@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./StoreProducts.css";
 import ProductCard from '../../components/ProductCard.jsx';
-import { getProducts, getCategories } from "../../services/products.js";
+import { getStoreProducts, getCategories } from "../../services/products.js";
 import { buildImgSrc } from '../../services/imageUtils.js';
 import { responseMessageSetter } from "../../services/authService.js";
 import { getCurrentUser, isClient, getWishlist, addToWishlist, removeFromWishlist } from "../../services/users.js";
@@ -39,7 +39,7 @@ export default function StoreProducts() {
     const fetchStoreDataAndProducts = async () => {
         setIsLoading(true);
         try {
-            const productsRes = await getProducts(storeId);
+            const productsRes = await getStoreProducts(storeId);
 
             if (!productsRes.success) {
                 responseMessageSetter(false, productsRes.message || "خطأ فى جلب منتجات المتجر", setError);

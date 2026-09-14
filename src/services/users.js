@@ -1,8 +1,5 @@
 import { getAccessToken } from "./authService";
-
-const API_BASE_URL =
-  process.env.EXPRESS_APP_API_URL || "https://glamqena-backend.vercel.app";
-const BASE_URL = `/api/users`;
+import { apiUrl } from "./apiConfig";
 
 // ─────────────────────────────────────────────
 // GET USER FROM LOCAL STORAGE
@@ -62,7 +59,7 @@ export const getWishlist = async () => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/me/wishlist`, {
+  const res = await fetch(apiUrl("/users/me/wishlist"), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -81,7 +78,7 @@ export const addToWishlist = async (prod_id) => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/me/wishlist?productId=${prod_id}`, {
+  const res = await fetch(apiUrl(`/users/me/wishlist?productId=${prod_id}`), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -100,7 +97,7 @@ export const removeFromWishlist = async (prod_id) => {
     throw createAuthError();
   }
 
-  const res = await fetch(`${BASE_URL}/me/wishlist?productId=${prod_id}`, {
+  const res = await fetch(apiUrl(`/users/me/wishlist?productId=${prod_id}`), {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

@@ -21,6 +21,11 @@ const Login = () => {
   const token = params.get("token");
   const email = params.get("email");
   const role = params.get("role");
+  let returnTo = null;
+
+  if(location?.state?.returnTo){
+    returnTo = location?.state?.returnTo;
+  }
   
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -142,6 +147,11 @@ const Login = () => {
         localStorage.setItem("refreshToken", data.refreshToken);
 
         setTimeout(() => {
+          if(returnTo){
+            navigate(returnTo);
+            return;
+          }
+          
           if (user.role === "store_owner") {
             navigate("/dashboard/store_owner");
           } else if (user.role === "admin") {
