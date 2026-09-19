@@ -1,0 +1,184 @@
+.app-redirect-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: "Hanken Grotesk", "Segoe UI", Tahoma, sans-serif;
+
+  background-image: radial-gradient(
+    120% 80% at 50% -10%,
+    var(--primary-subtle) 0%,
+    transparent 60%
+  );
+}
+
+/* ─────────────────────────── Card ─────────────────────────── */
+
+.app-redirect-card {
+  width: 100%;
+  max-width: var(--card-width, 500px);
+  padding: 36px 28px 28px;
+
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--card-radius, 28px);
+
+  box-shadow: var(--shadow-card);
+  text-align: center;
+
+  animation: appRedirectFadeIn 0.35s ease-out;
+}
+
+@keyframes appRedirectFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────────── Brand mark ───────────────────── */
+
+.app-redirect-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  font-family: "Playfair Display", serif;
+  line-height: 1;
+}
+
+.app-redirect-brand .brand-glam {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary-main);
+  letter-spacing: 0.4px;
+}
+
+.app-redirect-brand .brand-qena {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.4px;
+}
+
+.app-redirect-brand .brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold-main);
+  box-shadow:
+    0 0 8px rgba(212, 175, 55, 0.55),
+    0 0 18px rgba(212, 175, 55, 0.18);
+  flex-shrink: 0;
+  transform: translateY(2px);
+}
+
+/* ─────────────────────────── Spinner ──────────────────────── */
+
+.app-redirect-spinner {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--primary-main);
+
+  animation: appRedirectSpin 0.8s linear infinite;
+}
+
+@keyframes appRedirectSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────── Icon ─────────────────────────── */
+
+.app-redirect-icon {
+  font-size: 42px;
+  line-height: 1;
+  margin-bottom: 18px;
+}
+
+/* ─────────────────────────── Text ─────────────────────────── */
+
+.app-redirect-title {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--text-primary);
+}
+
+.app-redirect-subtitle {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+/* ─────────────────────────── Buttons ──────────────────────── */
+
+.app-redirect-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: var(--button-height, 48px);
+  padding: 0 22px;
+
+  border-radius: var(--button-radius, 9999px);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease;
+}
+
+.app-redirect-btn:active {
+  transform: scale(0.97);
+}
+
+.app-redirect-btn--primary {
+  background: var(--bg-button);
+  color: #ffffff;
+  box-shadow: var(--shadow-button);
+}
+
+.app-redirect-btn--primary:hover {
+  background: var(--bg-button-hover);
+  transform: translateY(-1px);
+}
+
+/* ─────────────────────────── Responsive ───────────────────── */
+
+@media (max-width: 480px) {
+  .app-redirect-card {
+    padding: 28px 20px 22px;
+    border-radius: 22px;
+  }
+  .app-redirect-title { font-size: 18px; }
+  .app-redirect-subtitle { font-size: 13px; }
+  .app-redirect-brand .brand-glam,
+  .app-redirect-brand .brand-qena { font-size: 19px; }
+}
+
+/* ─────────────────────────── Reduced motion ───────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .app-redirect-spinner { animation: none; }
+  .app-redirect-card { animation: none; }
+  .app-redirect-btn:hover { transform: none; }
+}

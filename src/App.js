@@ -35,6 +35,9 @@ import StoreOwnerActiveClients from "./pages/StoreOwnerDashboard/ActiveClients/A
 import AdminOrders from "./pages/AdminDashboard/Orders/Orders";
 import AdminOrderDetails from "./pages/AdminDashboard/Orders/OrderDetails";
 
+// AppRedirect
+import AppRedirect from "./pages/AppRedirect/AppRedirect.jsx";
+
 // 404
 import NotFound from "./pages/NotFound/NotFound";
 
@@ -76,6 +79,9 @@ function App() {
         {/* ── AdminDashboard ── */}
         <Route path="/dashboard/admin/orders" element={<AdminOrders />} />
         <Route path="/dashboard/admin/orders/:id" element={<AdminOrderDetails />} />
+
+        {/* ── AppRedirect ── */}
+        <Route path="/app/verify" element={<AppRedirect />}/>
 
         {/* ── Fallback ── */}
         <Route path="*" element={<NotFound />} />

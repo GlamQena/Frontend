@@ -20,6 +20,7 @@ import {
   FaSignInAlt,
   FaUserPlus,
   FaBoxOpen,
+  FaChartLine,
 } from 'react-icons/fa';
 
 function Navbar() {
@@ -112,6 +113,29 @@ function Navbar() {
     navigate("/login");
   };
 
+  // Determine which quick action icon to show for logged in users
+  const getQuickActionIcon = () => {
+    if (!loggedIn) return null;
+    
+    if (isClient()) {
+      return (
+        <NavLink to="/stores" title="المتاجر" className="nav-icon">
+          <FaStore className="nav-icon-color" size={20} />
+        </NavLink>
+      );
+    }
+    
+    if (isStoreOwner()) {
+      return (
+        <NavLink to="/dashboard/store_owner/" title="لوحة التحكم" className="nav-icon">
+          <FaChartLine className="nav-icon-color" size={20} />
+        </NavLink>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <>
       <div className="navbar-container" dir="rtl">
@@ -147,12 +171,8 @@ function Navbar() {
               </NavLink>
             )}
 
-            {/* Profile - only when logged in */}
-            {loggedIn && (
-              <NavLink to="/profile" title="الملف الشخصي" className="nav-icon">
-                <FaUser className="nav-icon-color" size={20} />
-              </NavLink>
-            )}
+            {/* Quick action icon - stores for clients, dashboard for store owners */}
+            {getQuickActionIcon()}
           </div>
         </nav>
       </div>

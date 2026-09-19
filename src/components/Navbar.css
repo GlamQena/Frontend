@@ -137,17 +137,15 @@
   color: var(--text-muted);
 }
 
-/* ───────────────────────────── */
-/* Icon Colors - Using Global Variables */
-/* ───────────────────────────── */
-
 .nav-icon-color {
   color: var(--primary-main);
   transition: color 0.22s ease, transform 0.22s ease;
 }
 
-.nav-icon-color:hover {
-  color: var(--pink-main);
+.nav-icon:hover .nav-icon-color,
+.nav-hamburger:hover .nav-icon-color,
+.drawer-close:hover .nav-icon-color {
+  color: var(--primary-main);
   transform: scale(1.1);
 }
 
@@ -378,6 +376,7 @@
 /* ───────────────────────────── */
 /* Drawer Icons */
 /* ───────────────────────────── */
+/* NOTE: Drawer icons keep the theme's primary color on hover. */
 
 .drawer-icon {
   color: var(--primary-main);
@@ -426,7 +425,7 @@
 }
 
 .drawer-link:hover .drawer-icon {
-  color: var(--pink-main);
+  color: var(--primary-main);
   transform: scale(1.1);
 }
 
@@ -437,7 +436,7 @@
 }
 
 .drawer-link.active .drawer-icon {
-  color: var(--pink-main);
+  color: var(--primary-main);
 }
 
 .drawer-link span {
