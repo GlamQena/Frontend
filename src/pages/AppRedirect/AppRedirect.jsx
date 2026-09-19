@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Smartphone, AlertTriangle, Sparkles } from "lucide-react";
 import "./AppRedirect.css";
 
 const ALLOWED_SCHEME = "glamqena:";
@@ -15,10 +16,9 @@ export default function AppRedirect() {
     const raw = searchParams.get("deepLink");
     if (!raw) return null;
 
-    const decoded = decodeURIComponent(raw);
+    const decoded = raw;
 
-    // Only allow our own custom scheme — prevents open-redirect abuse
-    // if someone hand-crafts an email link pointing at another app.
+    // Only allow our own custom scheme — prevents open-redirect abuse.
     if (!decoded.toLowerCase().startsWith(ALLOWED_SCHEME)) return null;
 
     return decoded;
@@ -67,7 +67,7 @@ export default function AppRedirect() {
   };
 
   return (
-    <div className="app-redirect-page">
+    <div className="app-redirect-page" dir="rtl" lang="ar">
       <div className="app-redirect-card">
         <div className="app-redirect-brand">
           <span className="brand-glam">Glam</span>
@@ -78,21 +78,25 @@ export default function AppRedirect() {
         {status === "trying" && (
           <>
             <div className="app-redirect-spinner" aria-hidden="true" />
-            <h1 className="app-redirect-title">Opening GlamQena…</h1>
+            <h1 className="app-redirect-title">جارٍ فتح تطبيق GlamQena…</h1>
             <p className="app-redirect-subtitle">
-              Please wait while we open the app.
+              لحظة من فضلك، يتم توجيهك إلى التطبيق.
             </p>
           </>
         )}
 
         {status === "fallback" && (
           <>
-            <div className="app-redirect-icon" aria-hidden="true">
-              📱
+            <div className="app-redirect-icon app-redirect-icon--brand">
+              <Smartphone
+                size={48}
+                strokeWidth={1.75}
+                aria-hidden="true"
+              />
             </div>
-            <h1 className="app-redirect-title">Didn't open?</h1>
+            <h1 className="app-redirect-title">لم يُفتح التطبيق؟</h1>
             <p className="app-redirect-subtitle">
-              Tap the button below to open GlamQena again.
+              اضغط على الزر أدناه لإعادة فتح GlamQena.
             </p>
 
             <button
@@ -100,20 +104,31 @@ export default function AppRedirect() {
               className="app-redirect-btn app-redirect-btn--primary"
               onClick={openApp}
             >
-              Open GlamQena
+              <Sparkles
+                size={18}
+                strokeWidth={2}
+                aria-hidden="true"
+                style={{ marginInlineEnd: 8 }}
+              />
+              افتح GlamQena
             </button>
           </>
         )}
 
         {status === "invalid" && (
           <>
-            <div className="app-redirect-icon" aria-hidden="true">
-              ⚠️
+            <div className="app-redirect-icon app-redirect-icon--error">
+              <AlertTriangle
+                size={48}
+                strokeWidth={1.75}
+                aria-hidden="true"
+              />
             </div>
-            <h1 className="app-redirect-title">Link unavailable</h1>
+            <h1 className="app-redirect-title">الرابط غير صالح</h1>
             <p className="app-redirect-subtitle">
-              This link is invalid or has expired. Please request a new one
-              from the app.
+              هذا الرابط غير صالح أو منتهي الصلاحية.
+              <br />
+              يرجى طلب رابط جديد من التطبيق.
             </p>
           </>
         )}

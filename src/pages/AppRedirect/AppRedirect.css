@@ -7,7 +7,7 @@
 
   background: var(--bg-page);
   color: var(--text-primary);
-  font-family: "Hanken Grotesk", "Segoe UI", Tahoma, sans-serif;
+  font-family: "Hanken Grotesk", "Tajawal", "Segoe UI", Tahoma, sans-serif;
 
   background-image: radial-gradient(
     120% 80% at 50% -10%,
@@ -47,6 +47,8 @@
   margin-bottom: 28px;
   font-family: "Playfair Display", serif;
   line-height: 1;
+  /* Brand mark stays LTR even though the page is RTL */
+  direction: ltr;
 }
 
 .app-redirect-brand .brand-glam {
@@ -93,12 +95,36 @@
   to { transform: rotate(360deg); }
 }
 
-/* ─────────────────────────── Icon ─────────────────────────── */
+/* ─────────────────────────── Icon frames ──────────────────── */
 
 .app-redirect-icon {
-  font-size: 42px;
-  line-height: 1;
-  margin-bottom: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+
+  /* default: uses primary tokens */
+  background: var(--primary-subtle);
+  color: var(--primary-main);
+  border: 1px solid var(--border-prominent);
+}
+
+.app-redirect-icon--brand {
+  background: var(--primary-subtle);
+  color: var(--primary-main);
+  border-color: var(--border-prominent);
+  box-shadow: var(--shadow-focus);
+}
+
+.app-redirect-icon--error {
+  background: var(--error-subtle);
+  color: var(--error-main);
+  border-color: rgba(239, 68, 68, 0.25);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
 /* ─────────────────────────── Text ─────────────────────────── */
@@ -109,12 +135,13 @@
   font-weight: 600;
   letter-spacing: 0.2px;
   color: var(--text-primary);
+  line-height: 1.5;
 }
 
 .app-redirect-subtitle {
   margin: 0 0 22px;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.9;
   color: var(--text-secondary);
 }
 
@@ -162,6 +189,12 @@
   transform: translateY(-1px);
 }
 
+/* Force LTR on the icon inside an RTL row */
+.app-redirect-btn svg {
+  direction: ltr;
+  flex-shrink: 0;
+}
+
 /* ─────────────────────────── Responsive ───────────────────── */
 
 @media (max-width: 480px) {
@@ -170,9 +203,10 @@
     border-radius: 22px;
   }
   .app-redirect-title { font-size: 18px; }
-  .app-redirect-subtitle { font-size: 13px; }
+  .app-redirect-subtitle { font-size: 13px; line-height: 1.8; }
   .app-redirect-brand .brand-glam,
   .app-redirect-brand .brand-qena { font-size: 19px; }
+  .app-redirect-icon { width: 64px; height: 64px; }
 }
 
 /* ─────────────────────────── Reduced motion ───────────────── */
