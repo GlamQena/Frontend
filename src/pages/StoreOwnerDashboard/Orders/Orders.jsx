@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, X, ArrowUpDown, CreditCard, Package } from "lucide-react";
 import OrdersList from "../../../components/OrdersList";
 import "../../../components/OrdersList.css";
 import Pagination from "../../../components/Pagination";
+import FloatingMsg from "../../../components/FloatingMsg";
 import "../../../components/Pagination.css";
 import { api } from "../../../services/authService";
 import "./Orders.css";
@@ -15,26 +17,60 @@ const SORT_OPTIONS = [
 ];
 
 const STATUS_COLORS = {
-  "قيد الانتظار": { bg: "rgba(245,158,11,0.12)",  border: "#f59e0b", text: "#f59e0b" },
-  "جاري التجهيز": { bg: "rgba(168,85,247,0.12)",  border: "#a855f7", text: "#a855f7" },
-  "جاهز للتوصيل": { bg: "rgba(230,16,198,0.12)",  border: "#e610c6", text: "#e610c6" },
-  "قيد التوصيل":  { bg: "rgba(59,130,246,0.12)",  border: "#3b82f6", text: "#3b82f6" },
-  "تم التوصيل":   { bg: "rgba(34,197,94,0.12)",   border: "#22c55e", text: "#22c55e" },
-  "ملغي":         { bg: "rgba(239,68,68,0.12)",   border: "#ef4444", text: "#ef4444" },
+  "قيد الانتظار": {
+    bg: "rgba(245,158,11,0.12)",
+    border: "#f59e0b",
+    text: "#f59e0b",
+  },
+  "جاري التجهيز": {
+    bg: "rgba(168,85,247,0.12)",
+    border: "#a855f7",
+    text: "#a855f7",
+  },
+  "جاهز للتوصيل": {
+    bg: "rgba(230,16,198,0.12)",
+    border: "#e610c6",
+    text: "#e610c6",
+  },
+  "قيد التوصيل": {
+    bg: "rgba(59,130,246,0.12)",
+    border: "#3b82f6",
+    text: "#3b82f6",
+  },
+  "تم التوصيل": {
+    bg: "rgba(34,197,94,0.12)",
+    border: "#22c55e",
+    text: "#22c55e",
+  },
+  ملغي: { bg: "rgba(239,68,68,0.12)", border: "#ef4444", text: "#ef4444" },
 };
 
 const PAYMENT_STATUS_COLORS = {
-  "قيد الانتظار": { bg: "rgba(245,158,11,0.12)",  border: "#f59e0b", text: "#f59e0b" },
-  "تم الاسترداد": { bg: "rgba(168,85,247,0.12)",  border: "#a855f7", text: "#a855f7" },
-  "فشل":          { bg: "rgba(239,68,68,0.12)",   border: "#ef4444", text: "#ef4444" },
-  "مكتمل":        { bg: "rgba(34,197,94,0.12)",   border: "#22c55e", text: "#22c55e" },
-  "قيد المعالجة": { bg: "rgba(59,130,246,0.12)",  border: "#3b82f6", text: "#3b82f6" },
+  "قيد الانتظار": {
+    bg: "rgba(245,158,11,0.12)",
+    border: "#f59e0b",
+    text: "#f59e0b",
+  },
+  "تم الاسترداد": {
+    bg: "rgba(168,85,247,0.12)",
+    border: "#a855f7",
+    text: "#a855f7",
+  },
+  فشل: { bg: "rgba(239,68,68,0.12)", border: "#ef4444", text: "#ef4444" },
+  مكتمل: { bg: "rgba(34,197,94,0.12)", border: "#22c55e", text: "#22c55e" },
+  "قيد المعالجة": {
+    bg: "rgba(59,130,246,0.12)",
+    border: "#3b82f6",
+    text: "#3b82f6",
+  },
 };
 
 const ITEMS_PER_PAGE = 5;
 
 export default function StoreOwnerOrders() {
   const requestIdRef = useRef(0);
+  const isFirstLoadRef = useRef(true);
+  const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState({
@@ -57,6 +93,8 @@ export default function StoreOwnerOrders() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const [error, setError] = useState("");
+  const t = useRef(null);
 
   // Client-side pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,9 +127,29 @@ export default function StoreOwnerOrders() {
     sortBy,
   ]);
 
-  const fetchOrders = async () => {
+  const handleAuthError = (error) => {
+    if (error.code === "AUTH_EXPIRED" || error.message?.includes("session")) {
+      setError("انتهت جلستك. يرجى تسجيل الدخول مرة أخرى");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Clear any existing redirect timeout
+      if (t.current) {
+        clearTimeout(t.current);
+      }
+
+      t.current = setTimeout(() => {
+        navigate("/login");
+      }, 4000);
+
+      return true; // Auth error handled
+    }
+    return false; // Not an auth error
+  };
+
+  const fetchOrders = async ({ isInitial = false } = {}) => {
     const myRequestId = ++requestIdRef.current;
-    setLoading(true);
+    if (isInitial) setLoading(true);
+
     try {
       const params = {
         sortBy,
@@ -115,20 +173,33 @@ export default function StoreOwnerOrders() {
           paymentStatusCounts: data.summary.paymentStatusCounts || {},
         });
       } else {
-        setSummary({ totalOrders: 0, statusCounts: {}, paymentStatusCounts: {} });
+        setSummary({
+          totalOrders: 0,
+          statusCounts: {},
+          paymentStatusCounts: {},
+        });
       }
     } catch (err) {
       if (myRequestId !== requestIdRef.current) return;
-      console.error("Failed to fetch store orders:", err);
+      if (!handleAuthError(err)) {
+        setError("فشل تحميل الطلبات");
+        t.current = setTimeout(() => {
+          setError("");
+        }, 4000);
+      }
       setOrders([]);
     } finally {
-      if (myRequestId === requestIdRef.current) setLoading(false);
+      if (myRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const isInitial = isFirstLoadRef.current;
+    isFirstLoadRef.current = false;
+
+    fetchOrders({ isInitial });
   }, [
     sortBy,
     selectedStatus,
@@ -165,15 +236,19 @@ export default function StoreOwnerOrders() {
     setSelectedStatus("");
     setSelectedPaymentStatus("");
     setSortBy("newest");
+
+    setDebouncedOrderId("");
+    setDebouncedClient("");
+    setDebouncedProduct("");
   };
 
   const hasActiveFilters = Boolean(
     orderIdSearch ||
-      clientSearch ||
-      productNameSearch ||
-      selectedStatus ||
-      selectedPaymentStatus ||
-      sortBy !== "newest",
+    clientSearch ||
+    productNameSearch ||
+    selectedStatus ||
+    selectedPaymentStatus ||
+    sortBy !== "newest",
   );
 
   const totalOrders = summary.totalOrders;
@@ -187,7 +262,6 @@ export default function StoreOwnerOrders() {
   return (
     <div className="orders-page">
       <div className="orders-page-container">
-
         {/* Header — always visible for context */}
         <div className="orders-header">
           <div className="orders-header-left">
@@ -352,11 +426,15 @@ export default function StoreOwnerOrders() {
                       <button
                         key={status}
                         className={`orders-status-btn ${isActive ? "active" : ""}`}
-                        onClick={() => setSelectedStatus(isActive ? "" : status)}
+                        onClick={() =>
+                          setSelectedStatus(isActive ? "" : status)
+                        }
                         style={{
                           borderColor: isActive ? colors.border : "transparent",
                           background: isActive ? colors.bg : "transparent",
-                          color: isActive ? colors.text : "var(--text-secondary)",
+                          color: isActive
+                            ? colors.text
+                            : "var(--text-secondary)",
                         }}
                       >
                         {status}
@@ -411,7 +489,9 @@ export default function StoreOwnerOrders() {
                         style={{
                           borderColor: isActive ? colors.border : "transparent",
                           background: isActive ? colors.bg : "transparent",
-                          color: isActive ? colors.text : "var(--text-secondary)",
+                          color: isActive
+                            ? colors.text
+                            : "var(--text-secondary)",
                         }}
                       >
                         {status}
@@ -446,6 +526,7 @@ export default function StoreOwnerOrders() {
           </div>
         )}
 
+        {error && <FloatingMsg success={false} message={error} />}
         {/* Orders list — handles its own empty states */}
         <OrdersList
           orders={paginatedOrders}

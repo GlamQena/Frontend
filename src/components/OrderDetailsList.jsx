@@ -5,6 +5,8 @@ import { getUserRole } from "../services/users";
 import { getOrderDetails } from "../services/order";
 import { api } from "../services/authService";
 import Pagination from "./Pagination";
+import FloatingMsg from "./FloatingMsg";
+import { buildImgSrc } from "../services/imageUtils";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -140,22 +142,6 @@ function formatCurrency(amount) {
   return Number(amount || 0).toLocaleString("ar-EG") + " ج.م";
 }
 
-function buildImgSrc(imgPath) {
-  if (!imgPath) return null;
-  if (typeof imgPath !== "string") return null;
-  if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
-    return imgPath;
-  }
-  const baseURL =
-    process.env.REACT_APP_API_URL || "https://glamqena-backend.vercel.app";
-  const path = imgPath.replace(/\\/g, "/").replace(/^\/+/, "");
-  return `/${path}`;
-}
-
-/**
- * Normalize the payment status into a stable English key.
- * Matches the logic used by OrdersList so both views agree.
- */
 function resolvePaymentStatusKey(order, normalizedOrderStatus) {
   const method = order?.payment?.method;
   const rawStatus = order?.payment?.status;
@@ -382,7 +368,6 @@ function ReviewModal({ product, orderId, onClose, onSuccess }) {
 function ProductsList({
   order,
   normalizedStatus,
-  ratedProducts,
   setReview,
   showReviewBtn = false,
   isAdmin = false,
@@ -470,7 +455,8 @@ function ProductsList({
               : null;
           const realProdId =
             productData?._id || prod?.prod_id || prod?.product_id || prod?._id;
-          const productName = prod?.name || productData?.name || "—";
+          const productName =
+            prod?.name || prod.product_name || productData?.name || "—";
           const imgSrc = buildImgSrc(
             productData?.images?.[0] || prod?.images?.[0],
           );
@@ -478,9 +464,7 @@ function ProductsList({
           const subtotalPrice = Number(
             prod?.subtotal_price ?? prod?.subtotal ?? 0,
           );
-          const hasReviewed =
-            prod?.hasReviewed === true ||
-            ratedProducts.includes(realProdId?.toString());
+          const hasReviewed = prod?.hasReviewed === true;
 
           return (
             <div
@@ -580,14 +564,11 @@ function OrderActionsBar({
   const hasAnyAction = showReorder || showCancel || showCompletePayment;
 
   let actions_info = [];
-  if(showCancel)
-    actions_info.push("يمكنك إلغاء الطلب قبل بدء التجهيز")
+  if (showCancel) actions_info.push("يمكنك إلغاء الطلب قبل بدء التجهيز");
 
-  if(showReorder)
-    actions_info.push("يمكنك إعادة طلب نفس المنتجات")
+  if (showReorder) actions_info.push("يمكنك إعادة طلب نفس المنتجات");
 
-  if(showCompletePayment)
-    actions_info.push("أكمل عملية الدفع لتأكيد الطلب")
+  if (showCompletePayment) actions_info.push("أكمل عملية الدفع لتأكيد الطلب");
 
   if (!hasAnyAction) return null;
 
@@ -656,13 +637,7 @@ function OrderActionsBar({
 }
 
 // ─── Client Order View ──────────────────────────────────────────────────────
-function ClientOrderView({
-  order,
-  normalizedStatus,
-  isCancelled,
-  ratedProducts,
-  setReview,
-}) {
+function ClientOrderView({ order, normalizedStatus, isCancelled, setReview }) {
   const resolvedPaymentStatus = () => {
     const method = order.payment?.method;
     const rawStatus = order.payment?.status;
@@ -850,7 +825,6 @@ function ClientOrderView({
       <ProductsList
         order={order}
         normalizedStatus={normalizedStatus}
-        ratedProducts={ratedProducts}
         setReview={setReview}
         showReviewBtn={true}
       />
@@ -884,14 +858,18 @@ function ClientOrderView({
                 >
                   <div className="od-subtotal-item-info">
                     <span className="od-subtotal-item-name">{storeName}</span>
-                    <span className="od-subtotal-item-count">{productCount} منتج</span>
+                    <span className="od-subtotal-item-count">
+                      {productCount} منتج
+                    </span>
                   </div>
                   <div className="od-subtotal-item-value-wrapper">
                     <span className="od-subtotal-item-value">
                       {formatCurrency(storeSubtotal)}
                     </span>
                     {showBreakdown && (
-                      <span className="od-subtotal-item-percentage">{percentage}%</span>
+                      <span className="od-subtotal-item-percentage">
+                        {percentage}%
+                      </span>
                     )}
                   </div>
                   {showBreakdown && (
@@ -915,9 +893,15 @@ function ClientOrderView({
 // ─── Store Order View ──────────────────────────────────────────────────────
 function StoreOrderView({ order, normalizedStatus, isCancelled }) {
   const customer = order.customer || {};
+  const methodLabel =
+    PAYMENT_METHOD_MAP[order.payment_method] || order.payment_method || "—";
+  const paymentCfg =
+    PAYMENT_STATUS_CONFIG[resolvePaymentStatusKey(order, normalizedStatus)] ||
+    PAYMENT_STATUS_CONFIG.pending;
 
   return (
     <div className="od-grid od-grid--store">
+      {/* Customer Card */}
       <div className="od-card od-client-info-card">
         <div className="od-card-header">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -934,22 +918,25 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
             <span className="od-icon-label">📞</span>
             <span className="od-info-val">{customer.phone || "—"}</span>
           </div>
+          {customer.email && (
+            <div className="od-info-row od-icon-row">
+              <span className="od-icon-label">✉️</span>
+              <span className="od-info-val">{customer.email}</span>
+            </div>
+          )}
           <div className="od-info-row od-icon-row">
             <span className="od-icon-label">📍</span>
             <span className="od-info-val">{customer.address || "—"}</span>
           </div>
-          <div className="od-info-row od-icon-row">
-            <span className="od-icon-label">✉️</span>
-            <span className="od-info-val">{customer.email || "—"}</span>
-          </div>
         </div>
       </div>
 
+      {/* Order Info Card */}
       <div className="od-card od-order-info-card">
         <div className="od-card-header">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path
-              d="M2 20C1.45 20 0.979167 19.8042 0.5875 19.4125C0.195833 19.0208 0 18.55 0 18V7C0 6.45 0.195833 5.97917 0.5875 5.5875C0.979167 5.19583 1.45 5 2 5H7V2C7 1.45 7.19583 0.979167 7.5875 0.5875C7.97917 0.195833 8.45 0 9 0H11C11.55 0 12.0208 0.195833 12.4125 0.5875C12.8042 0.979167 13 1.45 13 2V5H18C18.55 5 19.0208 5.19583 19.4125 5.5875C19.8042 5.97917 20 6.45 20 7V18C20 18.55 19.8042 19.0208 19.4125 19.4125C19.0208 19.8042 18.55 20 18 20H2Z"
+              d="M2 20C1.45 20 0.979167 19.8042 0.5875 19.4125C0.195833 19.0208 0 18.55 0 18V7C0 6.45 0.195833 5.97917 0.5875 5.5875C0.979167 5.19583 1.45 5 2 5H7V2C7 1.45 7.19583 0.979167 7.5875 0.5875C7.97917 0.195833 8.45 0 9 0H11C11.55 0 12.0208 0.195833 12.4125 0.5875C12.8042 0.979167 13 1.45 13 2V5H18C18.55 5 19.0208 5.195833 19.4125 5.5875C19.8042 5.97917 20 6.45 20 7V18C20 18.55 19.8042 19.0208 19.4125 19.4125C19.0208 19.8042 18.55 20 18 20H2Z"
               fill="var(--primary-main)"
             />
           </svg>
@@ -963,26 +950,81 @@ function StoreOrderView({ order, normalizedStatus, isCancelled }) {
             </span>
           </div>
           <div className="od-info-row">
-            <span className="od-info-label">التاريخ:</span>
+            <span className="od-info-label">تاريخ الطلب:</span>
             <span className="od-info-val">
               {formatDate(order.order_created_at)}
             </span>
           </div>
+          {order.order_updated_at && (
+            <div className="od-info-row">
+              <span className="od-info-label">آخر تحديث:</span>
+              <span className="od-info-val">
+                {formatDate(order.order_updated_at)}
+              </span>
+            </div>
+          )}
           <div className="od-info-row">
             <span className="od-info-label">المنتجات:</span>
             <span className="od-info-val">
               {order.store_products?.length || 0} منتج
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* Payment Card */}
+      <div className="od-card od-payment-card">
+        <div className="od-card-header">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none">
+            <path
+              d="M13 9C12.1667 9 11.4583 8.70833 10.875 8.125C10.2917 7.54167 10 6.83333 10 6C10 5.16667 10.2917 4.45833 10.875 3.875C11.4583 3.29167 12.1667 3 13 3C13.8333 3 14.5417 3.29167 15.125 3.875C15.7083 4.45833 16 5.16667 16 6C16 6.83333 15.7083 7.54167 15.125 8.125C14.5417 8.70833 13.8333 9 13 9ZM6 12C5.45 12 4.97917 11.8042 4.5875 11.4125C4.19583 11.0208 4 10.55 4 10V2C4 1.45 4.19583 0.979167 4.5875 0.5875C4.97917 0.195833 5.45 0 6 0H20C20.55 0 21.0208 0.195833 21.4125 0.5875C21.8042 0.979167 22 1.45 22 2V10C22 10.55 21.8042 11.0208 21.4125 11.4125C21.0208 11.8042 20.55 12 20 12H6ZM8 10H18C18 9.45 18.1958 8.97917 18.5875 8.5875C18.9792 8.19583 19.45 8 20 8V4C19.45 4 18.9792 3.80417 18.5875 3.4125C18.1958 3.02083 18 2.55 18 2H8C8 2.55 7.80417 3.02083 7.4125 3.4125C7.02083 3.80417 6.55 4 6 4V8C6.55 8 7.02083 8.19583 7.4125 8.5875C7.80417 8.97917 8 9.45 8 10ZM19 16H2C1.45 16 0.979167 15.8042 0.5875 15.4125C0.195833 15.0208 0 14.55 0 14V3H2V14H19V16ZM6 10V2V10Z"
+              fill="var(--primary-main)"
+            />
+          </svg>
+          <h2 className="od-section-title">تفاصيل الدفع</h2>
+        </div>
+        <div className="od-info-list">
           <div className="od-info-row">
-            <span className="od-info-label">الإجمالي:</span>
-            <span className="od-info-val od-grand-highlight">
-              {formatCurrency(order.store_subtotal)}
+            <span className="od-info-label">طريقة الدفع</span>
+            <span className="od-info-val">{methodLabel}</span>
+          </div>
+          <div className="od-info-row">
+            <span className="od-info-label">حالة الدفع</span>
+            <span className={`od-pay-badge ${paymentCfg.cls}`}>
+              {paymentCfg.label}
             </span>
           </div>
         </div>
       </div>
 
+      {/* Money Breakdown Card */}
+      <div className="od-card od-totals-card">
+        <div className="od-card-header">
+          <h2 className="od-section-title">الملخص المالي</h2>
+        </div>
+        <div className="od-totals">
+          <div className="od-total-row">
+            <span className="od-total-label">إجمالي منتجاتك</span>
+            <span className="od-total-val">
+              {formatCurrency(order.store_subtotal)}
+            </span>
+          </div>
+          <div className="od-total-row">
+            <span className="od-total-label">تكلفة الشحن</span>
+            <span className="od-total-val">
+              {formatCurrency(order.delivery_cost)}
+            </span>
+          </div>
+          <div className="od-total-row od-grand-row">
+            <span className="od-grand-label">صافي مستحقاتك</span>
+            <span className="od-grand-val">
+              {formatCurrency(order.store_payout)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Products List (already store-aware) */}
       <ProductsList order={order} isStoreOwner={true} />
     </div>
   );
@@ -1093,7 +1135,6 @@ export default function OrderDetailsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [review, setReview] = useState(null);
-  const [ratedProducts, setRatedProducts] = useState([]);
   const [actionLoading, setActionLoading] = useState(null); // "cancel" | "reorder" | null
   const role = getUserRole();
 
@@ -1110,6 +1151,25 @@ export default function OrderDetailsList() {
     return () => clearTimeout(t.current);
   }, []);
 
+  const handleAuthError = (error) => {
+    if (error.code === "AUTH_EXPIRED" || error.message?.includes("session")) {
+      setError( "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى" );
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Clear any existing redirect timeout
+      if (t.current) {
+        clearTimeout(t.current);
+      }
+
+      t.current = setTimeout(() => {
+        navigate("/login");
+      }, 4000);
+
+      return true; // Auth error handled
+    }
+    return false; // Not an auth error
+  };
+
   const fetchOrder = async () => {
     try {
       setLoading(true);
@@ -1118,13 +1178,12 @@ export default function OrderDetailsList() {
       setOrder(resData.data);
     } catch (err) {
       console.error("error fetching order details: ", JSON.stringify(err));
-      const msg = String(err?.message || "");
-      if (err?.code === "AUTH_EXPIRED" || msg.includes("session"))
-        setError("انتهت جلستك. يرجى تسجيل الدخول مرة أخرى");
-      else setError("تعذّر تحميل تفاصيل الطلب");
-      t.current = setTimeout(() => {
-        setError("");
-      }, 4000);
+      if (!handleAuthError(err)) {
+        setError("تعذّر تحميل تفاصيل الطلب");
+        t.current = setTimeout(() => {
+          setError("");
+        }, 4000);
+      }
     } finally {
       setLoading(false);
     }
@@ -1140,7 +1199,12 @@ export default function OrderDetailsList() {
       // Refresh the order so the tracking steps + badges update
       await fetchOrder();
     } catch (err) {
-      alert(err.response?.data?.message || "فشل إلغاء الطلب");
+      if (!handleAuthError(err)) {
+        setError("فشل إلغاء الطلب");
+        t.current = setTimeout(() => {
+          setError("");
+        }, 4000);
+      }
     } finally {
       setActionLoading(null);
     }
@@ -1161,11 +1225,11 @@ export default function OrderDetailsList() {
         },
       });
     } catch (err) {
-      const message = err.response?.data?.message;
-      if (err.response?.status === 404 && message) {
-        alert(`❌ ${message}`);
-      } else {
-        alert("فشل إعادة الطلب");
+      if (!handleAuthError(err)) {
+        setError("فشل إعادة الطلب");
+        t.current = setTimeout(() => {
+          setError("");
+        }, 4000);
       }
     } finally {
       setActionLoading(null);
@@ -1192,7 +1256,7 @@ export default function OrderDetailsList() {
     );
   }
 
-  if (error) return <div className="od-error">{error}</div>;
+  if (error) return <FloatingMsg success={false} message={error} />;
   if (!order) return <div className="od-error">لم يتم العثور على الطلب</div>;
 
   const rawStatus = order.status || order.order_status;
@@ -1255,7 +1319,6 @@ export default function OrderDetailsList() {
           order={order}
           normalizedStatus={normalizedStatus}
           isCancelled={isCancelled}
-          ratedProducts={ratedProducts}
           setReview={setReview}
         />
       )}

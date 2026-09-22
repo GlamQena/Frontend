@@ -26,6 +26,7 @@ import {
   clientSchema,
   storeOwnerSchema,
   getSessionId,
+  notifyAuthChange
 } from "../../services/authService";
 import "./Register.css";
 
@@ -105,6 +106,10 @@ const Register = () => {
     setLoading(true);
     responseMessageSetter(false, "", setSubmitMessage);
 
+    const TO_BACKEND = { pink: "light", purple: "dark", system: "system" };
+    let storedTheme = (localStorage.getItem("Theme") || "system").trim().toLowerCase();
+    const theme = TO_BACKEND[storedTheme];
+
     try {
       const registrationData = {
         role: selectedRole,
@@ -114,7 +119,7 @@ const Register = () => {
         confirmPassword: formData.confirmPassword,
         phoneNumber: formData.phone || undefined,
         birthdate: formData.birthdate || undefined,
-        gender: formData.gender || "female",
+        gender: formData.gender || undefined,
         address:
           formData.address?.city ||
           formData.address?.district ||
@@ -125,6 +130,10 @@ const Register = () => {
                 street: formData.address.street || undefined,
               }
             : undefined,
+        preferences: {
+          theme,
+          locale: "ar"
+        }
       };
 
       if (selectedRole === "store_owner") {
@@ -153,12 +162,13 @@ const Register = () => {
       if (responseData.cart_merged) localStorage.removeItem("session_id");
 
       if (responseData.authData) {
-        const authData = responseData.authData;
-        localStorage.setItem("user", JSON.stringify(authData.user));
-        localStorage.setItem("accessToken", authData.accessToken);
-        localStorage.setItem("refreshToken", authData.refreshToken);
+        const {user, accessToken, refreshToken} = responseData.authData;
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
       }
 
+      notifyAuthChange();
     } catch (err) {
       console.error("Registration error:", err);
       responseMessageSetter(

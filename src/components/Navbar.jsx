@@ -2,7 +2,7 @@ import { useTheme } from "./ThemeProvider";
 import { useLocation, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./Navbar.css";
-import { isUserLogged, logout } from "../services/authService";
+import { isUserLogged, logout, notifyAuthChange, api } from "../services/authService";
 import { getUserRole, isClient, isStoreOwner } from "../services/users";
 
 // React Icons imports
@@ -22,21 +22,43 @@ import {
   FaBoxOpen,
   FaChartLine,
 } from 'react-icons/fa';
+import FloatingMsg from "./FloatingMsg";
 
 function Navbar() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [error, setError] = useState("");
   const drawerRef = useRef(null);
   const hamburgerRef = useRef(null);
-  
+  const debounceRef = useRef(null);
+
   useEffect(() => {
     setLoggedIn(isUserLogged());
     setUserRole(getUserRole());
   }, [location]);
+
+  const handleAuthError = (error) => {
+    if (error.code === "AUTH_EXPIRED" || error.message?.includes("session")) {
+      setError( "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى" );
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // Clear any existing redirect timeout
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+
+      debounceRef.current = setTimeout(() => {
+        navigate("/login");
+      }, 4000);
+
+      return true; // Auth error handled
+    }
+    return false; // Not an auth error
+  };
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
@@ -45,6 +67,26 @@ function Navbar() {
   const toggleDrawer = useCallback(() => {
     setIsDrawerOpen(prev => !prev);
   }, []);
+
+  const handleToggle = () => {
+    const TO_BACKEND = { pink: "light", purple: "dark", system: "system" };
+    const next = resolvedTheme === "purple" ? "pink" : "purple";
+    setTheme(next);
+    if (!isUserLogged()) return;
+
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      api.patch("/profile/preferences", { theme: TO_BACKEND[next] })
+      .catch((err) => {
+        if (!handleAuthError(err)) {
+        setError("فشل تحديث الثيم المفضل");
+        debounceRef.current = setTimeout(() => {
+          setError("");
+        }, 4000);
+      }
+      });
+    }, 600);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -109,6 +151,8 @@ function Navbar() {
   const handleLogout = async () => {
     await logout();
     setLoggedIn(false);
+    notifyAuthChange();
+    
     closeDrawer();
     navigate("/login");
   };
@@ -277,13 +321,14 @@ function Navbar() {
         <div className="drawer-footer">
           <button
             className="drawer-theme-toggle"
-            onClick={() => setTheme(p => p === "purple" ? "pink" : "purple")}
+            onClick={handleToggle}
           >
             <span className="theme-half-circle" />
-            <span>{theme === "purple" ? "مظهر الوردي/الأبيض" : "مظهر الأسود/الأرجواني"}</span>
+            <span>{resolvedTheme  === "purple" ? "مظهر الوردي/الأبيض" : "مظهر الأسود/الأرجواني"}</span>
           </button>
         </div>
       </div>
+      {error && <FloatingMsg success= {false} message= {error}/>}
     </>
   );
 }

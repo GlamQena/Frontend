@@ -264,7 +264,7 @@
   opacity: 1;
 }
 
-.ol-item-img {
+.ol-item-img, .ol-store-product-img {
   width: 68px;
   height: 68px;
   border-radius: 12px;
@@ -278,12 +278,12 @@
   border: 1px solid var(--border-subtle);
 }
 
-.ol-item-img:hover {
+.ol-item-img:hover, .ol-store-product-img:hover {
   transform: scale(1.05);
   border-color: var(--border-focus);
 }
 
-.ol-item-img img {
+.ol-item-img img, .ol-store-product-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -388,6 +388,63 @@
   font-family: 'Courier New', monospace;
   letter-spacing: 0.5px;
   direction: ltr;
+}
+
+.ol-store-products {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+.ol-store-products-title {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+.ol-store-products-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ol-store-product-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.ol-store-product-name {
+  flex: 1;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ol-store-product-qty {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.ol-store-product-price {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.ol-store-products-more {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.ol-total-row--payout {
+  border-top: 1px dashed var(--border-subtle);
+  padding-top: 6px;
+  margin-top: 4px;
+}
+.ol-total-val--payout {
+  color: var(--success-main, #22c55e);
+  font-weight: 700;
 }
 
 /* ── Card Footer ────────────────────────────── */
@@ -721,7 +778,7 @@
 
 .ol-empty-icon {
   font-size: 72px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   opacity: 0.6;
 }
 

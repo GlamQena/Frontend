@@ -24,6 +24,7 @@ import {
 import { getProfile } from "../../services/profileService";
 import { getProductById } from "../../services/products";
 import { buildImgSrc } from "../../services/imageUtils";
+import { isClient, isStoreOwner, isAdmin } from "../../services/users";
 
 export default function ProductDetails() {
   const { productId } = useParams();
@@ -467,6 +468,7 @@ export default function ProductDetails() {
             </div>
           )}
 
+          {!isStoreOwner() && !isAdmin() && 
           <div className="actions">
             <div className="qty">
               <button
@@ -508,7 +510,7 @@ export default function ProductDetails() {
               إضافة للسلة <FaShoppingBag />
             </button>
             
-            {isUserLogged() &&
+            {isUserLogged() && isClient() &&
               <button
                 className="fav-btn"
                 onClick={handleToggleWishlist}
@@ -528,7 +530,7 @@ export default function ProductDetails() {
                 )}
               </button>}
 
-          </div>
+          </div>}
         </div>
       </div>
 

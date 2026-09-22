@@ -4,6 +4,7 @@ import { ArrowLeft, X } from "lucide-react";
 import "./OrdersList.css";
 import { getUserRole } from "../services/users";
 import { api, isUserLogged } from "../services/authService";
+import { buildImgSrc } from "../services/imageUtils";
 
 const STATUS_CONFIG = {
   "قيد الانتظار": {
@@ -318,7 +319,7 @@ export default function OrdersList({
   onCancelSuccess,
   onStatusChange,
   headerTitle = "الطلبات",
-  loading = true,
+  loading = true
 }) {
   const navigate = useNavigate();
   const role = getUserRole();
@@ -359,16 +360,6 @@ export default function OrdersList({
       }
     }
   }
-
-  const formattedImage = (imgPath) => {
-    if (!imgPath) return null;
-    if (imgPath.includes("uploads")) {
-      const apiUrl =
-        process.env.REACT_APP_API_URL || "https://glamqena-backend.vercel.app";
-      return imgPath.replace(/\\/g, "//").replace("uploads", apiUrl);
-    }
-    return imgPath;
-  };
 
   if (!isUserLogged()) {
     return (
@@ -472,12 +463,12 @@ export default function OrdersList({
                 const isCancelled = key === "ملغي";
                 const prodCount = countProducts(order);
                 const total = order.total_price || order.store_subtotal || 0;
-                const paymentMethod = order.payment?.method;
+                const paymentMethod = storeMode ? order.payment_method : order.payment?.method;
                 const paymentStatusKey = storeMode
                   ? normalizePaymentStatus(
                       {
-                        status: order.payment?.status,
-                        method: order.payment?.method,
+                        status: order.payment_status,
+                        method: order.payment_method,
                       },
                       key,
                     )
@@ -574,7 +565,7 @@ export default function OrdersList({
                             )
                             .slice(0, 4)
                             .map((item, j) => {
-                              const src = formattedImage(
+                              const src = buildImgSrc(
                                 item.prod_id?.images?.[0],
                               );
                               const productId = item.prod_id?._id;
@@ -628,46 +619,103 @@ export default function OrdersList({
                         </div>
                       )}
 
-                      {/* STORE: Customer info */}
                       {storeMode && (
-                        <div className="ol-customer">
-                          {order.customer?.name?.trim() && (
+                        <>
+                          <div className="ol-customer">
+                            {order.customer?.name?.trim() && (
+                              <div className="ol-customer-row">
+                                <span className="ol-customer-label">العميل:</span>
+                                <span className="ol-customer-val">{order.customer.name}</span>
+                              </div>
+                            )}
+                            {order.customer?.phone?.trim() && (
+                              <div className="ol-customer-row">
+                                <span className="ol-customer-label">الهاتف:</span>
+                                <span className="ol-customer-val ol-mono">
+                                  {order.customer.phone}
+                                </span>
+                              </div>
+                            )}
+                            {order.customer?.email?.trim() && (
+                              <div className="ol-customer-row">
+                                <span className="ol-customer-label">البريد:</span>
+                                <span className="ol-customer-val ol-mono">
+                                  {order.customer.email}
+                                </span>
+                              </div>
+                            )}
+                            {order.customer?.address?.trim() && (
+                              <div className="ol-customer-row">
+                                <span className="ol-customer-label">العنوان:</span>
+                                <span className="ol-customer-val">{order.customer.address}</span>
+                              </div>
+                            )}
                             <div className="ol-customer-row">
-                              <span className="ol-customer-label">العميل:</span>
+                              <span className="ol-customer-label">طريقة الدفع:</span>
                               <span className="ol-customer-val">
-                                {order.customer.name}
+                                {order.payment_method === "cash"
+                                  ? "دفع عند الاستلام"
+                                  : order.payment_method === "card"
+                                    ? "بطاقة"
+                                    : order.payment_method === "wallet"
+                                      ? "محفظة"
+                                      : "—"}
                               </span>
                             </div>
-                          )}
-                          {order.customer?.phone?.trim() && (
-                            <div className="ol-customer-row">
-                              <span className="ol-customer-label">الهاتف:</span>
-                              <span className="ol-customer-val ol-mono">
-                                {order.customer.phone}
-                              </span>
+                          </div>
+
+                          {Array.isArray(order.store_products) && order.store_products.length > 0 && (
+                            <div className="ol-store-products">
+                              <p className="ol-store-products-title">
+                                المنتجات ({order.store_products.length})
+                              </p>
+                              <ul className="ol-store-products-list">
+                                {order.store_products.slice(0, 4).map((p, i) => {
+                                  const src = buildImgSrc(p.images?.[0]);
+                                  const productId =
+                                    typeof p.product_id === "object" && p.product_id !== null
+                                      ? p.product_id._id
+                                      : p.product_id;
+                                  return (
+                                    <li
+                                      key={i}
+                                      className="ol-store-product-row"
+                                      onClick={() => p.product_id && navigate(`/products/${productId}`)}
+                                      style={{ cursor: p.product_id ? "pointer" : "default" }}
+                                    >
+                                      <div className="ol-store-product-img">
+                                        {src ? (
+                                          <img
+                                            src={src}
+                                            alt={p.product_name}
+                                            loading="lazy"
+                                            onError={(e) => {
+                                              e.currentTarget.style.display = "none";
+                                              e.currentTarget.parentElement.innerHTML =
+                                                "<span class='ol-store-product-fb'>🧴</span>";
+                                            }}
+                                          />
+                                        ) : (
+                                          <span className="ol-store-product-fb">🧴</span>
+                                        )}
+                                      </div>
+                                      <span className="ol-store-product-name">{p.product_name}</span>
+                                      <span className="ol-store-product-qty">× {p.quantity}</span>
+                                      <span className="ol-store-product-price">
+                                        {Number(p.subtotal || 0).toLocaleString("ar-EG")} ج.م
+                                      </span>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                              {order.store_products.length > 4 && (
+                                <p className="ol-store-products-more">
+                                  + {order.store_products.length - 4} منتجات أخرى
+                                </p>
+                              )}
                             </div>
                           )}
-                          {order.customer?.address?.trim() && (
-                            <div className="ol-customer-row">
-                              <span className="ol-customer-label">
-                                العنوان:
-                              </span>
-                              <span className="ol-customer-val">
-                                {order.customer.address}
-                              </span>
-                            </div>
-                          )}
-                          {order.store_products && (
-                            <div className="ol-customer-row">
-                              <span className="ol-customer-label">
-                                المنتجات:
-                              </span>
-                              <span className="ol-customer-val">
-                                {order.store_products.length} منتج
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                        </>
                       )}
                     </div>
 
@@ -733,16 +781,38 @@ export default function OrdersList({
 
                       <div className="ol-total-block">
                         {prodCount > 0 && (
-                          <span className="ol-prod-count">
-                            {prodCount} منتج
-                          </span>
+                          <span className="ol-prod-count">{prodCount} منتج</span>
                         )}
-                        <div className="ol-total-row">
-                          <span className="ol-total-label">الإجمالي</span>
-                          <span className="ol-total-val">
-                            {total.toLocaleString("ar-EG")} ج.م
-                          </span>
-                        </div>
+
+                        {storeMode ? (
+                          <>
+                            <div className="ol-total-row">
+                              <span className="ol-total-label">إجمالي منتجاتك</span>
+                              <span className="ol-total-val">
+                                {Number(order.store_subtotal || 0).toLocaleString("ar-EG")} ج.م
+                              </span>
+                            </div>
+                            <div className="ol-total-row">
+                              <span className="ol-total-label">الشحن</span>
+                              <span className="ol-total-val">
+                                {Number(order.delivery_cost || 0).toLocaleString("ar-EG")} ج.م
+                              </span>
+                            </div>
+                            <div className="ol-total-row ol-total-row--payout">
+                              <span className="ol-total-label">صافي مستحقاتك</span>
+                              <span className="ol-total-val ol-total-val--payout">
+                                {Number(order.store_payout || 0).toLocaleString("ar-EG")} ج.م
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="ol-total-row">
+                            <span className="ol-total-label">الإجمالي</span>
+                            <span className="ol-total-val">
+                              {total.toLocaleString("ar-EG")} ج.م
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

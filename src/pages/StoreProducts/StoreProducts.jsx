@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./StoreProducts.css";
 import ProductCard from '../../components/ProductCard.jsx';
-import { getStoreProducts, getCategories } from "../../services/products.js";
+import { getStoreProducts } from "../../services/products.js";
 import { buildImgSrc } from '../../services/imageUtils.js';
 import { responseMessageSetter } from "../../services/authService.js";
 import { getCurrentUser, isClient, getWishlist, addToWishlist, removeFromWishlist } from "../../services/users.js";
@@ -35,6 +35,24 @@ export default function StoreProducts() {
     
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
+
+    const hasActiveFilters =
+        searchQuery.trim() !== "" ||
+        ingredientQuery.trim() !== "" ||
+        selectedCategory !== "all" ||
+        maxPrice !== "" ||
+        minRating !== "" ||
+        selectedSkinType !== "";
+
+    const clearAllFilters = () => {
+        setSearchQuery("");
+        setIngredientQuery("");
+        setSelectedCategory("all");
+        setMaxPrice("");
+        setMinRating("");
+        setSelectedSkinType("");
+        setCurrentPage(1);
+    };
 
     const fetchStoreDataAndProducts = async () => {
         setIsLoading(true);
@@ -321,6 +339,16 @@ export default function StoreProducts() {
                         <option value="3">3 نجوم فأكثر</option>
                         <option value="2">2 نجوم فأكثر</option>
                     </select>
+
+                    {hasActiveFilters && (
+                        <button
+                            type="button"
+                            className="sp-clear-filters"
+                            onClick={clearAllFilters}
+                        >
+                            مسح الفلاتر
+                        </button>
+                    )}
                 </div>
             </div>
 

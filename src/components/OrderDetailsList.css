@@ -233,16 +233,23 @@ button {
 
 .od-grid--store {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-areas:
-    "od-client od-order"
+    "od-client   od-order"
+    "od-payment  od-totals"
     "od-products od-products"
     "od-subtotals od-subtotals";
-  gap: 28px;
-  margin-top: 0;
+  gap: 24px;
   width: 100%;
   box-sizing: border-box;
 }
+
+.od-grid--store .od-client-info-card { grid-area: od-client; }
+.od-grid--store .od-order-info-card  { grid-area: od-order; }
+.od-grid--store .od-payment-card     { grid-area: od-payment; }
+.od-grid--store .od-totals-card      { grid-area: od-totals; }
+.od-grid--store .od-products-card    { grid-area: od-products; }
+.od-grid--store .od-subtotals-section { grid-area: od-subtotals; }
 
 /* ── Assign grid areas ────────────────────────────────── */
 .od-tracking-card {
@@ -346,6 +353,28 @@ button {
 
 .od-tracking-card .od-section-title {
   margin-bottom: 20px;
+}
+
+.od-totals-card {
+  border: 1px solid var(--border-prominent);
+  border-radius: var(--card-radius);
+  background: var(--bg-card);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.3s ease;
+  min-width: 0;
+}
+
+.od-totals-card:hover {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.od-totals-card .od-grand-val {
+  color: var(--success-main, #22c55e);
 }
 
 /* ── Info Rows ───────────────────────────────────────── */

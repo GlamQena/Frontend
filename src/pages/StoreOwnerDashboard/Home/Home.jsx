@@ -18,6 +18,7 @@ import {
 import { getCurrentUser } from "../../../services/users";
 import "./Home.css";
 import { getAccessToken } from "../../../services/authService";
+import { API_BASE_URL } from "../../../services/apiConfig";
 
 function getStoreId() {
   const user = getCurrentUser();
@@ -219,7 +220,7 @@ function StatusDropdown({
     setLoading(true);
     try {
       const headers = await getAuthHeaders();
-      const res = await fetch(`/order/${orderId}/status?status=${status}`, {
+      const res = await fetch(`${API_BASE_URL}/order/${orderId}/status?status=${status}`, {
         method: "PATCH",
         headers,
       });
@@ -400,7 +401,7 @@ export default function StoreOwnerHome() {
     try {
       const headers = await getAuthHeaders();
       const chartRes = await fetch(
-        `/stores/me/sales-chart?period=${period}`,
+        `${API_BASE_URL}/stores/me/sales-chart?period=${period}`,
         { headers },
       );
 
@@ -430,7 +431,7 @@ export default function StoreOwnerHome() {
 
   const getStats = useCallback(async () => {
     try {
-      const statsRes = await fetch(`/stores/me/statistics`, {
+      const statsRes = await fetch(`${API_BASE_URL}/stores/me/statistics`, {
         headers: await getAuthHeaders(),
       });
       const statsResData = await statsRes.json();

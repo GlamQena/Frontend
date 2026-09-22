@@ -10,7 +10,8 @@ import {
   login,
   getSessionId,
   activateAccount,
-  resendActivationOTP
+  resendActivationOTP,
+  notifyAuthChange
 } from "../../services/authService";
 
 const Login = () => {
@@ -106,7 +107,8 @@ const Login = () => {
           localStorage.setItem("user", JSON.stringify(user));
           localStorage.setItem("accessToken", data.accessToken);
           localStorage.setItem("refreshToken", data.refreshToken);
-          
+          notifyAuthChange();
+
           responseMessageSetter(true, data.message || "تم تفعيل الحساب بنجاح", setSubmitMessage);
 
           setTimeout(() => {
@@ -145,7 +147,8 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
-
+        notifyAuthChange();
+        
         setTimeout(() => {
           if(returnTo){
             navigate(returnTo);

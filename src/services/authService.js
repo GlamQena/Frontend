@@ -3,16 +3,12 @@ import * as yup from "yup";
 import { getCurrentUser } from "./users";
 import { API_BASE_URL, apiUrl } from "./apiConfig";
 
-// ─────────────────────────────────────────────
-// AXIOS INSTANCE
-// ─────────────────────────────────────────────
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredential: true
 });
 
-// ─────────────────────────────────────────────
-// INTERCEPTOR (AUTO BEARER TOKEN ATTACH)
-// ─────────────────────────────────────────────
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -30,6 +26,31 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+api.interceptors.response.use(
+  (response) => response,           // success status code 2xx → pass through
+  async (error) => {
+    const status = error.response?.status;
+
+    if (status === 401) {
+      const message =
+        error.response?.data?.message ||
+        "Your session has expired. Please login again.";
+      return Promise.reject(createAuthError(message));
+    }
+
+    // Any other status → reject as-is
+    return Promise.reject(error);
+  },
+);
+
+export const createAuthError = (message) => {
+  const error = new Error(
+    message || "Your session has expired. Please login again.",
+  );
+  error.code = "AUTH_EXPIRED";
+  return error;
+};
+
 export const isUserLogged = () => {
   const refreshToken = localStorage.getItem("refreshToken");
 
@@ -43,6 +64,10 @@ export const isUserLogged = () => {
   } catch {
     return false;
   }
+};
+
+export const notifyAuthChange = () => {
+  window.dispatchEvent(new Event("auth-changed")); //to be listenned later in cartContext provider to refresh the loaded cart accordingly
 };
 
 export const getSessionId = () => {
